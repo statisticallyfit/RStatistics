@@ -1,29 +1,7 @@
-source('/datascience/projects/statisticallyfit/github/learningstatistics/RStatistics/Util.R')
+source('/datascience/projects/statisticallyfit/github/R/RStatistics/FORMULAS.R')
        
 library(DescTools)
 
-
-## testing tbl
-tbl <- matrix(c(12,34,58,44,10,11,31,88,89,17,15,10,43,55,50,13, 70, 23, 30, 12), 
-              ncol=4, byrow=TRUE, dimnames=list(
-                    Health=c("Unsatisfactory","Medium", "Good", 
-                             "Very good", "Excellent"),
-                    Treatment=c("Placebo", "VitaminB12", "Manganese", "VitaminC")))
-
-# for testing concordant pairs
-job <- matrix(c(1,3,10,6, 2,3,10,7, 1,6,14,12, 0,1,9,11),
-              ncol=4, byrow = TRUE, dimnames=list(
-                    Income=c("<15,000", "15,000-25,000", "25,000-40,000", ">40,000"),
-                    JobSatisfaction=c("VeryDis", "LittleDis","ModeratelySat", "VerySat")
-              ))
-
-# agresti page 80 pdf
-religion <- matrix(c(178,138,108, 570,648,442, 138,252,252), ncol=3, byrow = TRUE,
-                   dimnames=list(
-                         HighestDegree=c("< highschool", "highschool/juniorcollege", 
-                                         "bachelor/graduate"),
-                         ReligiousBeliefs=c("Fundamentalist","Moderate","Liberal")
-                   ))
 
 
 
@@ -68,10 +46,40 @@ ANOVA <- function(r.lm, u.lm, J){
 #}
 
 
+
 # same SSE as for ANOVA as one from SUMMARY
 SSE <- function(y, yhat) {
       return(sum( (y - yhat)^2 ))
 }
+standardErrorOfRegression <- function(y, yhat) {
+      sse.value <- invisible(SSE(y, yhat))
+      n <- length(y)
+      return (sqrt((sse.value) / (n - 2)))
+}
+
+standardErrorOfSlope <- function(x, y, yhat) {
+      s <- standardErrorOfRegression(y, yhat)
+      return (s / sqrt(SSxx(x)))
+}
+
+SSyy <- function(y) {
+      y.mean <- mean(y)
+      return ( sum( (y - y.mean)^2 ) )
+}
+
+SSxx <- function(x) {
+      x.mean <- mean(x)
+      return ( sum( (x - x.mean)^2 ) )
+}
+
+SSxy <- function(x, y) {
+      x.mean <- mean(x)
+      y.mean <- mean(y)
+      return ( sum( (x - x.mean) * (y - y.mean) ) )
+}
+#standardErrorOfRegression <- function(sse.value, n) {
+#      return(sqrt(sse.value / (n - 2)))
+#}
 # OR
 #a <- anova(lm)
 #ss <- a$`Sum Sq`
@@ -81,8 +89,73 @@ SSE <- function(y, yhat) {
 #(1-s$r.squared)*SST(var$datamat$dc)
 
 SST <- function(y) {
-      return(sum( (y - mean(y))^2 ))
+      return ( sum( (y - y.mean)^2 ) )
 }
+
+## Confidence interval for the Slope in Regression Model (simple)
+slopeCI <- function(x, y, level = 0.95) {
+      model <- lm(y ~ x)
+      slope <- model$coefficients[[2]]
+      sB1 <- standardErrorOfSlope(x, y, model$fitted)
+      
+      # Calculate alpha for the t-statistic, and df
+      alpha <- 1 - level
+      n <- length(y)
+      df <- n - 2 
+      t.alpha2 <- abs(qt(alpha/2, df))
+      
+      # calculate conf.int 
+      leftCI <- slope - t.alpha2 * sB1
+      rightCI <- slope + t.alpha2 * sB1
+      
+      return( c(leftCI, rightCI) )
+}
+
+# Confidence interval for the Mean when x = xp 
+# E(y) = yhat(xp) +- t(alpha/2,df) * s * sqrt(1/n + (xp - xmean)^2/SSxx)
+meanCI <- function(x, y, model, x.value, level=0.95) {
+      # finding the yhat value at a particular x-.value
+      yhat.at.xp <- model$coeff[[2]] * x.value + model$coeff[[1]]
+      
+      # Finding the std error of regression, s 
+      s <- standardErrorOfRegression(y, yhat)
+      
+      # Finding the t, alpha
+      alpha <- 1 - level 
+      n <- length(y)
+      df <- n - 2
+      t.alpha2 <- abs(qt(alpha/2, df))
+      
+      # Calculating the confidence interval. 
+      leftCI <- yhat.at.xp - t.alpha2 * s * sqrt(1/n + (x.value - mean(x))^2 / SSxx(x))
+      rightCI <- yhat.at.xp + t.alpha2 * s * sqrt(1/n + (x.value - mean(x))^2 / SSxx(x))
+      
+      return(c(leftCI, rightCI))
+}
+      
+      
+# Confidence interval for the Predictor when x = xp
+# yi = yhat(xp) +- t(alpha/2,df) * s * sqrt(1 + 1/n + (xp - xmean)^2/SSxx)
+predictCI <- function(x, y, model, x.value, level=0.95) {
+      # finding the yhat value at a particular x-.value
+      yhat.at.xp <- model$coeff[[2]] * x.value + model$coeff[[1]]
+      
+      # Finding the std error of regression, s 
+      s <- standardErrorOfRegression(y, yhat)
+      
+      # Finding the t, alpha
+      alpha <- 1 - level 
+      n <- length(y)
+      df <- n - 2
+      t.alpha2 <- abs(qt(alpha/2, df))
+      
+      # Calculating the confidence interval. 
+      leftCI <- yhat.at.xp - t.alpha2 * s * sqrt(1 + 1/n + (x.value - mean(x))^2 / SSxx(x))
+      rightCI <- yhat.at.xp + t.alpha2 * s * sqrt(1 + 1/n + (x.value - mean(x))^2 / SSxx(x))
+      
+      return(c(leftCI, rightCI))
+}
+
 
 # -----------------------------------------------------------------------------------------------
 ##################################################################################
