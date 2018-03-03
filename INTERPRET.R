@@ -1,13 +1,18 @@
 
 
-interpret.SlopeCI <- function(x, y, level=0.95, 
-                              x.unit="unit", x.name="x", amount.x.unit.increase=1,
-                              y.unit="unit", y.name="y", 
-                              
+interpret.SlopeCI <- function(fit, level =0.95,
+                              x.unit="unit", amount.x.unit.increase=1,
+                              y.unit="unit", 
                               x.unit.IsPercent=FALSE,
                               y.unit.IsPercent=FALSE)  {
       
-      tuple <- slopeCI(x, y, level)
+      x <- fit$model[[2]]
+      y <- fit$model[[1]]
+      yhat <- fit$fitted
+      x.name = names(fit$model)[1]
+      y.name = names(fit$model)[2]
+      
+      tuple <- slopeCI(fit, level)
       leftCI <- tuple[1]
       rightCI <- tuple[2]
       
@@ -18,24 +23,31 @@ interpret.SlopeCI <- function(x, y, level=0.95,
             rightCIValue <- rightCI * 100
       }
       
+      ## TODO: update word 'change' to reflect true sign - incr or decr
+      
       #print(amount.x.unit.increase)
       return (cat("There is a ", level*100, " % chance that for each ", amount.x.unit.increase, 
                   " ", x.unit, " increase in x (", x.name, "), the predicted response (", 
-                  y.name, ") is expected to increase between ", leftCIValue, " ", 
+                  y.name, ") is expected to change between ", leftCIValue, " ", 
                   y.unit, " and ", rightCIValue, " ", y.unit, ".", sep="") )
 }
 
 
 # Interpret the meanCI
-interpret.MeanCI <- function(x, y, model, x.value, level=0.95,
-                             
-                             x.unit="unit", x.name="x",
-                             y.unit="unit", y.name="y", 
+interpret.MeanCI <- function(fit, x.value, level=0.95,
+                         
+                             x.unit="unit", 
+                             y.unit="unit", 
                              
                              x.unit.IsPercent=FALSE,
                              y.unit.IsPercent=FALSE){
+      x <- fit$model[[2]]
+      y <- fit$model[[1]]
+      yhat <- fit$fitted
+      x.name = names(fit$model)[1]
+      y.name = names(fit$model)[2]
       
-      tuple <- meanCI(x,y, model, x.value, level)
+      tuple <- meanCI(fit, x.value, level)
       leftCI <- tuple[1]
       rightCI <- tuple[2]
       
@@ -55,15 +67,20 @@ interpret.MeanCI <- function(x, y, model, x.value, level=0.95,
 
 
 # Interpret the predictionCI 
-interpret.PredictCI <- function(x, y, model, x.value, level=0.95,
+interpret.PredictCI <- function(fit, x.value, level=0.95,
                              
-                             x.unit="unit", x.name="x",
-                             y.unit="unit", y.name="y", 
+                             x.unit="unit", 
+                             y.unit="unit",  
                              
                              x.unit.IsPercent=FALSE,
                              y.unit.IsPercent=FALSE){
+      x <- fit$model[[2]]
+      y <- fit$model[[1]]
+      yhat <- fit$fitted
+      x.name = names(fit$model)[1]
+      y.name = names(fit$model)[2]
       
-      tuple <- predictCI(x,y, model, x.value, level)
+      tuple <- predictCI(fit, x.value, level)
       leftCI <- tuple[1]
       rightCI <- tuple[2]
       

@@ -3,14 +3,14 @@ library(ggplot2)
 #install.packages("DSUR")
 # library(DSUR)
 
-setwd("/datascience/projects/statisticallyfit/github/learningstatistics/R/learnstatistics/[AndyField] Discovering Statistics")
+setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/[AndyField] Discovering Statistics/")
 
 
 
 # SCATTERPLOT 
 
 facebookData <- read.delim("data/FacebookNarcissism.dat", header=TRUE)
-facebookData
+head(facebookData)
 
 graph <- ggplot(facebookData, aes(NPQC_R_Total, Rating))
 graph + geom_point()
@@ -21,15 +21,15 @@ graph + geom_point(shape=19,
 graph + geom_point(shape=19, 
                    aes(colour=Rating_Type),
                    position="jitter")
-graph + geom_point(aes(shape=Rating_Type),
-                   position="jitter")
+#graph + geom_point(aes(shape=Rating_Type),
+#                   position="jitter")
 
 graph <-ggplot(facebookData, aes(NPQC_R_Total, Rating, colour=Rating))
 graph + geom_point(shape=19)
 
 # ------------------
 examData <- read.delim("data/Exam Anxiety.dat", header=TRUE)
-examData
+head(examData)
 
 scatter <- ggplot(examData, aes(Anxiety, Exam))
 
