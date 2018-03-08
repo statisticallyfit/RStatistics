@@ -23,18 +23,15 @@ SSE <- function(fit) {
 # can get this value with anova table too:
 # (under MeanSq Column and Resids Row - that is s^2)
 standardErrorOfRegression <- function(fit) {
-      y <- fit$model[[1]]
-      yhat <- fit$fitted
-      
       sse.value <- invisible(SSE(fit))
-      n <- length(y)
-      return (sqrt((sse.value) / (n - 2)))
+      n <- length(fit$fitted)
+      kplusOne <- ncol(fit$model)
+      
+      return (sqrt((sse.value) / (n - kplusOne)))
 }
 
 standardErrorOfSlope <- function(fit) {
       x <- fit$model[[2]]
-      y <- fit$model[[1]]
-      yhat <- fit$fitted
       
       s <- standardErrorOfRegression(fit)
       return (s / sqrt(SSxx(x)))
