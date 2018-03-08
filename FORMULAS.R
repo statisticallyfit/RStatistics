@@ -90,53 +90,72 @@ slopeCI <- function(fit, level = 0.95) {
 # E(y) = yhat(xp) +- t(alpha/2,df) * s * sqrt(1/n + (xp - xmean)^2/SSxx)
 ## NOTE: can be found using R with this: 
 # predict(model, new = data.frame(x.name=x.value), interval="confidence", level=0.95)
-meanCI <- function(fit, x.value, level=0.95) {
-      # finding the yhat value at a particular x-.value
-      yhat.at.xp <- fit$coeff[[2]] * x.value + fit$coeff[[1]]
-      yhat <- fit$fitted
-      x <- fit$model[[2]]
-      y <- fit$model[[1]]
+meanCI <- function(fit, x.values, level=0.95){
+      predictorNames <- names(fit$model)[-1]
+      df <- data.frame(rbind(x.values))
+      rownames(df) <- ""
+      colnames(df) <- predictorNames
       
-      # Finding the std error of regression, s 
-      s <- standardErrorOfRegression(fit)
-      
-      # Finding the t, alpha
-      alpha <- 1 - level 
-      n <- length(y)
-      df <- n - 2
-      t.alpha2 <- abs(qt(alpha/2, df))
-      
-      # Calculating the confidence interval. 
-      leftCI <- yhat.at.xp - t.alpha2 * s * sqrt(1/n + (x.value - mean(x))^2 / SSxx(x))
-      rightCI <- yhat.at.xp + t.alpha2 * s * sqrt(1/n + (x.value - mean(x))^2 / SSxx(x))
-      
-      return(c(leftCI, rightCI))
+      return(predict(fit, new = df, interval="confidence", level=level))
 }
+
+predictCI <- function(fit, x.values, level=0.95){
+      predictorNames <- names(fit$model)[-1]
+      df <- data.frame(rbind(x.values))
+      rownames(df) <- ""
+      colnames(df) <- predictorNames
+      
+      return(predict(fit, new = df, interval="prediction", level=level))
+}
+#meanCI <- function(fit, x.value, level=0.95) {
+#      # finding the yhat value at a particular x-.value
+#      yhat.at.xp <- fit$coeff[[2]] * x.value + fit$coeff[[1]]
+#      yhat <- fit$fitted
+#      x <- fit$model[[2]]
+#      y <- fit$model[[1]]
+#      
+#      # Finding the std error of regression, s 
+#      s <- standardErrorOfRegression(fit)
+#      
+#      # Finding the t, alpha
+#      alpha <- 1 - level 
+#      n <- length(y)
+#      df <- n - 2
+#      t.alpha2 <- abs(qt(alpha/2, df))
+#      
+#      # Calculating the confidence interval. 
+#      leftCI <- yhat.at.xp - t.alpha2 * s * sqrt(1/n + (x.value - mean(x))^2 / SSxx(x))
+#      rightCI <- yhat.at.xp + t.alpha2 * s * sqrt(1/n + (x.value - mean(x))^2 / SSxx(x))
+#      
+#      return(c(leftCI, rightCI))
+#}
+
+
 
 
 # Confidence interval for the Predictor when x = xp
 # yi = yhat(xp) +- t(alpha/2,df) * s * sqrt(1 + 1/n + (xp - xmean)^2/SSxx)
 ## NOTE: can be found using R with this: 
 # predict(model, new = data.frame(x.name=x.value), interval="prediction", level=0.95)
-predictCI <- function(fit, x.value, level=0.95) {
-      # finding the yhat value at a particular x-.value
-      yhat.at.xp <- fit$coeff[[2]] * x.value + fit$coeff[[1]]
-      yhat <- fit$fitted
-      x <- fit$model[[2]]
-      y <- fit$model[[1]]
-      
-      # Finding the std error of regression, s 
-      s <- standardErrorOfRegression(fit)
-      
-      # Finding the t, alpha
-      alpha <- 1 - level 
-      n <- length(y)
-      df <- n - 2
-      t.alpha2 <- abs(qt(alpha/2, df))
-      
-      # Calculating the confidence interval. 
-      leftCI <- yhat.at.xp - t.alpha2 * s * sqrt(1 + 1/n + (x.value - mean(x))^2 / SSxx(x))
-      rightCI <- yhat.at.xp + t.alpha2 * s * sqrt(1 + 1/n + (x.value - mean(x))^2 / SSxx(x))
-      
-      return(c(leftCI, rightCI))
-}
+#predictCI <- function(fit, x.value, level=0.95) {
+#      # finding the yhat value at a particular x-.value
+#      yhat.at.xp <- fit$coeff[[2]] * x.value + fit$coeff[[1]]
+#      yhat <- fit$fitted
+#      x <- fit$model[[2]]
+#      y <- fit$model[[1]]
+#      
+#      # Finding the std error of regression, s 
+#      s <- standardErrorOfRegression(fit)
+#      
+#      # Finding the t, alpha
+#      alpha <- 1 - level 
+#      n <- length(y)
+#      df <- n - 2
+#      t.alpha2 <- abs(qt(alpha/2, df))
+#      
+#      # Calculating the confidence interval. 
+#      leftCI <- yhat.at.xp - t.alpha2 * s * sqrt(1 + 1/n + (x.value - mean(x))^2 / SSxx(x))
+#      rightCI <- yhat.at.xp + t.alpha2 * s * sqrt(1 + 1/n + (x.value - mean(x))^2 / SSxx(x))
+#      
+#      return(c(leftCI, rightCI))
+#}
