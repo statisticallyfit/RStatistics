@@ -68,23 +68,29 @@ SST <- function(y) {
       return ( sum( (y - y.mean)^2 ) )
 }
 
-## Confidence interval for the Slope in Regression Model (simple)
-slopeCI <- function(fit, level = 0.95) {
-      slope <- fit$coefficients[[2]]
-      sB1 <- standardErrorOfSlope(fit)
-      
-      # Calculate alpha for the t-statistic, and df
-      alpha <- 1 - level
-      n <- length(y)
-      df <- n - 2 
-      t.alpha2 <- abs(qt(alpha/2, df))
-      
-      # calculate conf.int 
-      leftCI <- slope - t.alpha2 * sB1
-      rightCI <- slope + t.alpha2 * sB1
-      
-      return( c(leftCI, rightCI) )
+## Confidence interval for the Slope in Regression Model (multiple)
+slopeCI <- function(fit, level=0.95) {
+      mat <- confint(fit, level=level)
+      df <- data.frame(as.numeric(mat[,1]), as.numeric(mat[,2]))
+      colnames(df) <- colnames(mat)
+      return(df)
 }
+#slopeCI <- function(fit, level = 0.95) {
+#      slope <- fit$coefficients[[2]]
+#      sB1 <- standardErrorOfSlope(fit)
+#      
+#      # Calculate alpha for the t-statistic, and df
+#      alpha <- 1 - level
+#      n <- length(y)
+#      df <- n - 2 
+#      t.alpha2 <- abs(qt(alpha/2, df))
+#      
+#      # calculate conf.int 
+#      leftCI <- slope - t.alpha2 * sB1
+#      rightCI <- slope + t.alpha2 * sB1
+#      
+#      return( c(leftCI, rightCI) )
+#}
 
 # Confidence interval for the Mean when x = xp 
 # E(y) = yhat(xp) +- t(alpha/2,df) * s * sqrt(1/n + (xp - xmean)^2/SSxx)
