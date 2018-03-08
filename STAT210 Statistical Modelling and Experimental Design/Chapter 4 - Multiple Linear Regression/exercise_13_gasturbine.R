@@ -28,3 +28,6 @@ turbine.anova$`Sum Sq`[6]
 s <- standardErrorOfRegression(turbine.reg.lm); s
 sqrt(sse / 61)
 summ <- summary(turbine.reg.lm); summ$sigma
+
+meanCI(turbine.reg.lm, x.values=c(1,1,1,1,1))
+predictCI(turbine.reg.lm, x.values=c(1,1,1,1,1))

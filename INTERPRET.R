@@ -1,4 +1,5 @@
 
+## TODO: update for multiple regression
 
 interpret.SlopeCI <- function(fit, level =0.95,
                               x.unit="unit", amount.x.unit.increase=1,
