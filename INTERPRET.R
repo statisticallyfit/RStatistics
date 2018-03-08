@@ -103,68 +103,84 @@ interpret.SlopeCI <- function(fit, level =0.95,
 
 
 # TODO do rest for multiple regression
-interpret.MeanCI <- function(fit, x.value, level=0.95,
-                         
-                             x.unit="unit", 
-                             y.unit="unit", 
-                             
-                             x.unit.IsPercent=FALSE,
-                             y.unit.IsPercent=FALSE){
-      x <- fit$model[[2]]
-      y <- fit$model[[1]]
-      yhat <- fit$fitted
-      x.name = names(fit$model)[1]
-      y.name = names(fit$model)[2]
+interpret.MeanCI <- function(fit, x.values=c(), x.units=c(), y.unit="unit", level=0.95){
       
-      tuple <- meanCI(fit, x.value, level)
-      leftCI <- tuple[1]
-      rightCI <- tuple[2]
-      
-      leftCIValue <- 0
-      rightCIValue <- 0 
-      if(y.unit.IsPercent){
-            leftCIValue <- leftCI * 100
-            rightCIValue <- rightCI * 100
+      # Making units and including the y.unit -------------------------
+      if(length(x.units) == 0){
+            x.units <- list()
+            x.units <- replicate(length(fit$coeff)-1, "unit")
       }
+      # Making the mean CI's
+      mat <- round(meanCI(fit, x.values=x.values, level=level), 4)
+      mean.ci <- data.frame(mat)
+      yName <- names(fit$model)[1]
+      yNameValue <- paste(yName, "Value", sep="")
+      lowerName <- paste((1-level)/2 * 100, "%")
+      upperName <- paste(((1-level)/2 + level)*100, "%")
+      colnames(mean.ci) <- c(yNameValue, lowerName, upperName)
       
-      #print(amount.x.unit.increase)
-      return(
-      cat("There is a ", level*100, " % chance that the interval (", leftCI, ", ", rightCI,
-          ") ", y.unit, " encloses the mean ", y.name, " E(y), for all xs (", 
-          x.name, ") which had x (", x.name, ") = ", x.value, " ", x.unit, ".", sep=""))
+      
+      # Building the values in the df. 
+      xdf <- data.frame(rbind(x.values))
+      colnames(xdf) <- names(fit$coefficients)[-1]
+      df <- cbind(xdf, mean.ci)
+      rownames(df) <- ""
+      
+      # Building the x-value sentence to explain y(xp)
+      xValSentence <- ""
+      for(i in 1:ncol(xdf)){
+            xValSentence <- paste(xValSentence, ", ", names(xdf)[i], "=", xdf[[i]], 
+                                  " ", x.units[i], sep="")
+      }
+      xValSentence <- substr(xValSentence, 3, nchar(xValSentence))
+
+      interp <- paste("We are ",level*100, "% confident that the mean ",yName," (E(y)) ",
+          "for all xs at the values: ", xValSentence, ", is between ",
+          df$`2.5 %`, " and ", df$`97.5 %`, " ", y.unit, ".", sep="")
+            
+      simpleDf <- cbind(df, INTERPRETATION=interp)
+      rownames(simpleDf) <- ""
+      
+      return(simpleDf)
 }
 
-
-# TODO do rest for multiple regression
-interpret.PredictCI <- function(fit, x.value, level=0.95,
-                             
-                             x.unit="unit", 
-                             y.unit="unit",  
-                             
-                             x.unit.IsPercent=FALSE,
-                             y.unit.IsPercent=FALSE){
-      x <- fit$model[[2]]
-      y <- fit$model[[1]]
-      yhat <- fit$fitted
-      x.name = names(fit$model)[1]
-      y.name = names(fit$model)[2]
+interpret.PredictCI <- function(fit, x.values=c(), x.units=c(), y.unit="unit", level=0.95){
       
-      tuple <- predictCI(fit, x.value, level)
-      leftCI <- tuple[1]
-      rightCI <- tuple[2]
-      
-      leftCIValue <- 0
-      rightCIValue <- 0 
-      if(y.unit.IsPercent){
-            leftCIValue <- leftCI * 100
-            rightCIValue <- rightCI * 100
+      # Making units and including the y.unit -------------------------
+      if(length(x.units) == 0){
+            x.units <- list()
+            x.units <- replicate(length(fit$coeff)-1, "unit")
       }
+      # Making the mean CI's
+      mat <- round(predictCI(fit, x.values=x.values, level=level), 4)
+      predict.ci <- data.frame(mat)
+      yName <- names(fit$model)[1]
+      yNameValue <- paste(yName, "Value", sep="")
+      lowerName <- paste((1-level)/2 * 100, "%")
+      upperName <- paste(((1-level)/2 + level)*100, "%")
+      colnames(predict.ci) <- c(yNameValue, lowerName, upperName)
       
-      #print(amount.x.unit.increase)
-      return(cat("With ", level*100, 
-                 " % confidence, we predict that the future predicted value of ", 
-                 y.name, " in ", y.unit, " when x = ", x.value, " (", x.name, " in ", x.unit, 
-                 ") will fall in the interval (", leftCI, ", ", rightCI, ") ", 
-                 y.unit, ".", sep=""))
       
+      # Building the values in the df. 
+      xdf <- data.frame(rbind(x.values))
+      colnames(xdf) <- names(fit$coefficients)[-1]
+      df <- cbind(xdf, predict.ci)
+      rownames(df) <- ""
+      
+      # Building the x-value sentence to explain y(xp)
+      xValSentence <- ""
+      for(i in 1:ncol(xdf)){
+            xValSentence <- paste(xValSentence, ", ", names(xdf)[i], "=", xdf[[i]], 
+                                  " ", x.units[i], sep="")
+      }
+      xValSentence <- substr(xValSentence, 3, nchar(xValSentence))
+      
+      interp <- paste("We are ",level*100, "% confident that the single future predicted ",
+                      yName," for all xs at the values: ", xValSentence,", will be between ", 
+                      df$`2.5 %`, " and ", df$`97.5 %`, " ", y.unit, ".", sep="")
+      
+      simpleDf <- cbind(df, INTERPRETATION=interp)
+      rownames(simpleDf) <- ""
+      
+      return(simpleDf)
 }

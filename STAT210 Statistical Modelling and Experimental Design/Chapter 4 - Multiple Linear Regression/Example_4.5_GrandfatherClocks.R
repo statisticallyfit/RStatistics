@@ -8,13 +8,16 @@ summary(clock.lm)
 
 # part a)
 meanCI(clock.lm, x.values=c(150, 10))
-#interpret.MeanCI(clock.lm, x.value)
+interpret.MeanCI(clock.lm, x.values=c(150,10), x.units=c("year", "bidders"))
 
 # part b)
 predictCI(clock.lm, x.values=c(150, 10))
+interpret.PredictCI(clock.lm, x.values=c(150,10), x.units=c("year", "bidders"))
 
 # part c)
 predictCI(clock.lm, x.values=c(50, 2))
 # but we know this won't make sense because the values don't fall in the ranges: 
 range(GFCLOCKS$AGE)
 range(GFCLOCKS$NUMBIDS)
+
+

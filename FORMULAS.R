@@ -96,7 +96,7 @@ slopeCI <- function(fit, level=0.95) {
 # E(y) = yhat(xp) +- t(alpha/2,df) * s * sqrt(1/n + (xp - xmean)^2/SSxx)
 ## NOTE: can be found using R with this: 
 # predict(model, new = data.frame(x.name=x.value), interval="confidence", level=0.95)
-meanCI <- function(fit, x.values, level=0.95){
+meanCI <- function(fit, x.values=c(), level=0.95){
       predictorNames <- names(fit$model)[-1]
       df <- data.frame(rbind(x.values))
       rownames(df) <- ""
