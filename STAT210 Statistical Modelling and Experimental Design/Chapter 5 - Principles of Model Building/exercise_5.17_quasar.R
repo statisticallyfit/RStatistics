@@ -1,5 +1,5 @@
 setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/")
-source('/datascience/projects/statisticallyfit/github/R/RStatistics/FORMULAS.R',echo=FALSE)
+source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/FORMULAS.R',echo=FALSE)
 
 load("data/Exercises and Examples/QUASAR.Rdata")
 attach(QUASAR)

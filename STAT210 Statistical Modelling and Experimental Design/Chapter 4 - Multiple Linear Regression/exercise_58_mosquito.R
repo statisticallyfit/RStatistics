@@ -1,7 +1,7 @@
 setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/")
-source('/datascience/projects/statisticallyfit/github/R/RStatistics/FORMULAS.R', echo=FALSE)
-source('/datascience/projects/statisticallyfit/github/R/RStatistics/INTERPRET.R', echo=FALSE)
-source('/datascience/projects/statisticallyfit/github/R/RStatistics/PLOTTING.R', echo=FALSE)
+source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/FORMULAS.R', echo=FALSE)
+source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/INTERPRET.R', echo=FALSE)
+source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/PLOTTING.R', echo=FALSE)
 
 
 library(ggplot2)

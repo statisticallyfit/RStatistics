@@ -97,13 +97,15 @@ slopeCI <- function(fit, level=0.95) {
 # E(y) = yhat(xp) +- t(alpha/2,df) * s * sqrt(1/n + (xp - xmean)^2/SSxx)
 ## NOTE: can be found using R with this: 
 # predict(model, new = data.frame(x.name=x.value), interval="confidence", level=0.95)
+
+# TODODO use Rfunctions file betaCI to get many decimal places in output
 meanCI <- function(fit, x.values=c(), level=0.95){
       predictorNames <- names(fit$model)[-1]
-      df <- data.frame(rbind(x.values))
+      df <- data.frame(t(x.values))
       rownames(df) <- ""
       colnames(df) <- predictorNames
       
-      return(predict(fit, new = df, interval="confidence", level=level))
+      return(predict(fit, newdata = df, interval="confidence", level=level))
 }
 
 predictCI <- function(fit, x.values, level=0.95){
@@ -112,7 +114,7 @@ predictCI <- function(fit, x.values, level=0.95){
       rownames(df) <- ""
       colnames(df) <- predictorNames
       
-      return(predict(fit, new = df, interval="prediction", level=level))
+      return(predict(fit, newdata = df, interval="prediction", level=level))
 }
 #meanCI <- function(fit, x.value, level=0.95) {
 #      # finding the yhat value at a particular x-.value

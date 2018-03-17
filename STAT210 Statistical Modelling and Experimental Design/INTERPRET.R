@@ -101,6 +101,25 @@ interpret.SlopeCI <- function(fit, level =0.95,
       return(simpleDf)
 }
 
+# TODO clean up, don't understand what's wrong. 
+cleanUpNames <- function(theNames, patterns=c("I",":"), repls=c("", "*")){
+      #patterns <- c("I", ":")
+      #repls <- c("", "*")
+      newNames <- c()
+      
+      for (i in 1:length(theNames)) {
+            detectIndices <- str_detect(theNames, patterns[i])
+            
+            # if not all false, then do the below replacement
+            if(sum(detectIndices) != 0){
+                  newN <- str_replace(theNames[detectIndices], 
+                                      patterns[i], repls[i])
+                  newNames <- c(newNames, newN)
+            }
+      }
+      return(newNames)
+}
+
 
 # TODO do rest for multiple regression
 interpret.MeanCI <- function(fit, x.values=c(), x.units=c(), y.unit="unit", level=0.95){
@@ -122,7 +141,9 @@ interpret.MeanCI <- function(fit, x.values=c(), x.units=c(), y.unit="unit", leve
       
       # Building the values in the df. 
       xdf <- data.frame(rbind(x.values))
-      colnames(xdf) <- names(fit$coefficients)[-1]
+      # Account for transforming names like Length:Width into Length*Width
+      # and I(RPM^2) into RPM^2
+      colnames(xdf) <- cleanUpNames(names(fit$coefficients)[-1])
       df <- cbind(xdf, mean.ci)
       rownames(df) <- ""
       

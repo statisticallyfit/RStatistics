@@ -1,7 +1,7 @@
 setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/PRACTICALS/Practical 1 - Intro/")
 
-source('/datascience/projects/statisticallyfit/github/R/RStatistics/PLOTTING.R')
-source('/datascience/projects/statisticallyfit/github/R/RStatistics/FORMULAS.R')
+source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/PLOTTING.R')
+source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/FORMULAS.R')
 source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Rfunctions.R')
 
 

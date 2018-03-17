@@ -46,11 +46,33 @@ anova(arsenic.lm)
 
 
 # Testing model assumptions
+par(mfrow=c(2,2))
+plot(arsenic.lm)
+
 library(ggfortify)
 autoplot(arsenic.lm)
 # Assumptions not satisfied: 
 # 1. in residuals vs fitted plot, variance explodes is not constant
 # for increasing values of y. 
+# 3. for the normal QQ plot, the standardized residuals leap off the
+# straight y = x line for higher theoretical quantile values. 
+
+
+# Continue on to build conf ints as if assumptions were satisfied
+LONGITUDE <- 90.67; LATITUDE <- 23.74; DEPTHFT <- 210
+newX <- data.frame(LONGITUDE,LATITUDE,DEPTHFT )
+predict(arsenic.lm, newdata=newX, interval="confidence")
+predict(arsenic.lm, newdata=newX, interval="prediction")
+
+
+meanCI(arsenic.lm, x.values=c(LATITUDE, LONGITUDE, DEPTHFT))
+interpret.MeanCI(arsenic.lm, x.values=c(LATITUDE, LONGITUDE, DEPTHFT),
+                 x.units=c("degrees", "degrees", "feet"), y.unit = "litres")
+# prediction is so wide it is becoming meaningfless, also wide from
+# model's unexplained variability. 
+predictCI(arsenic.lm, x.values=c(LATITUDE, LONGITUDE, DEPTHFT))
+interpret.PredictCI(arsenic.lm, x.values=c(LATITUDE, LONGITUDE, DEPTHFT),
+                 x.units=c("degrees", "degrees", "feet"), y.unit = "litres")
 
 
 
