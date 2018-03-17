@@ -12,26 +12,7 @@ coef <- function(model){
 
 
 
-# Given restricted and unrestricted models, 
-# do joint F-test but give Chi square instead of F
-# J = number of restrictions
-####################################### TODO: check out EtaSq from DescTools
-######################################## Use Anova() from car package.
-ANOVA <- function(r.lm, u.lm, J){
-      F.stat.list <- anova(r.lm, u.lm)$F
-      F.stat <- F.stat.list[length(F.stat.list)]
-      chi.stat <- F.stat * J
-      p.value <- 1 - pchisq(chi.stat, df=J) 
-      cat("\n")
-      cat("##################################################\n")
-      cat("######        Analysis Of Variance         #######\n")
-      cat("##################################################\n")
-      cat("\n")
-      cat("χ2 statistic:                        ", chi.stat, "\n")
-      cat("F statistic:                          ", F.stat, "\n")
-      cat("p-value:                              ", p.value, "\n\n")
-      return(invisible(data.frame(ChiSquare=chi.stat, FStatistic=F.stat, PValue=p.value)))
-}
+
 
 
 

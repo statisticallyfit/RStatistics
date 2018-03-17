@@ -2,6 +2,7 @@ setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Stati
 
 source('/datascience/projects/statisticallyfit/github/R/RStatistics/PLOTTING.R')
 source('/datascience/projects/statisticallyfit/github/R/RStatistics/FORMULAS.R')
+source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Rfunctions.R')
 
 
 library(ggplot2)
