@@ -71,7 +71,7 @@ interpret.SlopeCI <- function(fit, level =0.95,
       
       # Interpretations --------------------------------------------------
       interp.B0 <- paste("With ",level*100,"% confidence, when all predictors are zero, ",
-                          "the mean ", df$AllNames[1], " is between ", df$`2.5 %`[1], " and ",
+                          "the population mean ", df$AllNames[1], " is between ", df$`2.5 %`[1], " and ",
                          df$`97.5 %`[1], " ", df$Units[1], ".", sep="")
       allInterps <- c(interp.B0)
       
