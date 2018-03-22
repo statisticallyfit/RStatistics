@@ -2,7 +2,7 @@ setwd('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Stati
 source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Rfunctions.R')
 
 
-options(digits = 10, show.signif.stars = FALSE)
+options(digits = 5, show.signif.stars = FALSE)
 
 hollyData <- read.table("Hollywood.txt", header=TRUE)
 head(hollyData)
@@ -47,9 +47,9 @@ plot(Production, Promo, main="Relationship Between Production and Promo")
 
 
 # part i) testing assumptions using R diagnostics. 
-par(mfrow=c(2,2))
+par(mfrow=c(1,2))
 # testing constant variance (plot 1) and normality of errors (plot 2)
-plot(receipts2.lm, which=1:4)
+plot(receipts2.lm, which=1:2)
 # further test for normality of errors
 shapiro.test(receipts2.lm$residuals)
 
