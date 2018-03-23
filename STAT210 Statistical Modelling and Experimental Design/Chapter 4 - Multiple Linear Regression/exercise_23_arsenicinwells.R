@@ -17,8 +17,27 @@ pairs(aswellsData[, 1:4], lower.panel=panel.smooth, upper.panel = panel.cor)
 # NOTE: if scatter is quadratic, corr is not useful since it only picks up
 # on LINEAR association between two quantitative variables. 
 # 
+library(GGally)
 ggpairs(aswellsData, columns=1:4, upper=list(continuous="cor", params=c(size=10)), 
         lower=list(continuous="smooth", params=c(color="blue")))
+
+
+#df = mtcars
+# create multiple linear model
+#mpg.lm <- lm(mpg ~ cyl + hp, data=df)
+#summary(mpg.lm)
+#data <- df; 
+
+#library(pracma)
+#data$hp <- linspace(min(df$hp), max(df$hp), n=nrow(df))
+## save predictions of the model in the new data frame 
+## together with variable you want to plot against
+#predicted_df <- data.frame(mpg_pred = predict(mpg.lm, data), hp=df$hp)
+#
+## this is the predicted line of multiple linear regression
+#ggplot(data = df, aes(x = hp, y = mpg)) + 
+#      geom_point(color='blue') +
+#      geom_line(color='red',data = predicted_df, aes(x=hp, y=mpg_pred))
 
 # testing cor of quadratic = 0!
 as <- -5:5

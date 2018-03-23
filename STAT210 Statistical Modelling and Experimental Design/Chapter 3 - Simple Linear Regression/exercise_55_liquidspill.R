@@ -5,6 +5,8 @@ load("data/Exercises and Examples/LIQUIDSPILL.Rdata")
 reg.line <- lm(MASS ~ TIME, data=LIQUIDSPILL)
 summary(reg.line)
 
+ggplot(LIQUIDSPILL, aes(x=TIME, y=MASS)) + geom_point(shape=19, size=3,color="dodgerblue")
+
 y <- LIQUIDSPILL$MASS
 x <- LIQUIDSPILL$TIME 
 yhat <- reg.line$fitted.values

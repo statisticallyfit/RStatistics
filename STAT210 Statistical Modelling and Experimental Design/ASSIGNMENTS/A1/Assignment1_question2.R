@@ -1,7 +1,7 @@
 setwd('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/ASSIGNMENTS/A1/')
 source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Rfunctions.R')
 
-options(digits = 10, show.signif.stars = FALSE)
+options(digits = 5, show.signif.stars = FALSE)
 
 insectData <- read.table("insect.txt", header=TRUE)
 head(insectData)
@@ -37,6 +37,8 @@ shapiro.test(insect.lm$residuals)
 
 # part c) 2) Fitting the Square Root model
 # (i)
+# if we remove the intercept (add -1 to ispray) then we get no intercept
+# and all coefficients correspond to mean insect sqrt count for A,B,C,D,E,F.
 insect.sqrt.lm <- lm(sqrt(Count) ~ Ispray, data=insectData)
 summary(insect.sqrt.lm)
 

@@ -3,6 +3,9 @@
 # way it was!!!
 
 
+# TODO: make interaction plot with ggplot: groupBy = default arg and etc
+# see Example 7.3 Diesel Interaction for the format. 
+
 ## Function to use ggplot and add R^2 and so forth
 # x.value = the value at which to do meanCI and predicCI intervals
 # fit = the model lm fit

@@ -11,6 +11,8 @@ head(hollyData)
 # part a) plotting with pairs()
 pairs(hollyData[, c(2,3,4,1)], lower.panel = panel.smooth, upper.panel = panel.cor)
 
+
+
 # part b) 
 receipts.lm <- lm(Receipts ~ Production + Promo + Books, data=hollyData)
 print(summary(receipts.lm))
@@ -21,7 +23,6 @@ print(anova(receipts.lm))
 receipts2.lm <- lm(Receipts ~ Production + Promo, data=hollyData)
 print(summary(receipts2.lm))
 print(anova(receipts2.lm))
-
 
 # part g)
 betaCI(receipts2.lm)
