@@ -4,29 +4,29 @@
 pmf.W <- function(w) {
       5*w / (6 * (1 + w^2))
 }
-
-# a) is valid PDF since it sums to 1
-sum(pmf.W(1) + pmf.W(2) + pmf.W(3))
-# and all values are positive
+# a) check  all values are positive
 all(c(pmf.W(1) > 0, pmf.W(2) > 0, pmf.W(3) > 0))
+
+# another way to check all values are positive
+w <- 1:3
+rbind(w, pmf.W(w))
+
+#  is valid PDF since it sums to 1
+sum(pmf.W(w))
+
 
 
 # b) find E(W)
 mu.W <- pmf.W(1) * 1 + pmf.W(2) * 2 + pmf.W(3) * 3
 mu.W
 
+# another way
+sum(w*pmf.W(w))
+
+
 # c) var(W)
-# E(W^2)
-mu2.W <- pmf.W(1) * 1^2 + pmf.W(2) * 2^2 + pmf.W(3) * 3^3
-mu2.W
-# V(W)
-var.w <- mu2.W - mu.W^2 
-var.w
-
-
-# d) TODO why not the same as above? 
-var.another.W <- pmf.W(1)*(1-mu.W)^2 + pmf.W(2)*(2-mu.W)^2 + pmf.W(3)*(3-mu.W)^2
-var.another.W
+var.W <- sum(w^2 * pmf.W(w)) - mu.W^2
+var.W
 
 
 
@@ -56,6 +56,7 @@ table(diceSample)/120
 # b) 
 mean(diceSample) # true = 3.5
 sqrt(var(diceSample)) # true = 1.708
+sd(diceSample)
 # c)
 barplot(table(diceSample))
 hist(diceSample)
