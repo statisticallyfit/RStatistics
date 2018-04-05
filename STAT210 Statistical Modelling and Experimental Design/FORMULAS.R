@@ -30,6 +30,11 @@ standardErrorOfRegression <- function(fit) {
       return (sqrt((sse.value) / (n - kplusOne)))
 }
 
+MSE <- function(fit) {
+      s <- standardErrorOfRegression(fit)
+      return(s^2)
+}
+
 standardErrorOfSlope <- function(fit) {
       x <- fit$model[[2]]
       
@@ -234,6 +239,83 @@ FTest <- function(fit) {
       return(invisible(df))
       
 }
+
+
+# REASONOING: method shown in section 8.4 Sinicich. 
+# We are splitting data determined by xSplit (by value of xs) and then
+# doing F-variance test on regression stderroreg of both models (MSE's)
+
+# xSplit = the x value such that x <= xSplit is sample 1 and x > xSplit is sample2
+# variableName = the name of the variable that we want to split on. 
+# fit = the lm object
+# alpha = sig level
+# alternative = two-sided or one-sided (cif one sided then calcs which side)
+
+# PREREQ: only for non-multiple regression (simple models)
+HomoskedasticityRegressionTest <- function(theFormula, data, xName, xSplit,
+                                           alternative="two-sided", 
+                                           alpha=0.05){
+      
+      sample1 <- data[data[[xName]] <= xSplit, ]
+      sample2 <- data[data[[xName]] > xSplit, ]
+      
+      fit1 <- lm(theFormula, data=sample1)
+      fit2 <- lm(theFormula, data=sample2)
+      
+      n1 <- nrow(sample1)
+      n2 <- nrow(sample2)
+      
+      Fstat <- 0
+      k <- ncol(fit1$model) -1# should be equal to that of mod2, is num independent vars
+      # including transformations. 
+      numerator.df <- 0
+      denominator.df <- 0
+      mse1 <- MSE(fit1)
+      mse2 <- MSE(fit2)
+      if(mse1 > mse2) { 
+            Fstat <- mse1 / mse2
+            numerator.df <- n1 - (k+1)
+            denominator.df <- n2 - (k+1)
+      } else {
+            Fstat  <- mse2 / mse1
+            numerator.df <- n2 - (k+1)
+            denominator.df <- n1 - (k+1)
+      }
+      
+      
+      
+      # calculating F-crit
+      Fcrit <- 0
+      p.value <- 0
+      alternativeStr <- 0 
+      if(alternative == "two-sided"){
+            alternativeStr <- "Ha: MSE.1 != MSE.2"
+            Fcrit <- qf(alpha/2, df1=numerator.df, df2=denominator.df, lower.tail=F)
+            p.value <- 2*pf(Fstat, df1=numerator.df, df2=denominator.df, lower.tail=F)
+      } else { # else it's one-sided
+            if(mse1 < mse2) alternativeStr <- "Ha: MSE.1 < MSE.2"
+            else alternativeStr <- "Ha: MSE.1 > MSE.2"
+            Fcrit <- qf(alpha, df1=numerator.df, df2=denominator.df, lower.tail=F)
+            p.value <- pf(Fstat, df1=numerator.df, df2=denominator.df, lower.tail=F)
+      }
+            
+      cat("\n")      
+      cat("#############################################################\n")
+      cat("########     Homoskedasticity of Regression Test     ########\n")
+      cat("#############################################################\n")
+      cat("                     H0: MSE.1 == MSE.2                      \n")
+      cat("                     ",alternativeStr,"                       \n",sep="")
+      #cat("")
+      cat("F-statistic =                           ", Fstat, sep="", "\n")
+      cat("Numerator DF =                          ", numerator.df, sep="", "\n")
+      cat("Denominator DF =                        ", denominator.df, sep="", "\n")
+      cat("Critical F-value =                      ", Fcrit, sep="", "\n")
+      cat("P-value =                               ", p.value,sep="","\n")
+      
+      df <- data.frame(Fstat=Fstat, FCritical=Fcrit, PValue=p.value)
+      return(invisible(df))
+}
+
 
 
 

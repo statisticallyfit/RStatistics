@@ -19,10 +19,8 @@ attach(DIESEL)
 # are non-parallel brand curves of performance. Interaction!
 
 # METHOD 1
-ggplot(data=DIESEL, aes(x=BRAND, y=PERFORM, group=FUEL, color=FUEL)) + 
-      geom_smooth(method=lm, lwd=1, se=FALSE) +
-      ggtitle("Interaction Plot of Brand vs. Performance for \n
-              Different Levels of Fuel")
+interactionPlot(data=DIESEL, xFactor = "BRAND", traceFactor = "FUEL", 
+                response="PERFORM")
 
 # METHOD 2
 interaction.plot(x.factor = BRAND, trace.factor = FUEL, response = PERFORM)
@@ -49,12 +47,10 @@ summary(diesel.lm)
 # are non-parallel brand curves of performance. Interaction!
 
 # METHOD 1 (not enough data for this dataset)
-ggplot(data=DIELSEL2, aes(x=BRAND, y=PERFORM, group=FUEL, color=FUEL)) + 
-      geom_smooth(method=lm, lwd=1, se=FALSE) +
-      ggtitle("Interaction Plot of Brand vs. Performance for \n
-              Different Levels of Fuel")
+interactionPlot(data=DIELSEL2, xFactor = "BRAND", response="PERFORM", traceFactor="FUEL")
 
 # METHOD 2 (not enough data for this dataset)
 interaction.plot(x.factor = BRAND, trace.factor = FUEL, response = PERFORM)
+
 
 detach(DIELSEL2)
