@@ -185,7 +185,7 @@ predictCI <- function(fit, x.values, level=0.95){
 # from the coefs that are missing in the reduced model. 
 ####################################### TODO: check out EtaSq from DescTools
 ######################################## Use Anova() from car package.
-NestedFandChiSqTest <- function(r.lm, u.lm){
+NestedFTest <- function(r.lm, u.lm){
       # g = number of parameter difference
       g = length(u.lm$coef) - length(r.lm$coef)
       # k = num parameters in the unrestricted/complete model
@@ -207,11 +207,14 @@ NestedFandChiSqTest <- function(r.lm, u.lm){
       cat("####    (F Test and Chi-Square Test for Nested Models)    ###\n")
       cat("#############################################################\n")
       cat("\n")
-      cat("χ2 statistic:                        ", chi.stat, "\n")
-      cat("p-value:                             ", chi.p.value, "\n")
-      cat("F statistic:                         ", F.nested, "\n")
-      cat("p-value:                             ", f.p.value, "\n\n")
-      return(invisible(data.frame(ChiSquare=chi.stat, ChiSqPValue=chi.p.value, 
+      #cat("χ2 statistic:                        ", chi.stat, "\n")
+      #cat("p-value:                             ", chi.p.value, "\n")
+      cat("F statistic =                         ", F.nested, "\n")
+      cat("p-value =                             ", f.p.value, "\n")
+      cat("numerator df =                        ", df1, "\n")
+      cat("denominator df =                      ", df2, "\n\n")
+      return(invisible(data.frame(ChiSquare=chi.stat, ChiSqPValue=chi.p.value,
+                                  df.chi = df1,
                                   FStatistic=F.nested, FPvalue=f.p.value, 
                                   df1=df1, df2=df2)))
 }

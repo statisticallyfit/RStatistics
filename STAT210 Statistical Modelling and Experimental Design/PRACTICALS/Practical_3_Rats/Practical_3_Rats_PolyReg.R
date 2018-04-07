@@ -4,7 +4,8 @@ source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Stat
 source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/INTERPRET.R')
 
 library(GGally)
-options(digits = 3, show.signif.stars = FALSE)
+library(ggplot2)
+options(digits = 10, show.signif.stars = FALSE)
 
 # xs = concetrations in ml / L of vaccine
 conc <- c(rep(seq(from = 0.5, to = 3, by = 0.5), 2))

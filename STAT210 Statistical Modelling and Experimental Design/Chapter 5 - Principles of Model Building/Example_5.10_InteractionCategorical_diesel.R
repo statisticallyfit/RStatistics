@@ -11,6 +11,9 @@ summary(diesel.lm)
 diesel.interact.lm <- lm(PERFORM ~ FUEL + BRAND + FUEL:BRAND, data=DIESEL)
 summary(diesel.interact.lm)
 
+interactionPlot(data=DIESEL, xFactor = "FUEL", traceFactor = "BRAND",
+                response="PERFORM")
+with(DIESEL, interaction.plot(FUEL, BRAND, PERFORM))
 
 # Estimating mean engine performance when F3 and B2
 
