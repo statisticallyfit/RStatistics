@@ -83,12 +83,12 @@ pbinom(2, size=8, prob=p, lower.tail = FALSE)
 
 # Question 6
 
-# part (i)   p = P(X > 2)
+# part (i)   p = P(X >= 2) = P(X > 1)
 # note: q = 1 is the number of failures before success occurs. 
 # Method 1
-p = pgeom(q=1, prob=0.8, lower.tail = FALSE); p
+p = pgeom(q=0, prob=0.8, lower.tail = FALSE); p
 # Method 2
-1 - pgeom(1, prob=0.8)
+1 - pgeom(0, prob=0.8) # P(X >= 2) = P(X <= 1) (and for pgeom we say q = 0)
 
 # part ii): Probability at least 4 points that required at least 2shots
 # to win the first point.  P(N >= 4)
