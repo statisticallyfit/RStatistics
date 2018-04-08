@@ -1,4 +1,4 @@
-
+source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Rfunctions.R')
 # use DescTools
 # Kurt
 # Skew

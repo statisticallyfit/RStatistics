@@ -70,8 +70,8 @@ partialPlot <- function(fit, variableName, size=3, colour="deeppink"){
             xlab(variableName) + ylab("Partial Residuals")
 }
 
-da <- data.frame(x=1:10, y=seq(1,20,by=2))
-ggplot(da, aes(x=x,y=y)) + geom_abline(intercept=-1, slope=2) + geom_point()
+#da <- data.frame(x=1:10, y=seq(1,20,by=2))
+#ggplot(da, aes(x=x,y=y)) + geom_abline(intercept=-1, slope=2) + geom_point()
 
 
 # Multiplot function defined in cookbook: 
@@ -138,7 +138,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 ## Function to use ggplot and add R^2 and so forth
 # x.value = the value at which to do meanCI and predicCI intervals
 # fit = the model lm fit
-ggplotRegression <- function (fit) {
+modelPlot <- function (fit) {
       
       require(ggplot2)
       #require(ggpmisc) # for statpolyeq function, needs R >= 3.3.3, ggplot 2.2.1

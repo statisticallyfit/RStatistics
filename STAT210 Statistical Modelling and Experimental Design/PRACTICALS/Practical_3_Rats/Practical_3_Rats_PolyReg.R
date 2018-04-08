@@ -7,7 +7,7 @@ library(GGally)
 library(ggplot2)
 options(digits = 10, show.signif.stars = FALSE)
 
-# xs = concetrations in ml / L of vaccine
+# xs = concentrations in ml / L of vaccine
 conc <- c(rep(seq(from = 0.5, to = 3, by = 0.5), 2))
 conc #
 # ys = skin response in rats
@@ -38,12 +38,15 @@ anova(skin2.lm)
 
 skin3.lm <- lm(Skin ~ Conc + I(Conc^2) + I(Conc^3), data=ratsData)
 summary(skin3.lm)
+betaCI(skin3.lm)
 anova(skin3.lm) # seeing that after fitting the linear and quadratic term,
 # the cubic term is still significant. 
 
 skin4.lm <- lm(Skin ~ Conc + I(Conc^2) + I(Conc^3) + I(Conc^4), data=ratsData)
 summary(skin4.lm)
+betaCI(skin4.lm)
 anova(skin4.lm)
+
 # if n = sample, can only fit polynomial up to degree n-1, so here the limit
 # is a fifth degree poly. 
 # Singularities ... can't do this
@@ -58,7 +61,7 @@ anova(skin6.lm)
 skin5.lm <- update(skin4.lm, .~. + I(Conc^5), data=ratsData)
 summary(skin5.lm)
 anova(skin5.lm)
-# So now we get fifth term isn't significant, so we backtrack to skin4
+# So now ANOVA says we get fifth term isn't significant, so we backtrack to skin4
 
 # Testing residuals variance (plot 1) + qq plot (plot 2)
 par(mfrow=c(1,2))
@@ -87,7 +90,7 @@ upper <- pred$fit[,3]
 
 # plot response, predictor
 par(mfrow=c(1,1))
-plot(ratsData$Skin ~ ratsData$Conc, ylim = c(min(lower), max(upper)))
+plot(Skin ~ Conc, ylim = c(min(lower), max(upper)), data=ratsData)
 # add fitted line to plot
 lines(pred.dfr$Conc, fit, lty=1)
 lines(pred.dfr$Conc, lower, lty=2)

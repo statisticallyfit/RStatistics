@@ -58,7 +58,7 @@ plot.profiles <- function(x,y){
       l4 <- (3*n+1):(4*n)
       u <- c(x[l3],rev(x[l4]),x[l3][1])
       v <- c(y[l3],rev(y[l4]),y[l3][1])
-      panel.polygon(u,v,col=gray(0.7),border=gray(0.7) )
+      panel.polygon(u,v,col="mistyrose",border="hotpink" )
       panel.xyplot(x[l1],y[l1])
       llines(x[l2],y[l2])  
 }   # end of the panel function

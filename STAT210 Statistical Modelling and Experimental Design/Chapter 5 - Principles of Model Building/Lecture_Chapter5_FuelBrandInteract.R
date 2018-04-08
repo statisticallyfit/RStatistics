@@ -47,9 +47,13 @@ anova(perform.lm)
 
 
 # GETTING THE ACTUAL MEANS (not from coefs table)
+attach(dieselData)
 tapply(PERFORM, list(FUEL, BRAND), mean) # yuo can see they match up
 # to the diagram: (this is just like plugging in with formulas, but faster)
 
 with(dieselData, interaction.plot(FUEL, BRAND, PERFORM))
 
 tapply(PERFORM, list(FUEL, BRAND), sd) 
+
+
+detach(dieselData)
