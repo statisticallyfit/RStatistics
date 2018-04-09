@@ -1,7 +1,7 @@
-setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Chapter 3 - Simple Linear Regression/")
+setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/PRACTICALS/Worksheet_Chapter3_ODP_SRP/")
 
-options(digits=3, show.signif.stars = FALSE)
-source("../Rfunctions.r")
+options(digits=10, show.signif.stars = FALSE)
+
 
 dat1 <- read.table("worksheet1_data.txt", header=TRUE)
 head(dat1)
