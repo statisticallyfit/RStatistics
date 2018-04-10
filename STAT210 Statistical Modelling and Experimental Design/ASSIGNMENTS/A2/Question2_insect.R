@@ -16,7 +16,7 @@ insectData.NoZero <- insectData[insectData$Count != 0, ]
 
 
 # part b) 
-insect.sqrt.lm <- lm(sqrt(Count) ~ Ispray, data=insectData.NoZero)
+#insect.sqrt.lm <- lm(sqrt(Count) ~ Ispray, data=insectData.NoZero)
 boxcox(Count ~ Ispray, , data=insectData.NoZero, lambda=seq(from=0, to=1, by=0.01))
 
 

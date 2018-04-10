@@ -2,7 +2,6 @@ setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Stati
 source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Rfunctions.R')
 
 library(ggplot2)
-library(lattice)
 options(digits=10, show.signif.stars = F)
 
 
@@ -13,8 +12,6 @@ attach(ToothGrowth)
 
 # part b)
 interaction.plot(x.factor=dose, trace.factor = supp, response=len)
-# 
-
 
 
 
@@ -55,3 +52,6 @@ pred <- predict(insect.sqrt.lm, newdata = data.frame(Ispray="C"),
                 interval="confidence", level=0.95, type="response")
 
 predict(step.forward.model, newdata=data.frame(dose="2", supp="OJ"), type="response")
+
+
+detach(ToothGrowth)
