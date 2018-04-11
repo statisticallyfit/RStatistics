@@ -43,6 +43,13 @@ summary(diesel.MISSING.XS.lm)
 summary(diesel.MISSING.lm) # see two parameters are missing, the interactions. 
 summary(diesel.lm)
 
+
+anova(diesel.MISSING.lm)
+# NOTE: Fuel has 3 levels do df = 2, and BRAND has 2 levels so df = 1
+nrow(DIELSEL2)
+
+
+
 # we can see fthat for different levels of Fuel (F1, F2, F3), there
 # are non-parallel brand curves of performance. Interaction!
 

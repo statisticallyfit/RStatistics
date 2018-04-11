@@ -255,7 +255,7 @@ FTest <- function(fit) {
 # alternative = two-sided or one-sided (cif one sided then calcs which side)
 
 # PREREQ: only for non-multiple regression (simple models)
-HomoskedasticityRegressionTest <- function(theFormula, data, xName, xSplit,
+HomoskedasticityRegressionTest.Split <- function(theFormula, data, xName, xSplit,
                                            alternative="two-sided", 
                                            alpha=0.05){
       
@@ -318,6 +318,11 @@ HomoskedasticityRegressionTest <- function(theFormula, data, xName, xSplit,
       df <- data.frame(Fstat=Fstat, FCritical=Fcrit, PValue=p.value)
       return(invisible(df))
 }
+
+
+
+
+
 
 
 
@@ -401,4 +406,32 @@ separateArgs <- function(fit){
       indicesNotExtraArgs <- which(!allNames %in% extraArgs)
       args <- allNames[indicesNotExtraArgs]
       return(list(args, extraArgs))
+}
+
+
+
+
+
+
+
+# INFLUENTIAL POINTS
+# fit = the lm object
+influentialPoints <- function(fit){
+      hs <- hatvalues(fit)
+      k <- length(fit$model) - 1
+      n <- nrow(fit$model)
+      h.mean <- 2*(k+1)/n 
+      isInfluential <- hs > h.mean 
+      return(data.frame(InfluentialPoints=hs, CutOffInflMean=h.mean, 
+                        IsInfluential=isInfluential))
+}
+
+cooksDistance <- function(fit) {
+      cks <- cooks.distance(fit)
+      k <- length(fit$model) - 1
+      n <- nrow(fit$model)
+      Fcrit <- qf(0.5, df1=k+1, df2=n-k-1)
+      isInfluential <- cks > Fcrit 
+      return(data.frame(CooksPoints=cks, CutOffFcrit=Fcrit,
+                        IsInfluential=isInfluential))
 }

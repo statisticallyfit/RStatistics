@@ -17,8 +17,5 @@ insectData.NoZero <- insectData[insectData$Count != 0, ]
 
 # part b) 
 #insect.sqrt.lm <- lm(sqrt(Count) ~ Ispray, data=insectData.NoZero)
-boxcox(Count ~ Ispray, , data=insectData.NoZero, lambda=seq(from=0, to=1, by=0.01))
+boxcox(Count ~ Ispray, data=insectData.NoZero, lambda=seq(from=0, to=1, by=0.01))
 
-
-# part c)
-# the squared root trans is apprpriate because it is inside the 95% CI

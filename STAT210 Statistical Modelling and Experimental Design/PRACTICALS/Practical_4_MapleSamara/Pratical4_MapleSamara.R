@@ -19,7 +19,7 @@ xyp
 
 # Research question to ask: for each level of tree, as load increases,
 # does Velocity of samara increase differently for each level of tree? 
-# We can see the slopes are different for lower loads but similar for higher
+# We can see the intercepts are different for lower loads but similar for higher
 # loads and there is a sharper increase in velocity for tree level 2 as 
 # load increases versus the other tree levels 1, and 3. 
 

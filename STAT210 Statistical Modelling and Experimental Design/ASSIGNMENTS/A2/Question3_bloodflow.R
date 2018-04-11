@@ -10,12 +10,16 @@ options(digits=10, show.signif.stars = F)
 
 # part a)
 bflowData <- read.table("bloodflow.txt", header=TRUE)
+
+# The scatterplot
 ggplot(bflowData, aes(x=AOT, y=BF)) + 
-      geom_point(shape=19, size=3, color="dodgerblue") +
+      geom_point(shape=19, size=3) +
       ggtitle("Scatterplot of Arterial Oxygen Tension (AOT) against Bloodflow (BF)")
 
 
-# at least a cubic or quadratic polynomial?
+# at least a cubic or quadratic polynomial is required, by the number of peaks
+# Polynomial order = peaks/troughs - 1. Here is looks like peaks/troughs = 3
+# so at most 4th order could be fitted, perhaps. 
 
 
 # part b)
@@ -29,14 +33,33 @@ bflow.3.lm <- update(bflow.2.lm, .~. + I(AOT^3), data=bflowData)
 anova(bflow.3.lm) # cubic isn't significant so just use quadratic. 
 
 
+# METHOD - stepwise
+df <- data.frame(BF=bflowData$BF, AOT=bflowData$AOT, AOT2=bflowData$AOT^2,
+                 AOT3=bflowData$AOT^3,AOT4=bflowData$AOT^4,AOT5=bflowData$AOT^5)
+
+formL = formula(~1)
+formU = formula(~AOT + AOT2 + AOT3 + AOT4 + AOT5, data=df)
+min.model <- lm(BF ~ 1, data=df)
+max.model <- lm(BF ~ AOT + AOT2 + AOT3 + AOT4 + AOT5, data=df)
+step.foward <- step(start.model, direction = "forward", 
+                    scope=list(lower=formL, upper=formU))
+
+step.backward <- step(max.model, direction = "backward", 
+     scope=list(lower=formL, upper=formU))
+
+anova(step.backward)
+
+
 
 # part c)
 from = min(bflowData$AOT)
 to = max(bflowData$AOT)
 n <- nrow(bflowData)
-preds <- data.frame(AOT=seq(from=from,to=to, len=n))
-CI <- data.frame(predict(bflow.2.lm, interval="confidence", newdata=preds))
-PI <- data.frame(predict(bflow.2.lm, interval="predict", newdata=preds))
+aot = seq(from=from,to=to, len=n)
+xs <- data.frame(AOT=aot, AOT2=aot^2, AOT3=aot^3, AOT4=aot^4)
+
+CI <- data.frame(predict(step.backward, interval="confidence", newdata=preds))
+PI <- data.frame(predict(step.backward, interval="predict", newdata=preds))
 pred.df <- data.frame(AOT=preds$AOT, fit=CI$fit, CI.lower=CI$lwr, CI.upper=CI$upr,
                       PI.lower=PI$lwr, PI.upper=PI$upr)
 

@@ -1,7 +1,27 @@
 #source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/ADVANCED_PLOTTING.R')
 
 library(ggplot2)
-library(ggfortify)
+library(ggfortify) # for residuals plot
+library(GGally) # for pairs plot
+
+
+
+# influential measures: 
+# https://cran.r-project.org/web/packages/olsrr/vignettes/influence_measures.html
+
+# TODO: make cooks plot of F dist with k+1, n-k-1 dfs and show the cooks
+# values on that distribution. Mark in red the cutoff point. 
+
+# pairs plot for numerical data 
+pairsQuantPlot <- function(data, colsVec, size=10){
+      ggpairs(data=data, columns=colsVec, 
+              lower=list(continuous="smooth", params=c(colour="blue")),
+              diag=list(continuous="density", params=c(colour="black")),
+              upper = list(continuous="cor", params=c(size=size)))
+}
+
+# For qualitative data ... TODO
+# pairsQualPlot
 
 
 # interaction plot

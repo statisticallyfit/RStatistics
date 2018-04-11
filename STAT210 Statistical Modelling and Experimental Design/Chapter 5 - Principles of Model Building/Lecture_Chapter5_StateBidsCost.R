@@ -5,8 +5,10 @@ source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Stat
 library(ggplot2)
 
 bidsData <- read.table("bids.txt", header=TRUE)
+bidsData$State <- factor(bidsData$State)
 bids1.lm <- lm(Cost ~ State, data=bidsData)
 summary(bids1.lm)
+
 
 # Baseline = Kansas
 
@@ -25,8 +27,9 @@ summary(bids1.lm)
 
 
 # Now make Texas as base
-bidsData$State <- relevel(bidsData$State, ref="Texas")
-bids.texas.lm <- lm(Cost ~ State, data=bidsData)
+bidsData.Texas <- bidsData
+bidsData.Texas$State <- relevel(bidsData$State, ref="Texas")
+bids.texas.lm <- lm(Cost ~ State, data=bidsData.Texas)
 summary(bids.texas.lm)
 
 # Kentucky coef: mean cost for kentucky is lower than for Texas and
@@ -61,5 +64,10 @@ betaCI(bids1.lm)
 
 # TO GET INDIVIDUAL CONF INTERVALS - remove intercept
 # (removing intercept won't work for more than 1 predictor dummy type)
-bids.nointercept.lm <- lm(Cost ~ State -1, data=bidsData)
+bids.nointercept.lm <- lm(Cost ~ State -1, data=bidsData.Texas)
 betaCI(bids.nointercept.lm)
+
+# Same means from tapply as from betaCI (fits)
+with(bidsData.Texas, tapply(Cost, list(State), mean))
+with(bidsData, tapply(Cost, list(State), mean))
+     

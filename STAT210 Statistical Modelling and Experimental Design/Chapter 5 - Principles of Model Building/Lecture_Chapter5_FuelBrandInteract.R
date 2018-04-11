@@ -15,8 +15,7 @@ with(dieselData, interaction.plot(x.factor = FUEL, trace.factor = BRAND,
 
 # INTERPRET: The way performance increases for both brands as it moves from F1 to F2
 # is the same for both brands. (not seemingly significant relation)
-
-# INTERPRET: we get a similar increase in performance as we go from F1 to F2
+# We get a similar increase in performance as we go from F1 to F2
 # for both brands, but performance decreases from F2 to F3 for B1 while it
 # increases from F2 to F3 for B2. (brand 1 performs very poorly under F3
 # but F3 yields the best performance for brand 2)

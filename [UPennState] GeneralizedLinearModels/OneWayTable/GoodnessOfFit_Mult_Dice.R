@@ -1,4 +1,4 @@
-source('/datascience/projects/statisticallyfit/github/learningstatistics/RStatistics/StatsFormulas.R')
+source('/datascience/projects/statisticallyfit/github/R/RStatistics/FORMULAS.R')
 
 
 ## run a goodness of fit test

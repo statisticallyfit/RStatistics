@@ -37,6 +37,7 @@ xyp
 # B5 * age_ij : treatC
 
 depress.A.lm <- lm(response ~ age * treat, data=depressionData, x=TRUE)
+depress.A.lm$x
 anova(depress.A.lm)
 summary(depress.A.lm)
 # INTERPRET: 

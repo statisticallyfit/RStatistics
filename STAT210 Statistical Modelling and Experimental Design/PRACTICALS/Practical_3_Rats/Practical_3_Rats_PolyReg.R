@@ -3,7 +3,6 @@ source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Stat
 source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/FORMULAS.R')
 source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/INTERPRET.R')
 
-library(GGally)
 library(ggplot2)
 options(digits = 10, show.signif.stars = FALSE)
 

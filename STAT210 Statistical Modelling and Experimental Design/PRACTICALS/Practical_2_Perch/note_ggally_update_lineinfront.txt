@@ -1,3 +1,6 @@
+link: 
+https://stackoverflow.com/questions/30858337/how-to-customize-lines-in-ggpairs-ggally/36019969#36019969
+
 # need to upgrade R to get 1.01 version of GGally so we have wrap function so that
 # we can plot the red reg.line on top!
 #lowerFn <- function(data, mapping, method = "lm", ...) {

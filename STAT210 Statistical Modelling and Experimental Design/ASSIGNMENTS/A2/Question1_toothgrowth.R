@@ -7,51 +7,48 @@ options(digits=10, show.signif.stars = F)
 
 data("ToothGrowth")
 ToothGrowth$dose <- factor(ToothGrowth$dose)
-attach(ToothGrowth)
+toothData.1 <- ToothGrowth
+# releveling data to dose = 1 so that desired comparisons can be made. 
+toothData.1$dose <- relevel(toothData.05$dose, ref="1")
 
 
-# part b)
-interaction.plot(x.factor=dose, trace.factor = supp, response=len)
+# part b) plotting len vs. dose with supp levels as tracing factor. 
+par(mfrow=c(1,1)) 
+with(ToothGrowth, interaction.plot(x.factor=dose, trace.factor = supp, response=len))
 
 
 
-# part c)
-formLower <- formula(~ 1)
-formUpper <- formula( ~ dose * supp, data=ToothGrowth)
+# part c) stepwise regression
+formLower <- formula(~ 1) # the minimal model
+formUpper <- formula( ~ dose * supp, data=toothData.1) # the maximal model
 
-start.model <- lm(len ~ 1, data=ToothGrowth)
+start.model <- lm(len ~ 1, data=toothData.1)
 
 step.forward.model <- step(start.model, direction = "forward",
                            scope=list(lower=formLower, upper=formUpper))
 # note: appropriate model is the interaction model since it lowers AIC. 
 
-
-# part d)
-summary(step.forward.model)
-# see that main effects are sig, but slope difference between dose 1 and vc
-# is not sig. 
-
 anova(step.forward.model) # given that we fitted the dose, and supp, the interaction
 # term model with dose and supp has significant F-value (nested F-tests)
-# If the interaction term is sig, then we don't need to look at significance
+# If the interaction term is significant, then we don't need to look at significance
 # of the main effects terms, since the model is hierarchical. 
 
 
-
-# predicting mean length with dose = 2, supp= OJ
-betas <- summary(step.forward.model)$coef[,1]
-betas
-# dose=2, supp = OJ === mean = B0 + B2
-betas[1] + betas[3]
-
+# part d)
+summary(step.forward.model)
+# the main effects are significant, but the B4 = mean length difference between 
+# VC and OJ from dose 0.5 to dose 1 is not significant. 
+# Also significant is term B5, which is the mean length difference between 
+# VC and OJ from dose 2 to dose 1. 
 
 
 
 # part e)
-pred <- predict(insect.sqrt.lm, newdata = data.frame(Ispray="C"),
-                interval="confidence", level=0.95, type="response")
 
-predict(step.forward.model, newdata=data.frame(dose="2", supp="OJ"), type="response")
+# method 1 to check
+df <- data.frame(dose="2", supp="OJ")
+predict(step.forward.model, newdata=df, interval="confidence", type="response")
 
-
-detach(ToothGrowth)
+# method 2: (not using predict). 
+# mean length for OJ, and dose=2 is 26.06 (bottom left corner)
+with(toothData.1, tapply(len, list(dose, supp), mean))

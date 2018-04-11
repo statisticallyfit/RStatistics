@@ -16,9 +16,11 @@ pairs(perchData[, c(3, 4, 2)], lower.panel = panel.smooth, lwd=3, col="blue", up
 
 # Ssee other options for continuous X, categorical Y etc data: ...
 # https://cran.r-project.org/web/packages/GGally/GGally.pdf
+#pairsQuantPlot(perchData, c(3,4,2))
+
 ggpairs(data=perchData, columns=c(3,4,2), 
         lower=list(continuous="smooth", params=c(colour="blue")),
-        diag=list(continuous="density", params=c(colour="magenta")),
+        diag=list(continuous="density", params=c(colour="black")),
         upper = list(continuous="cor", params=c(size=10)))
 
 # INTERPRETATION: 
