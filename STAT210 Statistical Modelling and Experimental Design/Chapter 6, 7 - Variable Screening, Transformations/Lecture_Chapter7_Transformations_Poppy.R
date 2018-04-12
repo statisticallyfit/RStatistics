@@ -96,6 +96,17 @@ pred.df$backT_lwr <- pred.df$lwr^2
 pred.df$backT_upr <- pred.df$upr^2
 pred.df
 
+# PROBLEM
+# more resources: 
+# https://stackoverflow.com/questions/14069629/plotting-confidence-intervals
+
+#ggplot(data=poppyData, aes(x=count, y=treat, colour=block)) + geom_point() +
+#      geom_errorbar(aes(ymin=min(pred.df$backT_lwr), ymax=max(pred.df$backT_upr)))
+
+
+
+
+
 #d=data.frame(drink=c("coffee","tea","water"), mean=c(3,6,2), 
 #             lower=c(2.6,5.6,1.8), upper=c(3.5,6.3,2.8))
 #ggplot() + 

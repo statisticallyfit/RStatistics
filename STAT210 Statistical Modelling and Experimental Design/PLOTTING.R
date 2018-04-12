@@ -12,6 +12,28 @@ library(GGally) # for pairs plot
 # TODO: make cooks plot of F dist with k+1, n-k-1 dfs and show the cooks
 # values on that distribution. Mark in red the cutoff point. 
 
+
+# TODO: from question 3 assginment 2 STAT210 make a function do this this
+# in general: 
+#p.data = ggplot(bflowData, aes(x=AOT, y=BF)) + 
+#      geom_point(shape=19, size=3) 
+
+#p.fits = p.data + 
+#      geom_line(data=pred.df, aes(y=fit, colour="a", linetype="a"),size=1) +
+#      geom_line(data=pred.df, aes(y=lwr, colour="b", linetype="b"),size=1) + 
+#      geom_line(data=pred.df, aes(y=upr, colour="b", linetype="b"),size=1) 
+
+#p.plot <- p.fits + 
+#      ggtitle("Predicted and Observed Values of BF vs AOT 
+#              and 95% Confidence Bands") +
+#      scale_colour_manual(name="Legend", values=c("a"="red", "b"="dodgerblue"),
+#                          labels=c("Fitted Line", "95%\nConfidence\nBands")) +
+#      scale_linetype_manual(name="Legend", values=c("a"="solid", "b"="dashed"),
+#                            labels=c("Fitted Line", "95%\nConfidence\nBands"))
+
+#p.plot #
+
+
 # pairs plot for numerical data 
 pairsQuantPlot <- function(data, colsVec, size=10){
       ggpairs(data=data, columns=colsVec, 

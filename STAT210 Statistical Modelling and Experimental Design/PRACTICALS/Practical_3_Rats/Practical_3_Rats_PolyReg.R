@@ -78,21 +78,37 @@ shapiro.test(skin4.lm$residuals) # no reason to reject null that
 
 
 # Plot 95% CI and PIs
-pred.dfr <- data.frame(Conc=seq(0.5, 3, 0.05))
-head(pred.dfr)
+
+xs <- data.frame(Conc=seq(0.5, 3, 0.05))
+head(xs)
 # the se.fit is the stderrors of the fitted values for each fitted value
 # in the sequence 0.5 to 3 by 0.05 intervals (to be more fine-grained for plotting)
-pred <- predict(skin4.lm, newdata=pred.dfr, se.fit=TRUE, interval="confidence")
-fit <- pred$fit[,1]
-lower <- pred$fit[,2] # lower limits
-upper <- pred$fit[,3]
+#pred <- predict(skin4.lm, newdata=xs, se.fit=TRUE, interval="confidence")
+pred <- data.frame(predict(skin4.lm, newdata=xs, interval="confidence"))
+pred$Conc <- xs$Conc
 
 # plot response, predictor
 par(mfrow=c(1,1))
-plot(Skin ~ Conc, ylim = c(min(lower), max(upper)), data=ratsData)
+plot(Skin ~ Conc, ylim = c(min(pred$lwr), max(pred$upr)), data=ratsData)
 # add fitted line to plot
-lines(pred.dfr$Conc, fit, lty=1)
-lines(pred.dfr$Conc, lower, lty=2)
-lines(pred.dfr$Conc, upper, lty=2)
+lines(xs$Conc, pred$fit, lty=1)
+lines(xs$Conc, pred$lwr, lty=2)
+lines(xs$Conc, pred$upr, lty=2)
 
 legend(x=2,y=14.2, legend=c("Fitted Curve", "95% Confidence Bands"), lty=1:2)
+
+
+# Using ggplot
+
+
+p = ggplot(ratsData, aes(x=Conc, y=Skin)) + 
+      geom_point(shape=19, size=3) 
+
+p2 = p + geom_line(data=pred, aes(y=fit, colour="a", linetype="a"),size=1) +
+    geom_line(data=pred, aes(y=lwr, colour="b", linetype="b"),size=1) + 
+    geom_line(data=pred, aes(y=upr, colour="b", linetype="b"),size=1) 
+
+p2 + scale_colour_manual(name="Legend", values=c("a"="red", "b"="dodgerblue"),
+                         labels=c("Fitted Line", "95%\nConfidence\nBands")) +
+  scale_linetype_manual(name="Legend", values=c("a"="solid", "b"="dashed"),
+                        labels=c("Fitted Line", "95%\nConfidence\nBands"))

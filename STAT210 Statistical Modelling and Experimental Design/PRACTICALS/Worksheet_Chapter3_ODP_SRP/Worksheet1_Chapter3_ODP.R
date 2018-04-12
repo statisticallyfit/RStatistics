@@ -80,13 +80,13 @@ shapiro.test(xy.lm$residuals) # no evidence to reject null of normality.
 
 # Step 4: Predicting
 pred.df <- data.frame(SRP=c(10,20,30,40,50,60,70,80))
-CI <- predict(xy.lm, interval="confidence", newdata=pred.df)
-PI <- predict(xy.lm, interval="predict", newdata=pred.df)
+CI <- data.frame(predict(xy.lm, interval="confidence", newdata=pred.df))
+PI <- data.frame(predict(xy.lm, interval="predict", newdata=pred.df))
 cbind(pred.df$SRP, CI, PI)
 
 # Plotting confidence bands
 par(mfrow=c(1,1))
-plot(pred.df$SRP, CI[,1], type="b", pch=16, xlab="SRP", ylab="mean ODP", 
+plot(pred.df$SRP, CI$fit, type="b", pch=16, xlab="SRP", ylab="mean ODP", 
      main="Scatterplot of ODP ~ SRP, with predicted values and 95% 
      confidence and prediction abnds")
 points(dat1$ODP, dat1$SRP)
