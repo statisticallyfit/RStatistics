@@ -5,8 +5,9 @@ source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Stat
 library(ggplot2)
 
 potatoData <- read.table("potatoes.txt", header=TRUE)
-
-
+potatoData$BAC <- factor(potatoData$BAC)
+potatoData$TEMP <- factor(potatoData$TEMP)
+potatoData$OXYGEN <- factor(potatoData$OXYGEN)
 # Two-way interaction plots
 par(mfrow=c(1,3))
 with(potatoData, interaction.plot(x.factor = OXYGEN, trace.factor = BAC,
@@ -58,6 +59,7 @@ anova(rot2.lm)
 # MEANS ------------------------------------------------------------------
 with(potatoData, tapply(ROT, INDEX = list(TEMP, BAC), mean))
 # TEMP levels - as rows, BAC levels = as cols. 
+par(mfrow=c(1,1))
 with(potatoData, interaction.plot(x.factor = BAC, trace.factor = TEMP,
                                   response=ROT))
 # INTERPRET: the increase in rotting with increase in bacteria

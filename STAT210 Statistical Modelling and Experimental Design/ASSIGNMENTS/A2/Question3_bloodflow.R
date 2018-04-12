@@ -11,43 +11,32 @@ options(digits=10, show.signif.stars = F)
 # part a)
 bflowData <- read.table("bloodflow.txt", header=TRUE)
 
-# The scatterplot
+# Scatterplot suggests there are 3 peaks and troughs
 ggplot(bflowData, aes(x=AOT, y=BF)) + 
       geom_point(shape=19, size=3) +
       ggtitle("Scatterplot of Arterial Oxygen Tension (AOT) against Bloodflow (BF)")
 
-
-# at least a cubic or quadratic polynomial is required, by the number of peaks
 # Polynomial order = peaks/troughs - 1. Here is looks like peaks/troughs = 3
-# so at most 4th order could be fitted, perhaps. 
+# so at most 3+1= 4th order could be fitted, perhaps. 
+# There is definite curvature so at least a quadratic model could be fitted.
 
 
 # part b)
+# see: linear is definitely not appropriate: anova term for AOT
+# means model with AOT is not significant. That is the p-value of the
+# global F-test. 
 bflow.1.lm <- lm(BF ~ AOT, data=bflowData)
 anova(bflow.1.lm)
+summary(bflow.1.lm)
 
 bflow.2.lm <- lm(BF ~ AOT + I(AOT^2), data=bflowData)
-anova(bflow.2.lm) # quadratic model is significant, so continue
+anova(bflow.2.lm) # quadratic model is significant, given linear
+# model has been fitted, so continue
 
 bflow.3.lm <- update(bflow.2.lm, .~. + I(AOT^3), data=bflowData)
 anova(bflow.3.lm) # cubic isn't significant so just use quadratic. 
 
 
-# METHOD - stepwise
-df <- data.frame(BF=bflowData$BF, AOT=bflowData$AOT, AOT2=bflowData$AOT^2,
-                 AOT3=bflowData$AOT^3,AOT4=bflowData$AOT^4,AOT5=bflowData$AOT^5)
-
-formL = formula(~1)
-formU = formula(~AOT + AOT2 + AOT3 + AOT4 + AOT5, data=df)
-min.model <- lm(BF ~ 1, data=df)
-max.model <- lm(BF ~ AOT + AOT2 + AOT3 + AOT4 + AOT5, data=df)
-step.foward <- step(start.model, direction = "forward", 
-                    scope=list(lower=formL, upper=formU))
-
-step.backward <- step(max.model, direction = "backward", 
-     scope=list(lower=formL, upper=formU))
-
-anova(step.backward)
 
 
 

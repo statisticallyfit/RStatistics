@@ -23,9 +23,9 @@ poppyData$block <- factor(poppyData$block)
 
 
 
-poppy1.lm <- lm(count ~ block + treat, data=poppyData)
+poppy1.lm <- lm(count ~ treat + block - 1, data=poppyData)
 summary(poppy1.lm)
-betaCI(poppy1.lm)
+head(betaCI(poppy1.lm))
 
 # INTERPRET: standard errors are same for each one - this is based on 
 # asssumption of ANOVA, same pooled SDSs but that is not valid for this data. 
