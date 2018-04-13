@@ -2,7 +2,7 @@ setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Stati
 source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Rfunctions.R')
 
 library(ggplot2)
-library(ggfortify)
+library(car)
 options(digits=10, show.signif.stars = F)
 
 
@@ -20,24 +20,36 @@ ggplot(bflowData, aes(x=AOT, y=BF)) +
 
 
 # part b)
+
 # see: linear is definitely not appropriate: anova term for AOT
 # means model with AOT is not significant. That is the p-value of the
 # global F-test. 
 bflow.1.lm <- lm(BF ~ AOT, data=bflowData)
 anova(bflow.1.lm)
+
 # diagnostics: there is curvature in residuals, which suggests the
 # quadratic term is missing. 
-par(mfrow=c(1,2))
-plot(bflow.1.lm, which=c(1,2), add.smooth = FALSE)
+par(mfrow=c(1,1))
+crPlot(bflow.1.lm, variable="AOT", main="Partial Residuals for AOT in Linear Model")
 
+summary(bflow.1.lm)
 
+# ---------------------------------------------------------------------
 bflow.2.lm <- lm(BF ~ AOT + I(AOT^2), data=bflowData)
 anova(bflow.2.lm) # quadratic model is significant, given linear
 # model has been fitted, so continue
 
+# Partial plot suggests curvature was removed. 
+par(mfrow=c(1,1))
+crPlot(bflow.2.lm, variable="AOT", 
+       main="Partial Residuals for AOT in Quadratic Model")
 
-bflow.3.lm <- update(bflow.2.lm, .~. + I(AOT^3), data=bflowData)
-anova(bflow.3.lm) # cubic isn't significant so just use quadratic. 
+summary(bflow.2.lm)
+betaCI(bflow.2.lm)
+
+# ---------------------------------------------------------------------
+bflow.3.lm <- lm(BF ~ AOT + I(AOT^2) + I(AOT^3), data=bflowData)
+anova(bflow.3.lm) # cubic model isn't significant so just use quadratic. 
 
 
 
@@ -52,24 +64,6 @@ CI <- data.frame(predict(bflow.2.lm, interval="confidence", newdata=xs))
 pred.df <- data.frame(AOT=xs$AOT, fit=CI$fit, lwr=CI$lwr, upr=CI$upr)
 
 # Plotting confidence bands 
-#par(mfrow=c(1,1))
-#plot(fit ~ AOT,  xlab="Arterial Oxygen Tension", ylab="Bloodflow", 
-#     data=pred.df, pch=20,
-#     main="Predicted and Observed Values of BF vs AOT and 95% Confidence Bands", 
-#     ylim = c(min(pred.df$lwr), max(pred.df$upr)))
-
-#points(y=bflowData$BF, x=bflowData$AOT )
-
-#lines(pred.df$AOT, pred.df$fit, lty=1)
-#lines(pred.df$AOT, pred.df$lwr, lty=2) # lower CI (2.5%)
-#lines(pred.df$AOT, pred.df$upr, lty=2) # upper CI (97.5%)
-
-#legend(360,84, lty=c(1, 2, 3), legend=c("Line of best fit", 
-#                                        "95% Confidence Bands"))
-#legend(400, 82, pch=c(1,16), legend=c("observed values", "predicted values"))
-
-
-
 p.data = ggplot(bflowData, aes(x=AOT, y=BF)) + 
       geom_point(shape=19, size=3) 
 
@@ -93,18 +87,50 @@ p.plot
 
 # part d)
 
+# Check residuals and normality 
 par(mfrow=c(2,2))
-plot(bflow.2.lm, add.smooth=FALSE)
-par(mfrow=c(1,2))
-plot(bflow.2.lm, which=c(4,6), add.smooth = FALSE)
+plot(bflow.2.lm, add.smooth=FALSE, which=c(1,2,3,5), cook.levels=c(0.2,0.5,1.0))
 
-cooksDistance(bflow.2.lm)
-influentialPoints(bflow.2.lm)
-
+# Checking normality assumption: formal test. 
 shapiro.test(bflow.2.lm$residuals) # no deviation from normality. 
 
+# Checking influential points
 
+# This is a function to calculate leverage values of all observations
+# and compare them to the mean. If any are greater than the h.mean
+# then they are influential. 
+influence.leverageValues <- function(fit){
+      hs <- hatvalues(fit)
+      k <- length(fit$model) - 1
+      n <- nrow(fit$model)
+      h.mean <- 2*(k+1)/n 
+      isInfluential <- hs > h.mean 
+      return(data.frame(InfluentialPoints=hs, CutOffInflMean=h.mean, 
+                        IsInfluential=isInfluential))
+}
+# this is a function to compare the cooks distances with the critical value
+# at the cutoff point: if any cooks value is greater than the cooks critical 
+# value at the 50th percentile on the F(k+1, n-k-1) distribution, then 
+# that observation is influential. 
+influence.cooksDistances <- function(fit) {
+      cks <- cooks.distance(fit)
+      k <- length(fit$model) - 1
+      n <- nrow(fit$model)
+      Fcrit <- qf(0.5, df1=k+1, df2=n-k-1)
+      isInfluential <- cks > Fcrit 
+      return(data.frame(CooksPoints=cks, CutOffFcrit=Fcrit,
+                        IsInfluential=isInfluential))
+}
 
+leverageInfo <- influence.leverageValues(bflow.2.lm)
+obs14 <- which(leverageInfo$IsInfluential) # So observation 14 is influential
+# The leverage of the 14th observation is about 0.4508 > h.mean = 0.4
+leverageInfo[obs14, ]
 
-# part e)
-summary(bflow.2.lm)
+cookInfo <- influence.cooksDistances(bflow.2.lm)
+which(cookInfo$IsInfluential) # integer(0) array so none are past the
+# cutoff cooks value. 
+cookInfo$CutOffFcrit[1]
+cookInfo[obs14,] # its value is close to the cutoff, but not past it. 
+cookInfo[2, ] # observation 2 is not close to the cooks cutoff. 
+cookInfo[4, ] # observation 4 is not close to the cooks cutoff. 

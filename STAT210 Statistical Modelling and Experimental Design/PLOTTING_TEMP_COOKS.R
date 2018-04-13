@@ -1,5 +1,8 @@
 # PLOTTING COOKS WITH GGPLOT
 
+#https://www.biostars.org/p/234142/
+#https://stackoverflow.com/questions/48962406/add-cooks-distance-levels-to-ggplot2
+
 #p <- length(coef(x))
 #usr <- par("usr")
 #hh <- seq.int(min(r.hat[1L], r.hat[2L]/100), usr[2L],

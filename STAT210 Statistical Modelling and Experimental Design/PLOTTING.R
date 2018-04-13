@@ -58,15 +58,21 @@ interactionPlot <- function(data, xFactor, traceFactor, response){
 
 
 # residual plot
-residualFittedPlot <- function(fit, size=4, colour="slateblue"){
-      autoplot(fit, which=1, size=size, colour = colour)
+residualFitPlot <- function(fit, size=3, colour="black"){
+      df <- data.frame(Fits=fit$fitted, Resids=fit$residuals)
+      
+      ggplot(data=df, aes(x=Fits, y=Resids)) + 
+            geom_point(size=size, shape=19, colour=colour) + 
+            geom_hline(yintercept=0, size=1, linetype="longdash", colour="red") +
+            ggtitle("Residuals vs Fitted") + 
+            xlab("Fitted values") + ylab("Residuals")
 }
 
-normalQQPlot <- function(fit, size=4, colour="dodgerblue"){
+normalityPlot <- function(fit, size=2, colour="black"){
       autoplot(fit, which=2, size=size, colour=colour)
 }
 
-residualPlot <- function(fit, variableName, size=3, colour="slateblue"){
+residualsPlot <- function(fit, variableName, size=3, colour="slateblue"){
       xs <- fit$model[[variableName]]
       df <- data.frame(Resids=fit$residuals, Xs=xs)
       
@@ -238,4 +244,27 @@ modelPlot <- function (fit) {
                                #"PredictCI = (", predict.ci[1],", ",predict.ci[2],")",
                                sep=""
                                ))
+}
+
+
+
+
+
+
+# TODO: redoing autoplot residuals stuff (all graphs) without the
+# smoothing line!
+cookGraph <- function(fit){
+      data <- fit$model 
+      data$Obs <- 1:nrow(data)
+      data$Cooks <- cooks.distance(fit)
+      
+      cook.cutOff <- influence.cooksDistances(fit)$Cut[1]
+      
+      ggplot(data, aes(x=Obs, y=Cooks)) + 
+            geom_point(shape=19, size=2) + 
+            geom_linerange(ymin=0, ymax=data$Cooks) + 
+            geom_hline(yintercept=cook.cutOff, linetype="dashed",size=1,color="red") +
+            scale_x_continuous("Observation Number") +
+            scale_y_continuous("Cook's distance") +
+            ggtitle("Cook's Distance")
 }

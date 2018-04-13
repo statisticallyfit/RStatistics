@@ -30,6 +30,8 @@ ggplot(ratsData, aes(x = Conc, y = Skin)) +
 # up to the last significant term to see if that model gives good fit to data.
 # Step 4 - if fit is good, accept current model. If not, repeat steps 2,3,4 until
 # good fit is found. 
+skin1.lm <- lm(Skin ~ Conc, data=ratsData)
+anova(skin1.lm)
 
 skin2.lm <- lm(Skin ~ Conc + I(Conc^2), data=ratsData)
 summary(skin2.lm)

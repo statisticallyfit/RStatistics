@@ -416,7 +416,7 @@ separateArgs <- function(fit){
 
 # INFLUENTIAL POINTS
 # fit = the lm object
-influentialPoints <- function(fit){
+influence.leverageValues <- function(fit){
       hs <- hatvalues(fit)
       k <- length(fit$model) - 1
       n <- nrow(fit$model)
@@ -426,7 +426,7 @@ influentialPoints <- function(fit){
                         IsInfluential=isInfluential))
 }
 
-cooksDistance <- function(fit) {
+influence.cooksDistances <- function(fit) {
       cks <- cooks.distance(fit)
       k <- length(fit$model) - 1
       n <- nrow(fit$model)

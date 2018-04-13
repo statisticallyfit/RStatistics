@@ -9,7 +9,7 @@ data("ToothGrowth")
 ToothGrowth$dose <- factor(ToothGrowth$dose)
 toothData.1 <- ToothGrowth
 # releveling data to dose = 1 so that desired comparisons can be made. 
-toothData.1$dose <- relevel(toothData.05$dose, ref="1")
+toothData.1$dose <- relevel(ToothGrowth$dose, ref="1")
 
 
 # part b) plotting len vs. dose with supp levels as tracing factor. 

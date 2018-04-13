@@ -62,7 +62,7 @@ h.mean = 2*(k + 1)/n; h.mean
 # influential values: 
 influentialPoints(sr.lm)
 cooksDistance(sr.lm)
-
+plot(sr.lm, which=4)
 
 # more measures: https://cran.r-project.org/web/packages/olsrr/vignettes/influence_measures.html
 
