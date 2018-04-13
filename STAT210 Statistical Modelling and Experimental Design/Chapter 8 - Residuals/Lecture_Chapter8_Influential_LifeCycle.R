@@ -13,7 +13,7 @@ data("LifeCycleSavings") # data on savints ratio from 1960-1970
 # dpi = numeric = real per-capita disposable income
 # ddpi = numeric = % growth rate of dpi. 
 
-pairsQuantPlot(LifeCycleSavings, c(2:5, 1))
+#pairsQuantPlot(LifeCycleSavings, c(2:5, 1))
 
 pairs(LifeCycleSavings[, c(2:5,1)], lower.panel = panel.smooth, 
       upper.panel = panel.cor)
@@ -47,6 +47,11 @@ shapiro.test(sr.lm$residuals)
 # Residuals vs. Leverage: 
 par(mfrow=c(2,2))
 plot(sr.lm, add.smooth = F, cook.levels = c(0.2, 0.5, 1.0))
+par(mfrow=c(1,1))
+plot(sr.lm, add.smooth = F, cook.levels = c(0.2, 0.5, 1.0), which=5)
+
+
+
 
 # mean leverage h.mean = 2(k+1)/n, n = 50, k = 2
 k = 2; n = 50

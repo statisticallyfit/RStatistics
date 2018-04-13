@@ -52,21 +52,42 @@ CI <- data.frame(predict(bflow.2.lm, interval="confidence", newdata=xs))
 pred.df <- data.frame(AOT=xs$AOT, fit=CI$fit, lwr=CI$lwr, upr=CI$upr)
 
 # Plotting confidence bands 
-par(mfrow=c(1,1))
-plot(fit ~ AOT,  xlab="Arterial Oxygen Tension", ylab="Bloodflow", 
-     data=pred.df, pch=20,
-     main="Predicted and Observed Values of BF vs AOT and 95% Confidence Bands", 
-     ylim = c(min(pred.df$lwr), max(pred.df$upr)))
+#par(mfrow=c(1,1))
+#plot(fit ~ AOT,  xlab="Arterial Oxygen Tension", ylab="Bloodflow", 
+#     data=pred.df, pch=20,
+#     main="Predicted and Observed Values of BF vs AOT and 95% Confidence Bands", 
+#     ylim = c(min(pred.df$lwr), max(pred.df$upr)))
 
-points(y=bflowData$BF, x=bflowData$AOT )
+#points(y=bflowData$BF, x=bflowData$AOT )
 
-lines(pred.df$AOT, pred.df$fit, lty=1)
-lines(pred.df$AOT, pred.df$lwr, lty=2) # lower CI (2.5%)
-lines(pred.df$AOT, pred.df$upr, lty=2) # upper CI (97.5%)
+#lines(pred.df$AOT, pred.df$fit, lty=1)
+#lines(pred.df$AOT, pred.df$lwr, lty=2) # lower CI (2.5%)
+#lines(pred.df$AOT, pred.df$upr, lty=2) # upper CI (97.5%)
 
-legend(360,84, lty=c(1, 2, 3), legend=c("Line of best fit", 
-                                        "95% Confidence Bands"))
-legend(400, 82, pch=c(1,16), legend=c("observed values", "predicted values"))
+#legend(360,84, lty=c(1, 2, 3), legend=c("Line of best fit", 
+#                                        "95% Confidence Bands"))
+#legend(400, 82, pch=c(1,16), legend=c("observed values", "predicted values"))
+
+
+
+p.data = ggplot(bflowData, aes(x=AOT, y=BF)) + 
+      geom_point(shape=19, size=3) 
+
+p.fits = p.data + 
+      geom_line(data=pred.df, aes(y=fit, colour="a", linetype="a"),size=1) +
+      geom_line(data=pred.df, aes(y=lwr, colour="b", linetype="b"),size=1) + 
+      geom_line(data=pred.df, aes(y=upr, colour="b", linetype="b"),size=1) 
+
+p.plot <- p.fits + 
+      ggtitle("Predicted and Observed Values of BF vs AOT 
+              and 95% Confidence Bands") +
+      scale_colour_manual(name="Legend", values=c("a"="red", "b"="dodgerblue"),
+                          labels=c("Fitted Line", "95%\nConfidence\nBands")) +
+      scale_linetype_manual(name="Legend", values=c("a"="solid", "b"="dashed"),
+                            labels=c("Fitted Line", "95%\nConfidence\nBands"))
+
+p.plot 
+
 
 
 
