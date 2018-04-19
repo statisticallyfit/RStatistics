@@ -68,6 +68,7 @@ residualFitPlot <- function(fit, size=3, colour="black"){
             xlab("Fitted values") + ylab("Residuals")
 }
 
+# TODO: normal qq plot for glm
 normalityPlot <- function(fit, size=2, colour="black"){
       autoplot(fit, which=2, size=size, colour=colour)
 }

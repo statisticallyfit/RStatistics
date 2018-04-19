@@ -458,8 +458,6 @@ influence.cooksDistances <- function(fit) {
 likRatioPrintNice <- function(result, nullModel, altModel, statement){
       nf = formula(nullModel)
       na = formula(altModel)
-      attach(result)
-      
       cat("\n")
       cat("#####################################################################\n")
       cat("#######                 Likelihood-Ratio Test                 #######\n")
@@ -468,34 +466,34 @@ likRatioPrintNice <- function(result, nullModel, altModel, statement){
       cat("\n")
       cat("\tHA: complete model is true: "); cat(paste(na[[2]], na[[1]], na[3]))
       cat("\n\n")
-      cat("  ΔG^2:\t\t                                ", LikRatio, "\n")
-      cat("  Critical Chi-square (α = 0.05):               ", ChiCrit, "\n")
-      cat("  df:\t\t                                ", df, "\n")
-      cat("  p-value:\t\t                        ", PValue, "\n\n")
+      cat("  ΔG^2:\t\t                                ", result$LikRatio, "\n")
+      #cat("  Critical Chi-square (α = 0.05):               ", ChiCrit, "\n")
+      cat("  df:\t\t                                ", result$df, "\n")
+      cat("  p-value:\t\t                        ", result$PValue, "\n\n")
       cat(statement)
-      
-      detach(result)
       
       return(invisible(result))
 }
 
 # NOTE: null model deviance is bigger (assuming) so the statistic
 # will be negative if not. 
-LikelihoodRatioNestedGLMTest <- function(nullModel, altModel, printNice=TRUE) {
-      y <- nullModel$model[1]
-      pi.hat.Ho <- nullModel$fitted.values
-      pi.hat.Ha <- altModel$fitted.values
+# Equivalent to nested F-test between two models here, like anova(null, alt)
+# Tests missing parameter significance. 
+LikelihoodRatioNestedTest <- function(reducedModel, fullModel, printNice=TRUE) {
+      y <- reducedModel$model[1]
+      pi.hat.Ho <- reducedModel$fitted.values
+      pi.hat.Ha <- fullModel$fitted.values
       # don't know why this doesn't work when comparing null Mod with alternative
       #likRatioStat <- -2 * sum(y * log(pi.hat.Ho/pi.hat.Ha) + (1-y)*log((1-pi.hat.Ho)/(1-pi.hat.Ha)))
-      likRatioStat <- nullModel$deviance - altModel$deviance; likRatioStat
+      likRatioStat <- reducedModel$deviance - fullModel$deviance; likRatioStat
       
       # note: df.null = n - 1, df.resid = n - k - 1, k = num params (not incl. B0)
-      df <- nullModel$df.residual - altModel$df.residual
+      df <- reducedModel$df.residual - fullModel$df.residual
       pValue <- 1 - pchisq(likRatioStat, df)
       chi.crit <- qchisq(0.05, df=df, lower.tail=F)
       
-      result <- data.frame(Deviance.Ho=nullModel$deviance, Deviance.Ha=altModel$dev,
-                           df.Ho=nullModel$df.residual, df.Ha=altModel$df.residual,
+      result <- data.frame(Deviance.Ho=reducedModel$deviance, Deviance.Ha=fullModel$dev,
+                           df.Ho=reducedModel$df.residual, df.Ha=fullModel$df.residual,
                            df=df, LikRatio=likRatioStat, ChiCrit=chi.crit, PValue=pValue)
       
       statement <- ""
@@ -503,7 +501,7 @@ LikelihoodRatioNestedGLMTest <- function(nullModel, altModel, printNice=TRUE) {
             statement <- paste("Reject H0. Conclude at least one of the extra β ",
             "coefficients \n",
             "in the complete model is nonzero, so that the complete model is\n",
-            "statistically useful for predicting ", names(nullModel$model)[1], ", y.", sep="")
+            "statistically useful for predicting ", names(reducedModel$model)[1], ", y.", sep="")
       } else{
             statement <- 
                   paste("Insufficient evidence to reject Ho, that is, to conclude that",
@@ -512,37 +510,63 @@ LikelihoodRatioNestedGLMTest <- function(nullModel, altModel, printNice=TRUE) {
       }
       
       if(printNice){
-            likRatioPrintNice(result, nullModel, altModel, statement)
+            likRatioPrintNice(result, reducedModel, fullModel, statement)
       }else{
             return(result)                 
       }
 }
 
-
-# Likelihood Ratio Test for the GLM Model
-LikelihoodRatioGLMTest <- function(fit, printNice=TRUE) {
+# nested likelihood test between null model and fit model
+# NOTE: use the count = cbind(success, total) y-value when fitting the fit model
+# so that here tempData is made of two cols. Do not let y be a proportion
+# otherwise we get weird results. 
+DevianceTest <- function(fit){
       family <- fit$family
       tempData <- data.frame(fit$model[1])
       theFormula <- as.formula(paste(colnames(tempData), " ~ 1", sep=""))
       nullModel <- glm(theFormula, family=family, data=tempData)
       
-      result <- LikelihoodRatioNestedGLMTest(nullModel, fit, printNice = FALSE)
+      result <- LikelihoodRatioNestedTest(nullModel, fit, printNice = TRUE)
       
+      return(invisible(result))
+}
+
+
+# Likelihood Ratio Test for the GLM Model
+
+# Null hypothesis is that expected mu and observed ys are the same
+# If low p-value then they are not.
+
+# Equivalent to a global-F test for a linear regression model, just
+# going be deviance statistic here. Tests overall model FIT. 
+# no global p-value is given when you say anova(null, alt)
+ResidualDevianceTest <- function(fit, printNice=TRUE) { 
+      # residualdeviance has chi-square distribution on n - k degrees freedom. 
+      df <- fit$df.residual
+      dev <- fit$deviance
+      result <- data.frame(LikRatio=dev, df=df,
+                           PValue= 1 - pchisq(dev, df=df))
+      row.names(result) <- ""
+      
+      
+      
+      # Ho: deviance = 0 p = big fail reject H0 = good model fit = deviance small
       statement <- ""
       if(result$PValue < 0.05){
             statement <- 
-                  paste("Reject H0. Conclude at least one of the β coefficients in the ",
-                  "population is nonzero. \nThus the model is statistically useful for ",
-                  "predicting ", names(nullModel$model)[1], ", y.", sep="")
+                  paste("Reject H0. Conclude the residual deviance is large and\n",
+                  "different from zero. The model is not a good fit for the data.", sep="")
       } else{
             statement <- 
-                  paste("Fail to reject H0. Not enough evidence to conclude that at ",
-                  "least one of the β coefficients \nin the population is nonzero. ",
-                  "Thus there is not enough evidence that the model is \nstatistically ",
-                  "useful for predicting ", names(nullModel$model)[1], ", y.", sep="")
+                  paste("Fail to reject H0. Not enough evidence to conclude that the\n",
+                  "residual deviance is not 0, so we say the residual deviance is small.\n",
+                  "Thus the model is a good fit for the data.", sep="")
       }
       
       if(printNice){
+            yName <- names(fit$model)[1]
+            form = as.formula(paste(yName, " ~ 1", sep=""))
+            nullModel <- glm(form, data=fit$model, family=fit$family)
             likRatioPrintNice(result, nullModel, fit, statement)
       } else{
             return(result)                 
@@ -552,17 +576,16 @@ LikelihoodRatioGLMTest <- function(fit, printNice=TRUE) {
 
 
 
-# Null hypothesis is that expected mu and observed ys are the same
-# If low p-value then they are not. 
-ResidualDevianceTest <- function(model){
-      # residualdeviance has chi-square distribution on n - k degrees freedom. 
-      df <- model$df.residual
-      dev <- deviance(model)
-      result <- data.frame(ResidualDeviance=dev, df=df,
-                       PValue= 1 - pchisq(dev, df=df))
-      row.names(result) <- ""
-      return(result)
-}
+
+#ResidualDevianceTest <- function(model){
+#      # residualdeviance has chi-square distribution on n - k degrees freedom. 
+#      df <- model$df.residual
+#      dev <- deviance(model)
+#      result <- data.frame(ResidualDeviance=dev, df=df,
+#                       PValue= 1 - pchisq(dev, df=df))
+#      row.names(result) <- ""
+#      return(result)
+#}
 
 NullDevianceTest <- function(model){
       # null deviance has chi-square distribution on n - 1 degrees freedom. 
@@ -582,4 +605,70 @@ DevianceResiduals <- function(obsData, expData=NULL) {
       os <- obsData 
       es <- chi.test$exp 
       return(sign(os - es) * sqrt(abs(2 * os * log(os/es))))
+}
+
+
+
+
+
+
+# ---------------------- Row/Col Probability Estimates -----------------------------------------
+rowProbabilityHat <- function(tbl){prop.table(tbl, margin=1)}
+colProbabilityHat <- function(tbl){prop.table(tbl, margin=2)}
+
+# ---------------------- Returns table with marginal row/col sums ------------------------------
+################ TODO make for k-way tables too, not just two-way
+marginalTable <- function(tbl) {
+      extraRow <- cbind(tbl, RowTotals=margin.table(tbl, margin=1))
+      extraCol <- rbind(extraRow, ColTotals=margin.table(extraRow, margin=2))
+      
+      dms <- dimnames(tbl)
+      dms[[1]] <- c(dms[[1]], "ColTotals")
+      dms[[2]] <- c(dms[[2]], "RowTotals")
+      dimnames(extraCol) <- dms 
+      
+      return(extraCol) 
+}
+
+
+# ----------------------------------------------------------------------------------------------
+#################################################################################
+########            Measures of Association for 1,2-way Tables           ########
+#################################################################################
+
+# odds ratio, relative risk, diff of proportions test independence of two variables
+# in the two-way table. 
+
+
+
+# ----------------------          Odds Ratio          ----------------------------
+
+#################################### TODO make it work with ftable
+#################################### problem because no names in ftable
+
+#  odds ratio for n x m table (two-way) is the same anyway you place the coeffs
+# Returns odds ratio for all combinations of pairings between variable levels. 
+oddsRatio <- function(tbl) {
+      
+      ### make names combos
+      combosColnames <- combn(colnames(tbl), m=2)
+      combosColnames <- paste(combosColnames[1,], "/", combosColnames[2,], sep="")
+      combosRownames <- combn(rownames(tbl), m=2)
+      combosRownames <- paste(combosRownames[1, ], "/", combosRownames[2,], sep="")
+      ### make odds for each col, holding rows constant
+      combosCol <- lapply(1:nrow(tbl), function(i) combn(tbl[i,], m=2))
+      oddsCol <- lapply(1:nrow(tbl), function(i){combosCol[[i]][1, ] / combosCol[[i]][2, ]})
+      library(plyr)
+      oddsCol <- ldply(oddsCol)
+      colnames(oddsCol) <- combosColnames
+      rownames(oddsCol) <- rownames(tbl)
+      
+      oddsPairs <- lapply(1:ncol(oddsCol), function(i) combn(oddsCol[,i], m=2))
+      
+      oddsRatios <- lapply(1:ncol(oddsCol), function(i) {oddsPairs[[i]][1,] / oddsPairs[[i]][2,]})
+      oddsRatios <- t(ldply(oddsRatios))
+      colnames(oddsRatios) <- combosColnames
+      rownames(oddsRatios) <- combosRownames
+      
+      return(oddsRatios)
 }
