@@ -435,3 +435,151 @@ influence.cooksDistances <- function(fit) {
       return(data.frame(CooksPoints=cks, CutOffFcrit=Fcrit,
                         IsInfluential=isInfluential))
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+# NOTE
+# pi.hat.Ho <- nullMod$fitted.values
+#pi.hat.Ha <- altMod$fitted.values
+#y <- placekick$good
+# ******
+# likRatio <- -2 * sum(y * log(pi.hat.Ho/pi.hat.Ha) + (1-y)*log((1-pi.hat.Ho)/(1-pi.hat.Ha)))
+
+likRatioPrintNice <- function(result, nullModel, altModel, statement){
+      nf = formula(nullModel)
+      na = formula(altModel)
+      attach(result)
+      
+      cat("\n")
+      cat("#####################################################################\n")
+      cat("#######                 Likelihood-Ratio Test                 #######\n")
+      cat("#####################################################################\n")
+      cat("\tH0: reduced model is true: "); cat(paste(nf[[2]], nf[[1]], nf[3]))
+      cat("\n")
+      cat("\tHA: complete model is true: "); cat(paste(na[[2]], na[[1]], na[3]))
+      cat("\n\n")
+      cat("  ΔG^2:\t\t                                ", LikRatio, "\n")
+      cat("  Critical Chi-square (α = 0.05):               ", ChiCrit, "\n")
+      cat("  df:\t\t                                ", df, "\n")
+      cat("  p-value:\t\t                        ", PValue, "\n\n")
+      cat(statement)
+      
+      detach(result)
+      
+      return(invisible(result))
+}
+
+# NOTE: null model deviance is bigger (assuming) so the statistic
+# will be negative if not. 
+LikelihoodRatioNestedGLMTest <- function(nullModel, altModel, printNice=TRUE) {
+      y <- nullModel$model[1]
+      pi.hat.Ho <- nullModel$fitted.values
+      pi.hat.Ha <- altModel$fitted.values
+      # don't know why this doesn't work when comparing null Mod with alternative
+      #likRatioStat <- -2 * sum(y * log(pi.hat.Ho/pi.hat.Ha) + (1-y)*log((1-pi.hat.Ho)/(1-pi.hat.Ha)))
+      likRatioStat <- nullModel$deviance - altModel$deviance; likRatioStat
+      
+      # note: df.null = n - 1, df.resid = n - k - 1, k = num params (not incl. B0)
+      df <- nullModel$df.residual - altModel$df.residual
+      pValue <- 1 - pchisq(likRatioStat, df)
+      chi.crit <- qchisq(0.05, df=df, lower.tail=F)
+      
+      result <- data.frame(Deviance.Ho=nullModel$deviance, Deviance.Ha=altModel$dev,
+                           df.Ho=nullModel$df.residual, df.Ha=altModel$df.residual,
+                           df=df, LikRatio=likRatioStat, ChiCrit=chi.crit, PValue=pValue)
+      
+      statement <- ""
+      if(pValue < 0.05){
+            statement <- paste("Reject H0. Conclude at least one of the extra β ",
+            "coefficients \n",
+            "in the complete model is nonzero, so that the complete model is\n",
+            "statistically useful for predicting ", names(nullModel$model)[1], ", y.", sep="")
+      } else{
+            statement <- 
+                  paste("Insufficient evidence to reject Ho, that is, to conclude that",
+                        "\nthe extra terms in the complete model are statistically useful",
+                        "\nuseful predictors in the regression model.", sep="")
+      }
+      
+      if(printNice){
+            likRatioPrintNice(result, nullModel, altModel, statement)
+      }else{
+            return(result)                 
+      }
+}
+
+
+# Likelihood Ratio Test for the GLM Model
+LikelihoodRatioGLMTest <- function(fit, printNice=TRUE) {
+      family <- fit$family
+      tempData <- data.frame(fit$model[1])
+      theFormula <- as.formula(paste(colnames(tempData), " ~ 1", sep=""))
+      nullModel <- glm(theFormula, family=family, data=tempData)
+      
+      result <- LikelihoodRatioNestedGLMTest(nullModel, fit, printNice = FALSE)
+      
+      statement <- ""
+      if(result$PValue < 0.05){
+            statement <- 
+                  paste("Reject H0. Conclude at least one of the β coefficients in the ",
+                  "population is nonzero. \nThus the model is statistically useful for ",
+                  "predicting ", names(nullModel$model)[1], ", y.", sep="")
+      } else{
+            statement <- 
+                  paste("Fail to reject H0. Not enough evidence to conclude that at ",
+                  "least one of the β coefficients \nin the population is nonzero. ",
+                  "Thus there is not enough evidence that the model is \nstatistically ",
+                  "useful for predicting ", names(nullModel$model)[1], ", y.", sep="")
+      }
+      
+      if(printNice){
+            likRatioPrintNice(result, nullModel, fit, statement)
+      } else{
+            return(result)                 
+      }
+}
+
+
+
+
+# Null hypothesis is that expected mu and observed ys are the same
+# If low p-value then they are not. 
+ResidualDevianceTest <- function(model){
+      # residualdeviance has chi-square distribution on n - k degrees freedom. 
+      df <- model$df.residual
+      dev <- deviance(model)
+      result <- data.frame(ResidualDeviance=dev, df=df,
+                       PValue= 1 - pchisq(dev, df=df))
+      row.names(result) <- ""
+      return(result)
+}
+
+NullDevianceTest <- function(model){
+      # null deviance has chi-square distribution on n - 1 degrees freedom. 
+      df <- model$df.null
+      dev <- model$null.deviance
+      result <- data.frame(ResidualDeviance=dev, df=df,
+                           PValue= 1 - pchisq(dev, df=df))
+      row.names(result) <- ""
+      return(result)
+}
+
+
+DevianceResiduals <- function(obsData, expData=NULL) {
+      # doing chi-test just to get expected values. 
+      if(!is.null(expData)) chi.test <- chisq.test(obsData, p=expData/sum(expData))
+      else chi.test <- chisq.test(obsData)
+      os <- obsData 
+      es <- chi.test$exp 
+      return(sign(os - es) * sqrt(abs(2 * os * log(os/es))))
+}

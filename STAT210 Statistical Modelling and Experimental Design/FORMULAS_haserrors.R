@@ -5,17 +5,6 @@ library(DescTools)
 
 
 
-# Get the coefficients of a model
-coef <- function(model){
-      return(summary(model)$coef)
-}
-
-
-
-
-
-
-
 # -----------------------------------------------------------------------------------------------
 ##################################################################################
 ########            χ2, G2 (goodness of fit) for 1,2-way Tables           ########
@@ -80,62 +69,15 @@ LikelihoodRatioTableTest <- function(obsData, expData=NULL, printNice=TRUE) {
 
 
 
-# NOTE
-# pi.hat.Ho <- nullMod$fitted.values
-#pi.hat.Ha <- altMod$fitted.values
-#y <- placekick$good
-# ******
-# likRatio <- -2 * sum(y * log(pi.hat.Ho/pi.hat.Ha) + (1-y)*log((1-pi.hat.Ho)/(1-pi.hat.Ha)))
-
-LikelihoodRatioModelTest <- function(nullModel, altModel, printNice=TRUE) {
-      df <- nullModel$df.residual - altModel$df.residual; df 
-      likRatioStat <- nullModel$deviance - altModel$deviance; likRatioStat
-      pValue <- 1 - pchisq(likRatioStat, df); pValue
-      result <- round(matrix(c(nullModel$dev, altModel$dev, nullModel$df.resid, 
-                               altModel$df.resid, df, likRatioStat, pValue), 
-                             ncol=1, byrow = TRUE), 5)
-      colnames(result) <- ""
-      rownames(result) <- c("Deviance (Ho)", "Deviance (Ha)", "DF (Ho)", "Df (Ha)", "Df",
-                             "LikRatio", "PValue")
-      
-      if(printNice){
-            cat("\n")
-            cat("#####################################################################\n")
-            cat("#######                 Likelihood-Ratio Test                 #######\n")
-            cat("#####################################################################\n")
-            cat("\tH0: reduced model is true = "); print(nullModel$formula) #; cat("\n")
-            cat("\tHA: current model is true = "); print(altModel$formula); cat("\n")
-            cat("ΔG^2:\t\t                                     ", likRatioStat, "\n")
-            cat("df:\t\t                                     ", df, "\n")
-            cat("p-value:\t\t                             ", pValue, "\n\n")
-            return(invisible(result))
-      }
-      return(result)
-}
 
 
-# deviance --> in stats package, returns residual deviance of fitted model object. 
-ResidualDeviance <- function(model){
-      df <- data.frame(ResidualDeviance=deviance(model), Df=model$df.resid)
-      row.names(df) <- ""
-      return(df)
-}
-
-NullDeviance <- function(model){
-      df <- data.frame(NullDeviance=model$null.deviance, Df=model$df.null)
-      row.names(df) <- ""
-      return(df)
-}
 
 
-devianceResiduals <- function(obsData, expData=NULL) {
-      # doing chi-test just to get expected values. 
-      if(!is.null(expData)) chi.test <- chisq.test(obsData, p=expData/sum(expData))
-      else chi.test <- chisq.test(obsData)
-      os <- obsData 
-      es <- chi.test$exp 
-      return(sign(os - es) * sqrt(abs(2 * os * log(os/es))))
-}
+
+
+
+
+
 
 
 # ---------------------- Row/Col Probability Estimates -----------------------------------------

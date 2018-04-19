@@ -1,5 +1,5 @@
 # TODO: interpret x1x2 interaction terms (and for more interactions as well)
-
+# TODO: interpret logistic coefficient estimates. 
 
 interpret.SlopeCoeffs <- function(fit, level=0.95, x.units=c(), y.unit="unit") {
       
