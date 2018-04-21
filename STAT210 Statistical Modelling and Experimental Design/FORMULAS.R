@@ -563,6 +563,7 @@ ResidualDevianceTest <- function(fit, printNice=TRUE) {
                   "Thus the model is a good fit for the data.", sep="")
       }
       
+      # TODO: update null hypothesis, is not the same of the nested test H0. 
       if(printNice){
             yName <- names(fit$model)[1]
             form = as.formula(paste(yName, " ~ 1", sep=""))
