@@ -49,21 +49,37 @@ ResidualDevianceTest(leaf.glm)
 exp(leaf.glm$coefficients[2]) - 1
 
 
-# confinds
-# the title must be same as x-var name
-pred.df <- with(leafData, 
-                data.frame(LeafHeight= seq(min(LeafHeight), max(LeafHeight),
-                                           length=100)))
-temp <- predict(leaf.glm, newdata=pred.df, type="response", se.fit=TRUE)
-pred.df <- cbind(pred.df, fit=temp$fit, lwr=temp$fit - 1.96*temp$se.fit,
-                 upr=temp$fit + 1.96*temp$se.fit)
+# CONFIDENCE INTERVAL PLOTTING
+from = min(leafData$LeafHeight)
+to = max(leafData$LeafHeight)
+xs <- data.frame(LeafHeight=seq(from=from,to=to, len=nrow(leafData)))
 
-p.data <- ggplot(leafData, aes(x=LeafHeight, y=Visited)) + 
-      geom_point(shape=19, size=3)
-p.data
-p.fit <- p.data + 
-      geom_line(data=pred.df, aes(y=fit), colour="blue", size=1) + 
-      geom_line(data=pred.df, aes(y=lwr), colour="red", linetype="dashed",size=1) + 
-      geom_line(data=pred.df, aes(y=upr), colour="red", linetype="dashed", size=1) + 
-      ylab("Probability of Visitation of Leaves")
-p.fit
+# the levels are by default 95% for the CIs
+CI <- data.frame(predict(leaf.glm, newdata=xs, type="response", se.fit=TRUE))
+pred.df <- data.frame(LeafHeight=xs$LeafHeight, fit=CI$fit, 
+                      lwr=CI$fit - 2*CI$se.fit, upr=CI$fit + 2*CI$se.fit)
+
+# Plotting confidence bands 
+p.data = ggplot(leafData, aes(x=LeafHeight, y=Visited)) + 
+      geom_point(shape=19, size=3) 
+
+p.fits = p.data + 
+      geom_line(data=pred.df, aes(y=fit, colour="a", linetype="a"),size=1) +
+      geom_line(data=pred.df, aes(y=lwr, colour="b", linetype="b"),size=1) + 
+      geom_line(data=pred.df, aes(y=upr, colour="b", linetype="b"),size=1) 
+
+p.plot <- p.fits + 
+      ggtitle("Predicted and Observed Values of Visited vs LeafHeight 
+              and 95% Confidence Bands") +
+      scale_colour_manual(name="Legend", values=c("a"="red", "b"="dodgerblue"),
+                          labels=c("Fitted Line", "95%\nConfidence\nBands")) +
+      scale_linetype_manual(name="Legend", values=c("a"="solid", "b"="dashed"),
+                            labels=c("Fitted Line", "95%\nConfidence\nBands"))
+
+p.plot 
+
+
+
+# OR ANOTHER WAY  --- (with linkinv function in predict())
+# Why are the previous confidence bands going over the dots? (using response preds)
+plotConfidenceBands.glm(leaf.glm)

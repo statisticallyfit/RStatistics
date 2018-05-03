@@ -82,6 +82,12 @@ p.plot <- p.fits +
 
 p.plot 
 
+# NOTE: my addition later - this works!!!! ------------------------------------
+plotConfidenceBands.lm(bflow.3.lm)
+plotConfPredBands.lm(bflow.2.lm)
+plotConfPredBands.lm(bflow.3.lm)
+# -----------------------------------------------------------------------------
+
 
 
 

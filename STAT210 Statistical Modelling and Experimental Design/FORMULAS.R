@@ -455,25 +455,6 @@ influence.cooksDistances <- function(fit) {
 # ******
 # likRatio <- -2 * sum(y * log(pi.hat.Ho/pi.hat.Ha) + (1-y)*log((1-pi.hat.Ho)/(1-pi.hat.Ha)))
 
-likRatioPrintNice <- function(result, nullModel, altModel, statement){
-      nf = formula(nullModel)
-      na = formula(altModel)
-      cat("\n")
-      cat("#####################################################################\n")
-      cat("#######                 Likelihood-Ratio Test                 #######\n")
-      cat("#####################################################################\n")
-      cat("\tH0: reduced model is true: "); cat(paste(nf[[2]], nf[[1]], nf[3]))
-      cat("\n")
-      cat("\tHA: complete model is true: "); cat(paste(na[[2]], na[[1]], na[3]))
-      cat("\n\n")
-      cat("  ΔG^2:\t\t                                ", result$LikRatio, "\n")
-      #cat("  Critical Chi-square (α = 0.05):               ", ChiCrit, "\n")
-      cat("  df:\t\t                                ", result$df, "\n")
-      cat("  p-value:\t\t                        ", result$PValue, "\n\n")
-      cat(statement)
-      
-      return(invisible(result))
-}
 
 # NOTE: null model deviance is bigger (assuming) so the statistic
 # will be negative if not. 
@@ -501,7 +482,7 @@ LikelihoodRatioNestedTest <- function(reducedModel, fullModel, printNice=TRUE) {
             statement <- paste("Reject H0. Conclude at least one of the extra β ",
             "coefficients \n",
             "in the complete model is nonzero, so that the complete model is\n",
-            "statistically useful for predicting ", names(reducedModel$model)[1], ", y.", sep="")
+            "statistically useful for predicting ", names(reducedModel$model)[1], " (y).", sep="")
       } else{
             statement <- 
                   paste("Insufficient evidence to reject Ho, that is, to conclude that",
@@ -510,7 +491,24 @@ LikelihoodRatioNestedTest <- function(reducedModel, fullModel, printNice=TRUE) {
       }
       
       if(printNice){
-            likRatioPrintNice(result, reducedModel, fullModel, statement)
+            #likRatioPrintNice(result, reducedModel, fullModel, statement)
+            nf = formula(reducedModel)
+            na = formula(fullModel)
+            cat("\n")
+            cat("#####################################################################\n")
+            cat("#######                 Likelihood-Ratio Test                 #######\n")
+            cat("#####################################################################\n")
+            cat("\tH0: reduced model is true: "); cat(paste(nf[[2]], nf[[1]], nf[3]))
+            cat("\n")
+            cat("\tHA: complete model is true: "); cat(paste(na[[2]], na[[1]], na[3]))
+            cat("\n\n")
+            cat("  ΔG:\t\t                                ", result$LikRatio, "\n")
+            #cat("  Critical Chi-square (α = 0.05):               ", ChiCrit, "\n")
+            cat("  df:\t\t                                ", result$df, "\n")
+            cat("  p-value:\t\t                        ", result$PValue, "\n\n")
+            cat(statement)
+            
+            return(invisible(result))
       }else{
             return(result)                 
       }
@@ -536,10 +534,9 @@ DevianceTest <- function(fit){
 
 # Null hypothesis is that expected mu and observed ys are the same
 # If low p-value then they are not.
-
-# Equivalent to a global-F test for a linear regression model, just
-# going be deviance statistic here. Tests overall model FIT. 
-# no global p-value is given when you say anova(null, alt)
+# TESTS: the difference between expected successes with observed ones, and the
+# expected failures with observed ones. (global F-test)
+# Equivalent to global F-test, tests overall model fit. 
 ResidualDevianceTest <- function(fit, printNice=TRUE) { 
       # residualdeviance has chi-square distribution on n - k degrees freedom. 
       df <- fit$df.residual
@@ -553,13 +550,19 @@ ResidualDevianceTest <- function(fit, printNice=TRUE) {
       # Ho: deviance = 0 p = big fail reject H0 = good model fit = deviance small
       statement <- ""
       if(result$PValue < 0.05){
+            # testing if G = 0
+            # ni <- gen$total; yi <- gen$male; mui <- ni *ratio.glm$fitted.values
+            # G <- 2*sum( yi*log(yi/mui) + (ni-yi)*log((ni-yi)/(ni-mui)) )
             statement <- 
                   paste("Reject H0. Conclude the residual deviance is large and\n",
-                  "different from zero. The model is not a good fit for the data.", sep="")
+                  "different from zero. So expected successes are not equal to\n",
+                  "observed successes and expected failures are not equal to \n",
+                  "observed failures. The model is not a good fit for the data.", sep="")
       } else{
             statement <- 
                   paste("Fail to reject H0. Not enough evidence to conclude that the\n",
                   "residual deviance is not 0, so we say the residual deviance is small.\n",
+                  "So expected and observed successes/failures are similar. \n",
                   "Thus the model is a good fit for the data.", sep="")
       }
       
@@ -568,7 +571,23 @@ ResidualDevianceTest <- function(fit, printNice=TRUE) {
             yName <- names(fit$model)[1]
             form = as.formula(paste(yName, " ~ 1", sep=""))
             nullModel <- glm(form, data=fit$model, family=fit$family)
-            likRatioPrintNice(result, nullModel, fit, statement)
+            #likRatioPrintNice(result, nullModel, fit, statement)
+            
+            nf = formula(nullModel)
+            na = formula(fit)
+            cat("\n")
+            cat("#####################################################################\n")
+            cat("#######        Likelihood-Ratio Residual Deviance Test        #######\n")
+            cat("#####################################################################\n")
+            cat("\tH0: residual deviance ΔG = 0 \n") #; cat(paste(nf[[2]], nf[[1]], nf[3]))
+            #cat("\n")
+            cat("\tHA: residual deviance ΔG != 0\n\n") #; cat(paste(na[[2]], na[[1]], na[3]))
+            cat("  ΔG:\t\t                                ", result$LikRatio, "\n")
+            cat("  df:\t\t                                ", result$df, "\n")
+            cat("  p-value:\t\t                        ", result$PValue, "\n\n")
+            cat(statement)
+            
+            return(invisible(result))
       } else{
             return(result)                 
       }
@@ -649,8 +668,61 @@ marginalTable <- function(tbl) {
 
 #  odds ratio for n x m table (two-way) is the same anyway you place the coeffs
 # Returns odds ratio for all combinations of pairings between variable levels. 
-oddsRatio <- function(tbl) {
+# CAN TEST WITH THIS DATA: 
+#eyeTable <- as.table(matrix(c(20,30,10,15,10,85,25,15,12,20,10,82,45,45,22,35,20,167),byrow = TRUE, nrow=3))
+#rownames(eyeTable) <- c("Female", "Male", "Total")
+#colnames(eyeTable) <- c("Black", "Brown", "Blue", "Green", "Gray", "Total")
+#oddsRatio(eyeTable)
+
+colOdds <- function(tbl) {
+      ### make names combos
+      combosColnames <- combn(colnames(tbl), m=2)
+      combosColnames.forward <- paste(combosColnames[1,], "/", combosColnames[2,], sep="")
+      combosColnames.backward <- paste(combosColnames[2,], "/", combosColnames[1,], sep="")
       
+      ### make odds for each col, holding rows constant
+      combosCol <- lapply(1:nrow(tbl), function(i) combn(tbl[i,], m=2))
+      cOdds.forward <- lapply(1:nrow(tbl), function(i){combosCol[[i]][1, ] / combosCol[[i]][2, ]})
+      cOdds.backward <- lapply(1:nrow(tbl), function(i){combosCol[[i]][2, ] / combosCol[[i]][1, ]})
+      # adjusting
+      library(plyr)
+      cOdds.forward <- ldply(cOdds.forward)
+      cOdds.backward <- ldply(cOdds.backward)
+      #naming 
+      colnames(cOdds.forward) <- combosColnames.forward
+      rownames(cOdds.forward) <- rownames(tbl)
+      colnames(cOdds.backward) <- combosColnames.backward
+      rownames(cOdds.backward) <- rownames(tbl)
+      
+      return(cbind(cOdds.forward, cOdds.backward))
+}
+
+rowOdds <- function(tbl){
+      ### make names combos
+      combosRownames <- combn(rownames(tbl), m=2)
+      combosRownames.forward <- paste(combosRownames[1, ], "/", combosRownames[2,], sep="")
+      combosRownames.backward <- paste(combosRownames[2, ], "/", combosRownames[1,], sep="")
+      
+      ### make odds for each col, holding rows constant
+      combosRow <- lapply(1:ncol(tbl), function(i) combn(tbl[,i], m=2))
+      rOdds.forward <- lapply(1:ncol(tbl), function(i){combosRow[[i]][1, ] / combosRow[[i]][2, ]})
+      rOdds.backward <- lapply(1:ncol(tbl), function(i){combosRow[[i]][2, ] / combosRow[[i]][1, ]})
+      # adjusting a bit
+      library(plyr)
+      rOdds.forward <- t(ldply(rOdds.forward))
+      rOdds.backward <- t(ldply(rOdds.backward))
+      
+      #naming 
+      colnames(rOdds.forward) <- colnames(tbl)
+      rownames(rOdds.forward) <- combosRownames.forward
+      colnames(rOdds.backward) <- colnames(tbl)
+      rownames(rOdds.backward) <- combosRownames.backward
+      
+      return(rbind(rOdds.forward, rOdds.backward))
+}
+
+
+oddsRatio <- function(tbl) {
       ### make names combos
       combosColnames <- combn(colnames(tbl), m=2)
       combosColnames <- paste(combosColnames[1,], "/", combosColnames[2,], sep="")
@@ -658,15 +730,16 @@ oddsRatio <- function(tbl) {
       combosRownames <- paste(combosRownames[1, ], "/", combosRownames[2,], sep="")
       ### make odds for each col, holding rows constant
       combosCol <- lapply(1:nrow(tbl), function(i) combn(tbl[i,], m=2))
-      oddsCol <- lapply(1:nrow(tbl), function(i){combosCol[[i]][1, ] / combosCol[[i]][2, ]})
+      cOdds <- lapply(1:nrow(tbl), function(i){combosCol[[i]][1, ] / combosCol[[i]][2, ]})
+      
       library(plyr)
-      oddsCol <- ldply(oddsCol)
-      colnames(oddsCol) <- combosColnames
-      rownames(oddsCol) <- rownames(tbl)
+      cOdds <- ldply(cOdds)
+      colnames(cOdds) <- combosColnames
+      rownames(cOdds) <- rownames(tbl)
       
-      oddsPairs <- lapply(1:ncol(oddsCol), function(i) combn(oddsCol[,i], m=2))
+      oddsPairs <- lapply(1:ncol(cOdds), function(i) combn(cOdds[,i], m=2))
       
-      oddsRatios <- lapply(1:ncol(oddsCol), function(i) {oddsPairs[[i]][1,] / oddsPairs[[i]][2,]})
+      oddsRatios <- lapply(1:ncol(cOdds), function(i) {oddsPairs[[i]][1,] / oddsPairs[[i]][2,]})
       oddsRatios <- t(ldply(oddsRatios))
       colnames(oddsRatios) <- combosColnames
       rownames(oddsRatios) <- combosRownames

@@ -28,14 +28,16 @@ ratio.null.glm <- glm(count ~ 1, family=binomial, data=genderData)
 summary(ratio.glm)
 
 
+
 # RESIUDAL DEVIANCE (individual model comparison, global fit)
-# test method 1
+# test method 1 (p-value not in table)
 anova(ratio.glm, test="Chisq") # the p-value is for the deviance
 # test method 2
 ResidualDevianceTest(ratio.glm)
 
 
 # DEVIANCE (nested test with null model)
+# p-value IS IN THE TABLE
 anova(ratio.null.glm, ratio.glm, test="Chisq")
 DevianceTest(ratio.glm) # the effect of genotype is highly significant
 

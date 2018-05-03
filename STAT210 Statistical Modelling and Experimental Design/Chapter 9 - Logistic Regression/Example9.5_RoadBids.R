@@ -15,7 +15,9 @@ roads.numbids.glm <- glm(STATUS ~ NUMBIDS, data=ROADBIDS, family=binomial)
 # NOTE: the p-values of the coeffs are from this: each (Bi/sbi)^2 has
 # a chi square distribution with df = 1. So p-value is calculating
 # pchisq(q=zvalue, df=1, lower.tail=FALSE)
-summary(roads.glm)
+cof <- summary(roads.glm)$coef
+exp(cof) # odds ratios
+
 
 
 # TESTING MODEL DEVIANCES
@@ -45,38 +47,10 @@ roads.glm$null.deviance
 roads.glm$df.null
 
 
-#roads.null.glm <- glm(STATUS ~ 1, family="binomial", data=ROADBIDS)
 
 
-
-
-
-# PREDICTIONS -- help how to do prediction plotting? 
-attach(ROADBIDS)
-preds <- predict(roads.glm, newdata=data.frame(NUMBIDS), type="link", se.fit=TRUE)
-crit <- 1.96
-# real fits, uprs, lwrs
-predData <- data.frame(fit.real=roads.glm$family$linkinv(preds$fit),
-                       upr.real= roads.glm$family$linkinv(preds$fit + crit * preds$se.fit),
-                       lwr.real = roads.glm$family$linkinv(preds$fit - crit * preds$se.fit))
-predData$NUMBIDS <- seq(min(NUMBIDS), max(NUMBIDS), length=nrow(predData))
-predData$fit.logodds <- preds$fit
-
-head(predData)
-
-
-p.data = ggplot(ROADBIDS, aes(x=NUMBIDS, y=STATUS)) + 
-      geom_point(shape=19, size=3) 
-
-p.fits = p.data + 
-      stat_smooth(method="glm", method.args=list(family=binomial))
-      #geom_line(data=predData, aes(y=fit.real, col="blue"),size=1) +
-      #geom_line(data=predData, aes(y=lwr.real, col="red"),size=1) + 
-      #geom_line(data=predData, aes(y=upr.real, col="red"),size=1) 
-p.fits
-
-
-
+# PLOTTING CONFIDENCE INTERVALS
+plotConfidenceBands.glm(roads.numbids.glm)
 
 
 
@@ -85,7 +59,7 @@ roads.higher.glm <- glm(STATUS ~ NUMBIDS*DOTEST +
                               I(NUMBIDS^2) + I(DOTEST^2), family="binomial",
                         data=ROADBIDS)
 summary(roads.higher.glm)
-anova(roads.higher.glm)
+anova(roads.higher.glm, test="Chisq")
 
 # Test hypothesis: β3  = β4  = β5  = 0
 # chi_compare = chi_complete - chi-reduced and
@@ -96,11 +70,12 @@ anova(roads.higher.glm)
 
 # doing overall global fit test for roads glm
 ResidualDevianceTest(roads.glm)
-anova(roads.glm)
+anova(roads.glm) # tests not in this table at all
 
 # comparing between null model and roads higher model
 DevianceTest(roads.higher.glm)
-anova(roads.higher.glm)
+anova(roads.higher.glm, test="Chisq") # anove only compares sequential models, not
+# jumping between levels of term-adding. 
 
 LikelihoodRatioNestedTest(roads.glm, roads.higher.glm)
 #should equal the likelihood nested glm test
@@ -118,5 +93,7 @@ predict(roads.glm, type="response", newdata=data.frame(NUMBIDS=5, DOTEST=-10))
 # interpret coefs
 cof <- summary(roads.glm)$coef
 exp(cof[,1]) -1
-# So for each additional increase in NUMBIDS, the odds of a fixed contract
+# --- So for each additional increase in NUMBIDS, the odds of a fixed contract
 # will decrese by 53%, holding DOTEST fixed. 
+# --- For each additional increase in DOTEST, the odds of a fixed contract will
+# increase by 11.87%, holding NUMBIDS fixed. 

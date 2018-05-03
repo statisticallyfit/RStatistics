@@ -13,25 +13,7 @@ library(GGally) # for pairs plot
 # values on that distribution. Mark in red the cutoff point. 
 
 
-# TODO: from question 3 assginment 2 STAT210 make a function do this this
-# in general: 
-#p.data = ggplot(bflowData, aes(x=AOT, y=BF)) + 
-#      geom_point(shape=19, size=3) 
 
-#p.fits = p.data + 
-#      geom_line(data=pred.df, aes(y=fit, colour="a", linetype="a"),size=1) +
-#      geom_line(data=pred.df, aes(y=lwr, colour="b", linetype="b"),size=1) + 
-#      geom_line(data=pred.df, aes(y=upr, colour="b", linetype="b"),size=1) 
-
-#p.plot <- p.fits + 
-#      ggtitle("Predicted and Observed Values of BF vs AOT 
-#              and 95% Confidence Bands") +
-#      scale_colour_manual(name="Legend", values=c("a"="red", "b"="dodgerblue"),
-#                          labels=c("Fitted Line", "95%\nConfidence\nBands")) +
-#      scale_linetype_manual(name="Legend", values=c("a"="solid", "b"="dashed"),
-#                            labels=c("Fitted Line", "95%\nConfidence\nBands"))
-
-#p.plot #
 
 
 # pairs plot for numerical data 
@@ -268,4 +250,128 @@ cookGraph <- function(fit){
             scale_x_continuous("Observation Number") +
             scale_y_continuous("Cook's distance") +
             ggtitle("Cook's Distance")
+}
+
+
+
+
+plotConfidenceBands.lm <- function(fit) {
+      # first check that we have a  single-variable model
+      if(length(names(fit$model)) > 2){
+            print("Warning: this function only works with a single predictor")
+      }
+      # Else we get the min-max values and continue
+      from <- min(fit$model[2])
+      to <- max(fit$model[2])
+      xName <- names(fit$model)[2]
+      yName <- names(fit$model)[1]
+      xs <- data.frame(seq(from=from,to=to, len=nrow(fit$model)))
+      colnames(xs) <- xName
+      
+      CI <- data.frame(predict(fit, newdata=xs, interval="confidence"))
+      conf.df <- data.frame(xs[xName], fit = CI$fit, lwr=CI$lwr, upr=CI$upr)
+      
+      # plotting
+      p.data <- ggplot(data=fit$model, aes_string(x=xName, y=yName)) + 
+            geom_point(size=3, shape=19)
+      
+      p.fits = p.data + 
+            geom_line(data=conf.df, aes(y=fit, colour="a", linetype="a"),size=1) +
+            geom_line(data=conf.df, aes(y=lwr, colour="b", linetype="b"),size=1) + 
+            geom_line(data=conf.df, aes(y=upr, colour="b", linetype="b"),size=1) 
+      
+      p.plot <- p.fits + 
+            ggtitle(paste("Predicted and Observed Values of ",yName, " vs ", xName,
+                          " and 95% Confidence Bands", sep="")) +
+            scale_colour_manual(name="Legend", values=c("a"="red", "b"="dodgerblue"),
+                                labels=c("Fitted Line", "95%\nConfidence\nBands")) +
+            scale_linetype_manual(name="Legend", values=c("a"="solid", "b"="dashed"),
+                                  labels=c("Fitted Line", "95%\nConfidence\nBands")) 
+      
+      p.plot 
+}
+
+# plots both confidence and prediction bands
+plotConfPredBands.lm <- function(fit) {
+      # first check that we have a  single-variable model
+      if(length(names(fit$model)) > 2){
+            print("Warning: this function only works with a single predictor")
+      }
+      # Else we get the min-max values and continue
+      from <- min(fit$model[2])
+      to <- max(fit$model[2])
+      xName <- names(fit$model)[2]
+      yName <- names(fit$model)[1]
+      xs <- data.frame(seq(from=from,to=to, len=nrow(fit$model)))
+      colnames(xs) <- xName
+      
+      CI <- data.frame(predict(fit, newdata=xs, interval="confidence"))
+      PI <- data.frame(predict(fit, newdata=xs, interval="prediction"))
+      conf.df <- data.frame(xs[xName], fit = CI$fit, lwr=CI$lwr, upr=CI$upr)
+      pred.df <- data.frame(xs[xName], fit = PI$fit, lwr=PI$lwr, upr=PI$upr)
+      
+      # plotting
+      p.data <- ggplot(data=fit$model, aes_string(x=xName, y=yName)) + 
+            geom_point(size=3, shape=19)
+      
+      p.fits = p.data + 
+            geom_line(data=conf.df, aes(y=fit, colour="a", linetype="a"),size=1) +
+            geom_line(data=conf.df, aes(y=lwr, colour="b", linetype="b"),size=1) + 
+            geom_line(data=conf.df, aes(y=upr, colour="b", linetype="b"),size=1) +
+            geom_line(data=pred.df, aes(y=lwr, colour="c", linetype="c"),size=1) + 
+            geom_line(data=pred.df, aes(y=upr, colour="c", linetype="c"),size=1) 
+      
+      p.plot <- p.fits + 
+            ggtitle(paste("Predicted and Observed Values of ",yName, " vs ", xName,
+                          " and 95% Confidence and Prediction Bands", sep="")) +
+            scale_colour_manual(name="Legend", values=c("a"="red", "b"="dodgerblue",
+                                                        "c"="purple"),
+                                labels=c("Fitted Line", "95%\nConfidence\nBands",
+                                         "95% Prediction Intervals")) +
+            scale_linetype_manual(name="Legend", values=c("a"="solid", "b"="dashed",
+                                                          "c"="dotted"),
+                                  labels=c("Fitted Line", "95%\nConfidence\nBands",
+                                           "95% Prediction Intervals")) 
+      
+      p.plot 
+}
+
+plotConfidenceBands.glm <- function(fit){
+      # first check that we have a  single-variable model
+      if(length(names(fit$model)) > 2){
+            print("Warning: this function only works with a single predictor") 
+      }
+      
+      # Else we get the min-max values and continue
+      invLink <- fit$family$linkinv
+      from <- min(fit$model[2])
+      to <- max(fit$model[2])
+      xName <- names(fit$model)[2]
+      yName <- names(fit$model)[1]
+      xs <- data.frame(seq(from=from,to=to, len=nrow(fit$model)))
+      colnames(xs) <- xName
+      
+      CI <- data.frame(predict(fit, newdata=xs, type="link", se.fit=TRUE))[1:2]
+      conf.df <- data.frame(xs[xName], fit = invLink(CI$fit), 
+                            lwr = invLink(CI$fit - 2*CI$se.fit), 
+                            upr = invLink(CI$fit + 2*CI$se.fit))
+      
+      # plotting
+      p.data <- ggplot(data=fit$model, aes_string(x=xName, y=yName)) + 
+            geom_point(size=3, shape=19)
+      
+      p.fits = p.data + 
+            geom_line(data=conf.df, aes(y=fit, colour="a", linetype="a"),size=1) +
+            geom_line(data=conf.df, aes(y=lwr, colour="b", linetype="b"),size=1) + 
+            geom_line(data=conf.df, aes(y=upr, colour="b", linetype="b"),size=1) 
+      
+      p.plot <- p.fits + 
+            ggtitle(paste("Predicted and Observed Values of ",yName, " vs ", xName,
+                          " and 95% Confidence Bands", sep="")) +
+            scale_colour_manual(name="Legend", values=c("a"="red", "b"="dodgerblue"),
+                                labels=c("Fitted Line", "95%\nConfidence\nBands")) +
+            scale_linetype_manual(name="Legend", values=c("a"="solid", "b"="dashed"),
+                                  labels=c("Fitted Line", "95%\nConfidence\nBands")) 
+      
+      p.plot 
 }
