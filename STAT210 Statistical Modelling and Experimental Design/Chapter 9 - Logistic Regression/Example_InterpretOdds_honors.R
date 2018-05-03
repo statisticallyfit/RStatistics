@@ -46,15 +46,15 @@ colnames(tab) <- c("Male", "Female")
 rownames(tab) <- c("No", "Honors")
 m.tab <- marginalTable(tab); m.tab 
 
-oddsRatio(tab)
-oddsRatio(tab) - 1
-# so the odds for females are about 80.9% higher than odds for males
+oddsRatio(mirror(tab)) # same thing as just tab
+oddsRatio(mirror(tab)) - 1
+# so the odds of being in honors for females are about 80.9% higher than odds for males
 
 rowOdds(tab)
 colOdds(tab)
 
-oddsMales <- tab[2,1]/tab[1,1]; oddsMales
-oddsFem <- tab[2,2] / tab[1,2]; oddsFem
+oddsMales <- tab[2,1]/tab[1,1]; oddsMales 
+oddsFem <- tab[2,2] / tab[1,2]; oddsFem # odds for females being in honors class
 oddsFem/oddsMales
 
 
@@ -111,7 +111,7 @@ exp(cof)
 # --- holding fem, math fixed, the odds ratio of getting into honors versys not
 # getting into honors for reading is 1.06 (6% increase in odds of getting
 # into honors for 1 unit increase in reading score)
-
+betaCI(honor.math.fem.read.glm)
 
 
 

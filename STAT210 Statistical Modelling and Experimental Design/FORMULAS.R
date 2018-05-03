@@ -721,7 +721,6 @@ rowOdds <- function(tbl){
       return(rbind(rOdds.forward, rOdds.backward))
 }
 
-
 oddsRatio <- function(tbl) {
       ### make names combos
       combosColnames <- combn(colnames(tbl), m=2)
@@ -745,4 +744,17 @@ oddsRatio <- function(tbl) {
       rownames(oddsRatios) <- combosRownames
       
       return(oddsRatios)
+}
+
+# flips columns horizontally (like mirror)
+mirrorHorizontal <- function(tbl){
+      t(apply(tbl, 1, rev))
+}
+
+mirrorVertical <- function(tbl){
+      apply(tbl, 2, rev)
+}
+
+mirror <- function(tbl){
+      mirrorVertical(mirrorHorizontal(tbl))
 }

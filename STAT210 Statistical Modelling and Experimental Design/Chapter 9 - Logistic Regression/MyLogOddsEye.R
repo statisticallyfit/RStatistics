@@ -6,6 +6,8 @@ colnames(eyeTable) <- c("Black", "Brown", "Blue", "Green", "Gray")
 eyeTable
 
 oddsRatio(eyeTable)
+mirror(eyeTable)
+oddsRatio(mirror(eyeTable))
 
 rowOdds(eyeTable)
 colOdds(eyeTable)
