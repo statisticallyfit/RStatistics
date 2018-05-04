@@ -22,3 +22,22 @@ ResidualDevianceTest(discr.glm) # model adequacy (called so by UNE)
 
 # part b) H0: B3 = 0
 anova(discr.glm, test="Chisq")
+
+
+# part c) mean confidence interval
+CI.link <- predict(discr.glm, newdata=data.frame(EDUC=4, EXP=0, GENDER=1), 
+                   type="link",se.fit=T)[1:2]
+logit.ci <- data.frame(fit=CI.link$fit, 
+                       lwr=CI.link$fit - 1.96*CI.link$se.fit, 
+                       upr=CI.link$fit + 1.96*CI.link$se.fit)
+logit.ci
+mean.ci <- exp(logit.ci)
+mean.ci
+
+# another way using direct response
+CI.resp <- predict(discr.glm, newdata=data.frame(EDUC=4, EXP=0, GENDER=1), 
+                   type="response",se.fit=T)[1:2]
+mean.ci.direct <- data.frame(fit=CI.resp$fit, 
+                        lwr=CI.resp$fit - 1.96*CI.resp$se.fit,
+                        upr=CI.resp$fit + 1.96*CI.resp$se.fit)
+mean.ci.direct

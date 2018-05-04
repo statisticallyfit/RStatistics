@@ -675,6 +675,12 @@ marginalTable <- function(tbl) {
 #oddsRatio(eyeTable)
 
 colOdds <- function(tbl) {
+      
+      if(length(dim(tbl)) > 2){
+            cat("Error: Needs to be 2-dimensional table")
+            return(invisible(NULL))
+      }
+      
       ### make names combos
       combosColnames <- combn(colnames(tbl), m=2)
       combosColnames.forward <- paste(combosColnames[1,], "/", combosColnames[2,], sep="")
@@ -698,6 +704,12 @@ colOdds <- function(tbl) {
 }
 
 rowOdds <- function(tbl){
+      
+      if(length(dim(tbl)) > 2){
+            cat("Error: Needs to be 2-dimensional table")
+            return(invisible(NULL))
+      }
+      
       ### make names combos
       combosRownames <- combn(rownames(tbl), m=2)
       combosRownames.forward <- paste(combosRownames[1, ], "/", combosRownames[2,], sep="")
@@ -722,6 +734,11 @@ rowOdds <- function(tbl){
 }
 
 oddsRatio <- function(tbl) {
+      if(length(dim(tbl)) > 2){
+            cat("Error: Needs to be 2-dimensional table")
+            return(invisible(NULL))
+      }
+      
       ### make names combos
       combosColnames <- combn(colnames(tbl), m=2)
       combosColnames <- paste(combosColnames[1,], "/", combosColnames[2,], sep="")
