@@ -13,14 +13,15 @@ count <- cbind(attack=heartData$attack, none=heartData$total - heartData$attack)
 
 heart.glm <- glm(count ~ CK, data=heartData, family=binomial)
 
-# part a.i) deviance = 283.15, with
-# p-value 2.22e-16 which means the CK slope is different from zero. Here we
-# are testing the nested likelihood ratio test of the null model and the CK
-# single predictor model. A lot of variation is explained in heart attacks
-# by including the CK predictor in the model.
+# part a.i) 
+# RESIDUAL DEVIANCE: 
 # Primarily, model is NOT good fit since residual deviance = 28.14, df = 11, with
 # p-value = 0.003 so that means the residual deviance is large. Large differences
 # between observed and expected successes and observed/expected failures.
+# DEVIANCE = 283.15, with
+# p-value 2.22e-16 which means the CK slope is different from zero. 
+# A lot of variation is explained in heart attacks
+# by including the CK predictor in the model.
 anova(heart.glm, test="Chisq") 
 1 - pchisq(28.140225, df=11)
 
@@ -33,7 +34,7 @@ exp(cof)-1
 
 
 
-# part b)  median dose
+# part b)  median CK
 intercept = cof[[1]]
 slope = cof[[2]]
 medianCK = -intercept/slope; medianCK

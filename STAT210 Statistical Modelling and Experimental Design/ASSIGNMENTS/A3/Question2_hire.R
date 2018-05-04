@@ -1,6 +1,5 @@
 setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/ASSIGNMENTS/A3")
 
-library(ggplot2)
 options(digits=10, show.signif.stars = FALSE)
 
 
@@ -23,7 +22,10 @@ step.backward.model <- step(full.model, direction="backward",
 # We choose the 3-predictor model since it is the result of both methods. 
 # The 3-predictor model has lowest AIC. 
 
-hire.glm <- step.forward.model
+# refitting so that GENDER comes last so anova table is more convenient for
+# interpretation. 
+hire.glm <- glm(HIRE ~ EXP + EDUC + GENDER,data=discrData, family=binomial)
+
 
 # part b) checking residual deviance
 anova(hire.glm, test="Chisq")
@@ -31,15 +33,9 @@ anova(hire.glm, test="Chisq")
 1 - pchisq(14.735, df=24)
 # which is greater than 0.05 so the model is a good fit. 
 
-############## ADD about DEVIANCE here############################
-ResidualDevianceTest(hire.glm)
-DevianceTest(hire.glm)
-####################################################################################
 
-
-# part c) equation for final model
-coef(hire.glm)
-
+# part c) equation of final model
+summary(hire.glm)
 
 
 # part d) probability of being hired
