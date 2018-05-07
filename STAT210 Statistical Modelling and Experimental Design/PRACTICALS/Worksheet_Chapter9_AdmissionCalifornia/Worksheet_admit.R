@@ -71,17 +71,18 @@ exp(cof[,1:2])-1
 # SEE THE FILE FOR THIS WORKSHEET IN NOTEBOOK: 
 # --- (B0) intercept = odds of being admitted for a female in dept A is 97.7%. 
 # --- (B1) genderMale = odds of being addmitted for a male is 9.5% lower than for
-# a female, both in deptA. (odds ratio of being admitted of male to female in deptA)
-# --- (B2) deptB = odds RATIO for females across depts B,A is 4.2% lower
-# than the odds RATIO for males across depts B,A. 
-# --- (B3) deptC = odds RATIO for females across depts C,A is 71.7% lower
-# than the odds RATIO for males across depts C,A. 
-# --- (B4) deptD = odds RATIO for females across depts D,A is 72.5% lower
-# than the odds RATIO for males across depts D,A. 
-# --- (B5) deptE = odds RATIO for females across depts E,A is 82.4% lower
-# than the odds RATIO for males across depts E,A. 
-# --- (B6) deptF = odds RATIO for females across depts F,A is 96.3% lower
-# than the odds RATIO for males across depts F,A.  
+# a female,  both in dept A,B,C..F (odds ratio of being admitted of male to female 
+# in deptA,B,...F)
+# --- (B2) deptB = odds of being admitted for female from dept B is 4.2% lower
+# than for female from dept A. 
+# --- (B3) deptC = odds of being admitted for female from dept C is 71.7% lower
+# than for female from dept A. 
+# --- (B4) deptD = odds of being admitted for female from dept D is 72.5% lower
+# than for females from dept A. 
+# --- (B5) deptE = odds of being admitted for female from dept E is 82.4% lower
+# than for females from dept A. 
+# --- (B6) deptF = odds of being admitted for female from dept F is 96.3% lower
+# than for females from dept A.  
 
 # so there is definite gender discrimination - odds are always lower for
 # females across all combinations of departments between A and B,C,D,E,F.
