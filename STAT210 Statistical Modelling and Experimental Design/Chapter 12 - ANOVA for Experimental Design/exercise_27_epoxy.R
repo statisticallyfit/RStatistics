@@ -10,6 +10,9 @@ is.factor(EPOXY$SYSTEM)
 EPOXY$EXPTIME <- factor(EPOXY$EXPTIME)
 EPOXY$SYSTEM <- factor(EPOXY$SYSTEM)
 
+subset(EPOXY, SYSTEM==1) #this case needs no fixing
+EPOXY <- removeWhitespace(EPOXY)
+
 epoxy.lm <- lm(CORRATE ~ EXPTIME + SYSTEM, data=EPOXY)
 anova(epoxy.lm)
 

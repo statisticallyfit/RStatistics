@@ -42,12 +42,16 @@ standardErrorOfSlope <- function(fit) {
       return (s / sqrt(SSxx(x)))
 }
 
-SSyy <- function(y) {
+SSyy <- function(fit) {
+      print("Warning: assuming quantitative response data")
+      
+      y <- fit$model[[1]]
       y.mean <- mean(y)
       return ( sum( (y - y.mean)^2 ) )
 }
 
 SSxx <- function(x) {
+      #x <- fit$model[[xName]]
       x.mean <- mean(x)
       return ( sum( (x - x.mean)^2 ) )
 }
@@ -69,10 +73,26 @@ SSxy <- function(x, y) {
 #(1-s$r.squared)*SST(var$datamat$dc)
 
 SST <- function(fit) {
-      y <- fit$model[[1]]
-      y.mean <- mean(y)
-      return ( sum( (y - y.mean)^2 ) )
+      return(SSyy(fit) - SSE(fit))
 }
+
+# TODO
+# between group variance (equivalent to SST)
+# input: list of xs and ys, where xs are the factor names and y = response
+betweenGroupVariance <- function(xs, ys){
+      groups <- unique(xs)
+      
+      grandMean <- mean(ys)
+      
+}
+# within group variance (same as SSE)
+# from page 636 in Allan Bluman
+
+# TODO: BlockDesignTest (anova nested) that contains tests for both
+# the treatments and blocks as in the notes. 
+# TODO RandomizedDesignTest (anova global F)
+# TODO: TwoFactorialDesignTest (anova)
+
 
 ## Confidence interval for the Slope in Regression Model (multiple)
 slopeCI <- function(fit, level=0.95) {
@@ -185,7 +205,7 @@ predictCI <- function(fit, x.values, level=0.95){
 # from the coefs that are missing in the reduced model. 
 ####################################### TODO: check out EtaSq from DescTools
 ######################################## Use Anova() from car package.
-NestedFTest <- function(r.lm, u.lm){
+NestedFTest <- function(r.lm, u.lm, printNice=TRUE){
       # g = number of parameter difference
       g = length(u.lm$coef) - length(r.lm$coef)
       # k = num parameters in the unrestricted/complete model
@@ -201,22 +221,40 @@ NestedFTest <- function(r.lm, u.lm){
       chi.p.value <- round(1 - pchisq(chi.stat, df=df1), 5)
       f.p.value <- round(1 - pf(F.nested, df1=df1, df2=df2), 5)
       
-      cat("\n")
-      cat("#############################################################\n")
-      cat("####                 Analysis Of Variance                 ###\n")
-      cat("####    (F Test and Chi-Square Test for Nested Models)    ###\n")
-      cat("#############################################################\n")
-      cat("\n")
-      #cat("χ2 statistic:                        ", chi.stat, "\n")
-      #cat("p-value:                             ", chi.p.value, "\n")
-      cat("F statistic:                         ", F.nested, "\n")
-      cat("p-value:                             ", f.p.value, "\n")
-      cat("numerator df:                        ", df1, "\n")
-      cat("denominator df:                      ", df2, "\n\n")
-      return(invisible(data.frame(ChiSquare=chi.stat, ChiSqPValue=chi.p.value,
-                                  df.chi = df1,
-                                  FStatistic=F.nested, FPvalue=f.p.value, 
-                                  df1=df1, df2=df2)))
+      result = data.frame(ChiSquare=chi.stat, ChiSqPValue=chi.p.value,
+                          df.chi = df1,
+                          FStatistic=F.nested, FPvalue=f.p.value, 
+                          df1=df1, df2=df2)
+      if(f.p.value < 0.05){
+            recommend = u.lm
+            recName = "complete model"
+      } else{
+            recommend = r.lm
+            recName = "reduced model"
+      }
+      result = list(RecommendedModel=recommend, RecommendedName=recName,Test=result)
+      
+      if(printNice){
+            nu = formula(u.lm)
+            nr = formula(r.lm)
+            cat("\n")
+            cat("#############################################################\n")
+            cat("####                 Analysis Of Variance                 ###\n")
+            cat("####    (F Test and Chi-Square Test for Nested Models)    ###\n")
+            cat("#############################################################\n")
+            cat("\n")
+            cat("H0: reduced model is true: \n"); cat(paste(nr[[2]], nr[[1]], nr[3]))
+            cat("\n\nHA: complete model is true: \n"); cat(paste(nu[[2]], nu[[1]], nu[3]))
+            cat("\n\n")
+            cat("F statistic:                         ", F.nested, "\n")
+            cat("p-value:                             ", f.p.value, "\n")
+            cat("numerator df:                        ", df1, "\n")
+            cat("denominator df:                      ", df2, "\n\n")
+            
+            return(invisible(result))
+      }else{
+            return(result)                 
+      }
 }
 
 # The Global F-test for regression model fit. 

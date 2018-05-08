@@ -32,3 +32,37 @@ NestedFTest(engjob.blockTest.lm, engjob.lm)
 anova(engjob.treatTest.lm, engjob.lm) # no significant mean difference among
 # the different engineers (treatments)
 NestedFTest(engjob.treatTest.lm, engjob.lm)
+
+
+anova(engjob.lm)
+
+
+# CM
+b = 4; # num blocks = 4
+p = 3; # num treatments = 3
+n <- nrow(COSTENG)
+CM = sum(COSTENG$COST)^2/n; CM
+SS_total = SSyy(engjob.lm);
+SS_total
+sum(COSTENG$COST^2)-CM
+#sst (sum of squares for treatments)
+T1 <- sum(subset(COSTENG, ENGINEER=="1")$COST)
+T2 <- sum(subset(COSTENG, ENGINEER=="2")$COST)
+T3 <- sum(subset(COSTENG, ENGINEER=="3")$COST)
+sst = T1^2/b + T2^2/b + T3^2/b - CM; sst
+# ssb (sum of squares for blocks)
+B1 <- sum(subset(COSTENG, JOB == "1")$COST)
+B2 <- sum(subset(COSTENG, JOB == "2")$COST)
+B3 <- sum(subset(COSTENG, JOB == "3")$COST)
+B4 <- sum(subset(COSTENG, JOB == "4")$COST)
+ssb = B1^2/p + B2^2/p + B3^2/p + B4^2/p - CM; ssb
+# sse
+sse = SS_total - sst - ssb; sse
+
+# same as results here: 
+anova(engjob.lm)
+
+
+Fstat.treat = (sst/(p-1))/(sse/(n-p-b+1)); Fstat.treat
+Fstat.block = (ssb/(b-1))/(sse/(n-p-b+1)); Fstat.block
+
