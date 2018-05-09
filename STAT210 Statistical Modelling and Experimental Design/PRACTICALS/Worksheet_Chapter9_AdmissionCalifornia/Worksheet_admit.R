@@ -39,6 +39,9 @@ admitData.prop <- data.frame(Dept=LETTERS[1:6],
 admitData.prop
 # see now prop for males is lower. in depts A, B, F. 
 
+# when combining data by departments, we see bias even goes the 
+# opposite directoin (simpson paradox)
+
 
 # NOW FOR REGRESSION -------------------------------------------------------------
 
@@ -46,13 +49,30 @@ count <- cbind(admitData$admitted, admitData$rejected)
 
 admit.glm <- glm(count ~ gender + dept, data=admitData, family=binomial)
 admit.glm2 <- glm(admitted/total ~ gender + dept, data=admitData, weights=total,
-                  famil=binomial)
+                  family=binomial)
 summary(admit.glm)
 summary(admit.glm2)
-anova(admit.glm, test="Chisq")
+anova(admit.glm, test="Chisq") # ORDER OF FIT IMPORTANT
 
-# deviance = 763.402 between gender and gender+dept model so the gender
-# variable is significant
+# GENDER: deviance = 763.402 (information in admissions explained by 
+# difference in gender) is signif BUT THIS IS AVERAGED OVER departments. 
+# DEPT: significant so significant differences in admissions over
+# the departments, once gender is fitted.
+
+# ORDER OF FIT MATTERS, gender not signif anymore: 
+anova(glm(count ~ dept + gender, data=admitData, family=binomial()))
+
+# FINAL CONCLUSION: to look at summary table since it takes into account
+# the fitting of both gender/dept
+summary(admit.glm)
+# conclude: no difference between males and female admissions across
+# the departments (since p = 0.217)
+# also: no diff between depts B and A across male and female
+# but there are differences for C, D, E, F across male and female. 
+
+#-------------
+
+
 # residual deviance = 20.204 p = 0 so the overall model is NOT good fit. 
 ResidualDevianceTest(admit.glm)
 # deviance = 877.05641 - 20.20428 = 856.8521379
@@ -65,7 +85,7 @@ DevianceTest(admit.glm)
 
 
 # part d) interpret coefs
-cof <- summary(admit.glm)$coef # all coefs are significant
+cof <- summary(admit.glm)$coef[,1:2] # all coefs are significant
 cof
 exp(cof[,1:2])-1
 # SEE THE FILE FOR THIS WORKSHEET IN NOTEBOOK: 
@@ -73,23 +93,39 @@ exp(cof[,1:2])-1
 # --- (B1) genderMale = odds of being addmitted for a male is 9.5% lower than for
 # a female,  both in dept A,B,C..F (odds ratio of being admitted of male to female 
 # in deptA,B,...F)
-# --- (B2) deptB = odds of being admitted for female from dept B is 4.2% lower
-# than for female from dept A. 
-# --- (B3) deptC = odds of being admitted for female from dept C is 71.7% lower
-# than for female from dept A. 
-# --- (B4) deptD = odds of being admitted for female from dept D is 72.5% lower
-# than for females from dept A. 
-# --- (B5) deptE = odds of being admitted for female from dept E is 82.4% lower
-# than for females from dept A. 
-# --- (B6) deptF = odds of being admitted for female from dept F is 96.3% lower
-# than for females from dept A.  
+# --- (B2) deptB = odds of being admitted to dept B is 4.2% lower
+# than compared with  dept A. (regardless of gender)
+# --- (B3) deptC = odds of being admitted to dept C is 71.7% lower
+# than ompared compared with dept A (regardless of gender)
+# --- (B4) deptD = odds of being admitted  to dept D is 72.5% lower
+# than ompared with dept A. (regardless of gender)
+# --- (B5) deptE = odds of being admitted  to dept E is 82.4% lower
+# than compared with dept A. (regardless of gender)
+# --- (B6) deptF = odds of being admitted to dept F is 96.3% lower
+# than ompared with dept A.  (regardless of gender)
 
 # so there is definite gender discrimination - odds are always lower for
 # females across all combinations of departments between A and B,C,D,E,F.
 
 
-ucbFTable <- ftable(UCBAdmissions, col.vars="Admit")
-ucbFTable
-ucbFTable2 <- ftable(UCBAdmissions, col.vars="Dept")
-ucbFTable2
+# NOTE: to compare odds of being admitted of dept C to dept D, do this
+exp(cof[4,1]) / exp(cof[5,1])
+# INTERPRET: regardless of gender, odds of being admitted to dept C
+# were 1.032 times greater than odds of being admitted to dept D, 
+exp(cof[4,1]) / exp(cof[5,1])-1
+# or odds of admission to C was 3% higher than for D. 
 
+
+
+# -----------------
+
+# INTERACTION analysis
+with(admitData, interaction.plot(x.factor=dept, trace.factor=gender, response=admitted/total))
+
+admit.interact.glm <- glm(count ~ gender*dept, data=admitData, family=binomial)
+
+anova(admit.interact.glm, test="Chisq") # saturated model, no df error left
+# since df_error = n - k - 1 = 12 - 11 - 1 = 0
+
+summary(admit.interact.glm) # only signif interaction between gender and
+# depts B,C, not for the depts D,E,F. 

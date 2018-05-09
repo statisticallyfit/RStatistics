@@ -3,11 +3,15 @@ setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Stati
 load("data/Exercises and Examples/RAWMATERIAL.Rdata")
 options(digits=10, show.signif.stars = FALSE)
 
+
+# MORAL OF THE STORY: Main point is that the complete k-power model for
+# all quantitative variables YIELDS THE SAME ANOVA TABLE as the complete k-way
+# model for qualitative factors (but not the same summary table)
+
 # preparing qualitative data
 rawCategData <- RAWMATERIAL
 rawCategData$RATIO <- factor(rawCategData$RATIO)
 rawCategData$SUPPLY <- factor(rawCategData$SUPPLY)
-
 rawCategData$SUPPLY <- relevel(rawCategData$SUPPLY, "21")
 levels(rawCategData$SUPPLY)
 rawCategData$RATIO <- relevel(rawCategData$RATIO, "2")

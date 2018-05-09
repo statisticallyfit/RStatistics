@@ -1,5 +1,11 @@
 # TODO: interpret x1x2 interaction terms (and for more interactions as well)
+
 # TODO: interpret logistic coefficient estimates. 
+
+# TODO: see chapter 12 exercise 46 and todo is this: make an interpretation
+# function that gives you interpretations of the main effects only when
+# any interactions involving them are NOT significant. And give interpretations
+# also for the interactions. 
 
 interpret.SlopeCoeffs <- function(fit, level=0.95, x.units=c(), y.unit="unit") {
       

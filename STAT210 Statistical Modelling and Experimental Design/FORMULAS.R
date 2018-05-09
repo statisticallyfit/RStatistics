@@ -498,7 +498,7 @@ influence.cooksDistances <- function(fit) {
 # will be negative if not. 
 # Equivalent to nested F-test between two models here, like anova(null, alt)
 # Tests missing parameter significance. 
-LikelihoodRatioNestedTest <- function(reducedModel, fullModel, printNice=TRUE) {
+NestedLikelihoodRatioTest <- function(reducedModel, fullModel, printNice=TRUE) {
       y <- reducedModel$model[1]
       pi.hat.Ho <- reducedModel$fitted.values
       pi.hat.Ha <- fullModel$fitted.values
@@ -577,7 +577,7 @@ DevianceTest <- function(fit){
 # Equivalent to global F-test, tests overall model fit. 
 ResidualDevianceTest <- function(fit, printNice=TRUE) { 
       # residualdeviance has chi-square distribution on n - k degrees freedom. 
-      df <- fit$df.residual
+      df <- fit$df.residual # always n - k - 1, where k+1 = num params/coefs
       dev <- fit$deviance
       result <- data.frame(LikRatio=dev, df=df,
                            PValue= 1 - pchisq(dev, df=df))
@@ -801,15 +801,15 @@ oddsRatio <- function(tbl) {
       return(oddsRatios)
 }
 
-# flips columns horizontally (like mirror)
-mirrorHorizontal <- function(tbl){
-      t(apply(tbl, 1, rev))
-}
 
-mirrorVertical <- function(tbl){
-      apply(tbl, 2, rev)
-}
 
-mirror <- function(tbl){
-      mirrorVertical(mirrorHorizontal(tbl))
-}
+
+
+
+# TODO: normality subset tests for the completely randomized design # and rest
+# factorials etc... within each population, do shapiro wilk normality test
+# and report p-values in a table. Also graph densities like in the
+# Leaf data set (logistic)
+
+# TODO: equal variance subset tests for all the randomized/block/factorial
+# designs (levens and bartlet) and report p-vals in table. 
