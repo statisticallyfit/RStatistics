@@ -1,0 +1,17 @@
+Species	Treat	ATP
+River	Flood	1.45
+River	Flood	1.19
+River	Flood	1.57
+River	Flood	1.35
+River	Control	1.7
+River	Control	2.04
+River	Control	1.49
+River	Control	1.91
+Euro	Flood	0.21
+Euro	Flood	0.58
+Euro	Flood	0.11
+Euro	Flood	0.27
+Euro	Control	1.34
+Euro	Control	0.99
+Euro	Control	1.17
+Euro	Control	1.3

@@ -205,6 +205,9 @@ predictCI <- function(fit, x.values, level=0.95){
 # from the coefs that are missing in the reduced model. 
 ####################################### TODO: check out EtaSq from DescTools
 ######################################## Use Anova() from car package.
+
+#TODO: if the predictor is a factor THEN make the null hypothesis be stated
+# as H0: mu_level1 = mu_level2 = ....
 NestedFTest <- function(r.lm, u.lm, printNice=TRUE){
       # g = number of parameter difference
       g = length(u.lm$coef) - length(r.lm$coef)

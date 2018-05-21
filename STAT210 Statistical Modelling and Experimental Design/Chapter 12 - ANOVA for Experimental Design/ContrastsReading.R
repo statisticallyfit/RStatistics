@@ -16,6 +16,11 @@ melonData <- data.frame(Yield=c(25.12, 17.25, 26.42, 16.08, 22.15, 15.92,
                         Variety=c(rep("A",6),rep("B",6),rep("C",6),rep("D",6)))
 melonData
 
+# Getting the means (according to variety type): 
+with(melonData, tapply(Yield, INDEX=list(Variety), mean))
+
+
+
 
 melon.lm <- lm(Yield ~ Variety, data=melonData, x=TRUE)
 summary(melon.lm)
