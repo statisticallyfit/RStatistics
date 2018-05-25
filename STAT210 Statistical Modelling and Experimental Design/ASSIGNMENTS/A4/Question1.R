@@ -10,7 +10,7 @@ oxygenData <- read.table("o2.txt", header=TRUE)
 # naming the temperature levels
 numToTempLevel <- function(num){
       if(num == 1) return("low")
-      else if(num == 2) return("medium")
+      else if(num == 2) return("between")
       else return("high")
 }
 oxygenData$temperature <- sapply(oxygenData$temperature, numToTempLevel)

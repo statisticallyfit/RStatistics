@@ -26,8 +26,14 @@ melon.lm <- lm(Yield ~ Variety, data=melonData, x=TRUE)
 summary(melon.lm)
 anova(melon.lm)
 # so significant difference of mean yield across different varieties? 
+betaCI(melon.lm)
+# INTERPRET: 
+# --- B and D are both significantly greater mean yield than A. 
+# --- C mean yield is not significantly different than mean yield of A. 
 
 
+
+# -----------------------------------------------------------------------------
 # original contrasts
 melon.lm$x
 contrasts(melonData$Variety)
@@ -47,7 +53,31 @@ t(mat) %*% mat
 
 # refit the model with the orthogonal contrasts to partition variety SS
 melon.orthog.lm <- lm(Yield ~ ACvBD + AvC + BvD, data=melonData, x=TRUE)
+betaCI(melon.orthog.lm)
+# INTERPRET: 
+# -- rotstock 1 diff with rootstock 2 is significant: 
+# ---- since B,D are negatives, the negative diff in acvbd1 means
+# that BD are higher than AC so rootstock2 makes highe rmean yield. 
+# --- 2) AvC not signiificant (in graph too)
+# --- 3) BvD is significant = means B makes significantly higher mean yield than D. 
 
+
+# overall mean is the intercept of contrasts
+# Add any means that are in contrasts. 
+# mu = 26.8
+# mu_A = 26.8 + -6.8 + 0.5 = 20.5
+# mu_B = 26.8 - (-6.8)  + 3.8 = 37.4
+### here ACvBD the B is negative so subtract its mean contrast thing.
+
+# mu_C = 26.8 + -6.8 - (0.5) = 19.5
+# here in AvC the C has negative so subtract its mean 0.5
+
+# mu_D = 26.8 - (-6.8) - (3.8) = 29.8
+
+
+
+
+# ------------------------------------------------------------------------------------------
 # comparing the contrasts: 
 contrasts(melonData$Variety) # for original model
 melon.orthog.lm$contrasts # for the orthogonal model

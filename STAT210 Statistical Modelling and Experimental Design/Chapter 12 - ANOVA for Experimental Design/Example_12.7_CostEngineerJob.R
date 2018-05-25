@@ -7,10 +7,27 @@ load("data/Exercises and Examples/COSTENG.Rdata")
 COSTENG$ENGINEER <- factor(COSTENG$ENGINEER)
 COSTENG$JOB <- factor(COSTENG$JOB)
 
-engjob.lm <- lm(COST ~ ENGINEER + JOB, data=COSTENG)
+# block means: 
+with(COSTENG, tapply(COST, INDEX=JOB, mean))
+# treatment means (engineer):
+with(COSTENG, tapply(COST, INDEX=ENGINEER, mean))
+
+
+
+engjob.lm <- lm(COST ~ JOB + ENGINEER, data=COSTENG)
 summary(engjob.lm)
-engjob.glm <- glm(COST ~ ENGINEER + JOB, data=COSTENG)
-summary(engjob.glm)
+anova(engjob.lm)
+# No difference in mean cost among engineers (p = 0.07) once jobs has been accounted
+# Difference in mean cost among jobs
+
+
+# From anova term p = 0.07 can expect confint between engineers to contain 0 
+# (no diff)
+# Cont int between eng1 and eng2. (see lecture)
+with(COSTENG, tapply(COST, INDEX=ENGINEER, mean))
+
+
+
 
 engjob.null.lm <- lm(COST ~ 1, data=COSTENG)
 # block test- make block params = 0, so just have treatment variable (engineers)
