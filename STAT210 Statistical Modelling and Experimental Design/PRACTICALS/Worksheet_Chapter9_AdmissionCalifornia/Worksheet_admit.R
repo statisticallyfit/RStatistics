@@ -92,7 +92,7 @@ exp(cof[,1:2])-1
 # --- (B0) intercept = odds of being admitted for a female in dept A is 97.7%. 
 # --- (B1) genderMale = odds of being addmitted for a male is 9.5% lower than for
 # a female,  both in dept A,B,C..F (odds ratio of being admitted of male to female 
-# in deptA,B,...F)
+# regardless of deptA,B,...F)
 # --- (B2) deptB = odds of being admitted to dept B is 4.2% lower
 # than compared with  dept A. (regardless of gender)
 # --- (B3) deptC = odds of being admitted to dept C is 71.7% lower
