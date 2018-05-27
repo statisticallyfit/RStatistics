@@ -1,4 +1,4 @@
-setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/PRACTICALS/Practical_7_RatsContrasts")
+setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/PRACTICALS/Practical_7_RatsPlants_Contrasts")
 
 options(show.signif.stars = FALSE)
 library(effects)

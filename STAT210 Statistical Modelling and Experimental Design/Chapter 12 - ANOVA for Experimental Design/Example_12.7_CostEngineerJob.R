@@ -12,6 +12,8 @@ with(COSTENG, tapply(COST, INDEX=JOB, mean))
 # treatment means (engineer):
 with(COSTENG, tapply(COST, INDEX=ENGINEER, mean))
 
+par(mfrow=c(1,1))
+with(COSTENG, interaction.plot(response=COST, x.factor=ENGINEER, trace.factor = JOB))
 
 
 engjob.lm <- lm(COST ~ JOB + ENGINEER, data=COSTENG)
