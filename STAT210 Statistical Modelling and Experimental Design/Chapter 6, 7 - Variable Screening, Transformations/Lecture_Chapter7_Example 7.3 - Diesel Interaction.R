@@ -50,6 +50,10 @@ nrow(DIELSEL2)
 
 
 
+anova(diesel.lm)
+anova(diesel.MISSING.lm)
+
+
 # we can see fthat for different levels of Fuel (F1, F2, F3), there
 # are non-parallel brand curves of performance. Interaction!
 

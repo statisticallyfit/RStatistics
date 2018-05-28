@@ -21,13 +21,8 @@ numToSpeciesLevel <- function(num){
       else if(num == 3) return("C3")
 }
 
-oxygenData$temperature <- sapply(oxygenData$temperature, numToTempLevel)
-oxygenData$species <- sapply(oxygenData$species, numToSpeciesLevel)
-
-# making the temperature a factor. 
-oxygenData$temperature <- factor(oxygenData$temperature)
-# making species a factor.
-oxygenData$species <- factor(oxygenData$species)
+oxygenData$temperature <- factor(sapply(oxygenData$temperature, numToTempLevel))
+oxygenData$species <- factor(sapply(oxygenData$species, numToSpeciesLevel))
 # gender is already a factor
 is.factor(oxygenData$gender)
 

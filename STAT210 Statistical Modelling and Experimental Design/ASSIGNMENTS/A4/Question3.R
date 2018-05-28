@@ -31,7 +31,8 @@ anova(complete.weight.lm)
 # part c) -------------------------------------------------------------------------
 # partitioning the diet SS using contrasts
 
-# i) test if sup1 and supp2 are more effective over supp3: Hi: (mu1+mu2)/2 = mu3
+# i) test if sup1 and supp2 are more effective over supp3: 
+# Hi: (mu1+mu2)/2 = mu3
 # Ha: (mu1 + mu2)/2 > mu3
 supp12v3 = C(weightData$Supplement, contr=c(1,1,-2), 1)
 
@@ -50,23 +51,10 @@ summary(supp.testDiffs.lm) #pvalues are the same for both tables since
 # part d) -------------------------------------------------------------------------
 # testing the contrasts are orthogonal
 
-# get the contrasts
-getContrastMatrix <- function(fit){
-      
-      xNameOrContrasts <- names(fit$contrasts)
-      info <- data.frame(fit$contrasts)[, xNameOrContrasts]
-      
-      if(is.data.frame(info)){ # then the model was fit with user defined contrasts
-            return(as.matrix(info))
-      } else { # else can be "contr.treatment" ... etc
-            contrasts(fit$model[[xNameOrContrasts]])     
-      }
-}
-
-suppContrasts <- getContrastMatrix(supp.testDiffs.lm); suppContrasts
-
+contrastMatrix <- matrix(c(1,1,-2, 1,-1,0), ncol=2)
+contrastMatrix
 # test they are orthogonal
-t(suppContrasts) %*% suppContrasts
+t(contrastMatrix) %*% contrastMatrix
 
 # CONCLUDE: the off diagonal elements are all zero so YES the 
 # contrasts are orthogonal

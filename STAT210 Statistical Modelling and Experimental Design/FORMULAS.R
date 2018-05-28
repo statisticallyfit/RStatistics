@@ -565,7 +565,7 @@ DevianceTest <- function(fit){
       theFormula <- as.formula(paste(colnames(tempData), " ~ 1", sep=""))
       nullModel <- glm(theFormula, family=family, data=tempData)
       
-      result <- LikelihoodRatioNestedTest(nullModel, fit, printNice = TRUE)
+      result <- NestedLikelihoodRatioTest(nullModel, fit, printNice = TRUE)
       
       return(invisible(result))
 }
