@@ -43,6 +43,7 @@ anova(samara.interact.lm)
 samara.main.lm <- lm(Velocity ~ Load + Tree, data=samaraData)
 anova(samara.main.lm)
 # given we fitted Load, tree is not significant. 
+anova(lm(Velocity ~ Tree + Load, data=samaraData))
 
 
 # MODEL 3: simple linear regression with just Load
@@ -156,7 +157,7 @@ cat(betas[1,1] + betas[4,1], "+", betas[2,1] + betas[6,1], "* Load")
 
 
 # DIAGNOSTIC PLOTS for interaction model
-residualFittedPlot(samara.interact.lm) # good scatter, constant variance
-normalQQPlot(samara.interact.lm) # good straight line normality
+residualFitPlot(samara.interact.lm) # good scatter, constant variance
+normalityPlot(samara.interact.lm) # good straight line normality
 shapiro.test(samara.interact.lm$residuals) # non-sig p-value so no evidence
 # of strong deviation from noramlity. 

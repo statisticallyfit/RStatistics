@@ -63,7 +63,8 @@ betaCI(melon.orthog.lm)
 
 
 # overall mean is the intercept of contrasts
-# Add any means that are in contrasts. 
+# Add any means that are in contrasts (source: summary table)
+summary(melon.orthog.lm)
 # mu = 26.8
 # mu_A = 26.8 + -6.8 + 0.5 = 20.5
 # mu_B = 26.8 - (-6.8)  + 3.8 = 37.4
@@ -74,7 +75,9 @@ betaCI(melon.orthog.lm)
 
 # mu_D = 26.8 - (-6.8) - (3.8) = 29.8
 
-
+attach(melonData)
+tapply(Yield, INDEX=list(Variety), mean)
+# tapply gives the means directly!!!
 
 
 # ------------------------------------------------------------------------------------------

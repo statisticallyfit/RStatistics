@@ -159,7 +159,7 @@ residualFitPlot <- function(fit, size=3, colour="black"){
 normalityPlot <- function(fit, size=2, colour="black"){
       autoplot(fit, which=2, size=size, colour=colour)
 }
-
+# for multiple regression?
 residualsPlot <- function(fit, variableName, size=3, colour="slateblue"){
       xs <- fit$model[[variableName]]
       df <- data.frame(Resids=fit$residuals, Xs=xs)

@@ -1,5 +1,7 @@
 setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Chapter 9 - Logistic Regression/")
 
+library(ggplot2)
+
 
 beetleData <- read.table("beetle.txt", header=TRUE)
 beetleData <- setNames(beetleData, nm=c("Log10Dose", "Sample", "NumDead"))
@@ -37,7 +39,8 @@ beetle.null.glm <- glm(count ~ 1, family=binomial,data=beetleData)
 # of 272.97, which has chi-square dist with 1 df (tests B1 = 0)
 # INTERPRET: the 272.9 (deviance) tests the hypothesis that B1 = 0. T
 # The p-value is in the column
-# and it equals < 2.22e-16 = 0 so the ldose term is very significantly different from 0.
+# and it equals < 2.22e-16 = 0 so the ldose term is very significantly different 
+# from 0.
 # But the p-value for 11.23 (residual deviance, or model fit) is not shown
 
 # NULL model means: count ~ 1
@@ -94,6 +97,6 @@ expected = p * 59; expected # eexpected number of insects about 4 insects.
 
 # Plotting the normal qq plot of deviance residuals
 plot(beetle2.glm, which=2) # skewed
-shapiro.test(dev.resids) # not significant due to small sample size
+shapiro.test(beetle2.glm$residuals) # not significant due to small sample size
 
 

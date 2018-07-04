@@ -27,9 +27,9 @@ ResidualDevianceTest(adm.glm)
 
 # summary
 summary(adm.glm) # all coefficients (log odds or odds ratios) are significant 
-cof <- summary(adm.glm)$coef[,1:2]
+cof <- cbind(summary(adm.glm)$coef[,1])
 cof
-exp(cof)-1 
+100*(exp(cof)-1 )
 # INTERPRET: 
 # --- gre = when gpa, rank are const, a 1 unit increase in gre score increases
 # the odds of being admitted by the UCLA by 0.2267%. 
@@ -43,10 +43,10 @@ exp(cof)-1
 # from a rank4 university is about 78.8% less than from a rank1 university. 
 
 betaCI(adm.glm)
-exp(betaCI(adm.glm))
+100*(exp(betaCI(adm.glm))-1)
 # INTERPRET:
 # --- rank2: We are 95% confident that when gre, gpa are const, the odds of being
-# admitted from a rank2 university is between 72.7% and 0.55% less than for
+# admitted from a rank2 university is between 72.7% and 5.5% less than for
 # a rank1 university. 
 # --- rank3: We are 95% confident that when gre,gpa are const, the odds of
 # being admitted from a rank 3 university is between 86.8% and 48.8% less
@@ -68,6 +68,12 @@ anova(adm.glm, test="Chisq")
 # the gre+gpa+rank model), df = 3, p-value = 0.00007088, so there is a big
 # difference between the two models. Can reject teh null hypotehsis
 # that the rank slopes are zero. Rank is a significant predictor of admissions.
+
+# OR
+adm.main.glm <- glm(admit ~ gre + gpa, data=admitData, family=binomial)
+NestedLikelihoodRatioTest(adm.main.glm, adm.glm)
+
+
 
 
 

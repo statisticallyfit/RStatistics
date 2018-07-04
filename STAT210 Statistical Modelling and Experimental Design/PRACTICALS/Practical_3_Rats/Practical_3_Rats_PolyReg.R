@@ -49,7 +49,7 @@ betaCI(skin4.lm)
 anova(skin4.lm)
 
 # if n = sample, can only fit polynomial up to degree n-1, so here the limit
-# is a fifth degree poly. 
+# is a fifth degree poly. (only 6 unique Conc values)
 # Singularities ... can't do this
 skin6.lm <- lm(Skin ~ Conc + I(Conc^2) + I(Conc^3) + I(Conc^4)
                + I(Conc^5) + I(Conc^6), data=ratsData)

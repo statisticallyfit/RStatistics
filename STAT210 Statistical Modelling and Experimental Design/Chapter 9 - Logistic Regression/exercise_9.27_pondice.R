@@ -13,7 +13,10 @@ iceData$icetype <- iceData$icetype-2
 
 # part c)
 ice.glm <- glm(icetype ~ depth + broadbandalb + visiblealb, data=iceData, family=binomial)
+ice.null.glm <- glm(icetype ~ 1, data=iceData, family=binomial)
+ice.next.glm <- glm(icetype ~ depth + broadbandalb, data=iceData, family=binomial)
 summary(ice.glm)
+anova(ice.glm)
 
 # part d) overall model adequacy (residual deviance)
 ResidualDevianceTest(ice.glm)
@@ -39,4 +42,4 @@ anova(ice.glm, ice.pair.glm, test="Chisq")
 # highly better, reject H0: additional zero terms. 
 
 # OR; 
-LikelihoodRatioNestedTest(ice.glm, ice.pair.glm)
+NestedLikelihoodRatioTest(ice.glm, ice.pair.glm)
