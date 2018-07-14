@@ -29,6 +29,8 @@ x_bar = simulate.norm(n=9, R=10000, mu=3, sigma=4)
 # calc P(|X_bar - mu| <= 2) = P(1 <= X_bar <= 5)
 sum(x_bar <= 5 & x_bar >= 1)/length(x_bar) # close to theoretical!
 
+diff(pnorm(c(1, 5), mean=3, sd=4/sqrt(9)))
+
 # theoretical: P(1 <= x_bar <= 5)
 z1 = (1-3)/(4/sqrt(9)); z1
 z2 = (5-3)/(4/sqrt(9)); z2
