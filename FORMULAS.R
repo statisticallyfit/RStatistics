@@ -1,4 +1,4 @@
-source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Rfunctions.R')
+source('/datascience/projects/statisticallyfit/github/R/RStatistics/Rfunctions.R')
 # use DescTools
 # Kurt
 # Skew
@@ -816,3 +816,54 @@ oddsRatio <- function(tbl) {
 
 # TODO: equal variance subset tests for all the randomized/block/factorial
 # designs (levens and bartlet) and report p-vals in table. 
+
+
+
+# -------------------------------------------------------------------------------
+bootstrapMean <- function(data, R, level=0.95){
+      # Get n samples from the known population distribution. (this is the data given)
+      n = length(data) # observed data, original data
+      
+      # Sample from F-hat (instead of rexp) to sample with replacement from F-hat
+      H.star = rep(NA, R)
+      for(i in 1:R){
+            # resample from original data with replacement. 
+            dataStar = sample(data, size=n, replace=TRUE) #this is the bootstrap sample
+            H.star[i] = mean(dataStar)
+      }
+      
+      # MEAN(H*) should be close to MU_XBAR should be close to MU
+      # SD(H*) should be close to SD_XBAR should be close to  S/SQRT(N)
+      cat("boot.mu_xbar (hstar) = ", mean(H.star), "\n", sep="")
+      cat("xbar (mean of data) = ", mean(data), "\n\n", sep="")
+      
+      B.hat = mean(H.star) - mean(data) # estimated bias
+      cat("B.hat = mean(hstar) - mean(data) = ", B.hat, "\n", sep="")
+      mu.hat.B = mean(data) - B.hat  # bias-corrected version of mu
+      cat("theta.hat.B = mean(data) - bias = ", mu.hat.B, "\n\n",sep="")
+      
+      se.mean = sd(H.star) # standard error of the mean
+      cat("boot.se.mean (hstar) = ", se.mean, "\n", sep="") # call this se.mean
+      #print(sqrt(var(H.star))) # same as sd(H.star)
+      cat("se.mean = sigma/sqrtn(n) = ", theta/sqrt(n), "\n", sep="")
+      cat("se.mean = s / sqrt(n) = ", sd(data)/sqrt(n), "\n\n", sep="")
+      
+      # 95 % confidence interval methods. 
+      # calculate critical value first
+      lower = abs( (1-level)/2)
+      upper = lower + level 
+      z.crit = abs(qnorm(lower))
+      
+      
+      cat("CI by normal approximation: ")
+      cat("(",mu.hat.B - z.crit*se.mean,", ",mu.hat.B + z.crit*se.mean,")","\n",sep="")
+      
+      cat("CI by percentile method: ")
+      qs = quantile(H.star, c(lower, upper))
+      cat("(", qs[1],", ", qs[2],")", "\n", sep="") 
+      
+      cat("CI by basic method:", "")
+      cat("(", 2*xbar - qs[2],", ", 2*xbar - qs[1],")", "\n", sep="")
+      
+      return(invisible(H.star))
+}
