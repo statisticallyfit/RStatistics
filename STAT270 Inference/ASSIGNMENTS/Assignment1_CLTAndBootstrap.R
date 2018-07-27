@@ -52,23 +52,30 @@ simulate.norm = function(n, R, mu, sigma) {
 ## Repeat the experiment above with N = 1000 times and oberserve the mean 
 N = 10000
 
+set.seed(123)
 X_bar_A = simulate.norm(n=9, R=N, mu=5, sigma=0.25)
 hist(X_bar_A, main="Sample means of GPA for School A")
+# OUTPUT of simulate.norm
+# sim.mean =  5.000599 	theoretical.mean = 5 
+# sim.sd =  0.08316541 	theoretical.sd = 0.08333333 
 
 X_bar_B = simulate.norm(n=9, R=N, mu=4.8, sigma=0.25)
 hist(X_bar_B, main="Sample means of GPA for School B")
+# OUTPUT of simulate.norm
+# sim.mean =  4.800787 	theoretical.mean = 4.8 
+# sim.sd =  0.08274504 	theoretical.sd = 0.08333333 
 
 
 # Estimate the probability for a)
 # P(X_bar_A >= X_bar_B + 0.5)
 sum(X_bar_A - X_bar_B >= 0.5) / N
-# [1] 0.0051
+#[1] 0.0058
 # this is close to result 0.00545 from part a)
 
 # Estimate the probability for b)
 # P(X_bar_B > X_bar_A)
 sum(X_bar_B > X_bar_A) / N
-# 1] 0.0433
+# 1] 0.0447
 # this is close to result of 0.0448 from part b)
 
 
@@ -88,11 +95,20 @@ s = sd(movieData); s # the standard deviation
 
 
 # part b)
-t.crit = abs(qt((1-0.95)/2, df=n-1)); t.crit
-# 2.093024
-CI = c(xbar - t.crit* s / sqrt(n), xbar + t.crit*s/sqrt(n))
+hist(movieData)
+lower.x = 80
+upper.x = max(movieData) + 3
+# The data is approximately normal, so we can use the CLT. 
+hist(movieData, xlab="Histogram of Movie Data (n = 20)", freq=F, main="", 
+     breaks=seq(lower.x, upper.x, by=4))
+
+z.crit = abs(qnorm((1-0.95)/2)); z.crit
+# [1] 1.959964
+CI = c(xbar - z.crit* s / sqrt(n), xbar + z.crit*s/sqrt(n))
 CI
 # [1]  98.48735 110.41265
+
+
 
 
 # part c)
@@ -114,18 +130,19 @@ bootstrapMean <- function(data, R, level=0.95){
       cat("boot estimate of sampling mean = ", mean(H.star), "\n", sep="")
       cat("xbar (mean of data) = ", mean(data), "\n\n", sep="")
       
-      B.hat = mean(H.star) - mean(data) # estimated bias
+      B.hat = mean(H.star) - mean(data) # estimated bias of the bootstrap x-bar estimate.
       cat("B.hat = mean(hstar) - mean(data) = ", B.hat, "\n", sep="")
       mu.hat.B = mean(data) - B.hat  # bias-corrected version of sample mean
       cat("mu.hat.B = mean(data) - B.hat = ", mu.hat.B, "\n\n",sep="")
       
-      se.mean = sd(H.star) # standard error of the mean by bootstrap
+      # standard error of the mean by bootstrap, should be near sigma_xbar
+      se.mean = sd(H.star) 
       cat("boot estimate of se.mean = ", se.mean, "\n", sep="") 
       cat("se.mean from data = s / sqrt(n) = ", sd(data)/sqrt(n), "\n\n", sep="")
       
       # 95 % confidence interval methods. 
       # calculate critical value first
-      lower = abs( (1-level)/2)
+      lower = (1-level)/2
       upper = lower + level 
       z.crit = abs(qnorm(lower))
       
@@ -185,26 +202,27 @@ bootstrapStandardDeviation <- function(data, R, level=0.95){
       cat("boot estimate of standard deviation of movie times = ", mean(H.star), "\n", sep="")
       cat("sd (sd of data) = ", sd(data), "\n\n", sep="")
       
-      B.hat = mean(H.star) - sd(data) # estimated bias
+      B.hat = mean(H.star) - sd(data) # estimated bias of standard deivation estimates.
       cat("B.hat = mean(hstar) - sd(data) = ", B.hat, "\n", sep="")
       sd.hat.B = sd(data) - B.hat  # bias-corrected version of sample standard deviation
       cat("sd.hat.B = sd(data) - B.hat = ", sd.hat.B, "\n",sep="")
       
-      # this is the sample standard deviation of the generated Hstar data,
-      # so is the sample std.dev of the sampled standard deviations (Hstars)
+      # this is the sample standard deviation of the generated Hstar data, must
+      # be close to sigma_xbar of the original population. 
       cat("sd(H.star) = ", sd(H.star), "\n\n",sep="")
       
       
+      
+      # Calculate confidence intervals
+      # calculate upper and lower positions
+      lower = (1-level)/2
+      upper = lower + level 
       
       cat("CI by percentile method: ")
       qs = quantile(H.star, c(lower, upper))
       cat("(", qs[1],", ", qs[2],")", "\n", sep="") 
       
       cat("CI by basic method:", "") 
-      # calculate critical value first
-      lower = abs( (1-level)/2)
-      upper = lower + level 
-      z.crit = abs(qnorm(lower))
       cat("(", 2*sd(data) - qs[2],", ", 2*sd(data) - qs[1],")", "\n", sep="")
       
       return(invisible(H.star))
