@@ -3,9 +3,10 @@ setwd("/development/projects/statisticallyfit/github/R/RStatistics/STAT270 Infer
 options(show.signif.stars = FALSE)
 
 
-# part a) entering data and saving as tab-delimited file, using read.table to open data.
-invoiceData <- read.table("chargeData.csv", header=TRUE)
-invoiceData
+# part a) entering data and saving as tab-delimited file, 
+# using read.table to open data. ----------------------------------------------------
+crateData <- read.table("chargeData.csv", header=TRUE)
+crateData
 # OUTPUT
 #    x   y
 # 1  14  68
@@ -20,10 +21,10 @@ invoiceData
 # 10 16  93
 
 
-# part b) estimating the regression line
+# part b) estimating the regression line --------------------------------------------
 
 # METHOD 1: the lm-object method (automatic)
-crate.lm <- lm(y ~ x, data=invoiceData)
+crate.lm <- lm(y ~ x, data=crateData)
 summary(crate.lm)
 
 # OUTPUT: regression line is: 
@@ -31,9 +32,9 @@ summary(crate.lm)
 
 
 # METHOD 2: matrix method
-n <- nrow(invoiceData)
-Y = matrix(invoiceData$y, ncol=1)
-X = matrix(c(rep(1, n), invoiceData$x), ncol=2)
+n <- nrow(crateData)
+Y = matrix(crateData$y, ncol=1)
+X = matrix(c(rep(1, n), crateData$x), ncol=2)
 
 beta.hat = solve(t(X) %*% X) %*% (t(X) %*% Y); beta.hat
 
@@ -47,37 +48,76 @@ beta.hat = solve(t(X) %*% X) %*% (t(X) %*% Y); beta.hat
 #, where B0-hat = 22.4048, B1-hat = 3.618
 
 
-# part c) finding 95% confidence interval for slope and intercept: 
+# part c) finding 95% confidence interval for slope and intercept: -----------------
 
-# step 1: calculate Sxx:
-x = invoiceData$x
-Sxx = sum(x ^ 2) - (1/n) * sum(x)^2; Sxx
-# 344.4
+# step 1: calculate SSE:
+x = crateData$x
+SSE = t(Y) %*% Y - t(beta.hat) %*% (t(X) %*% Y); SSE
+#          [,1]
+# [1,] 1116.119
 
-# Step 2: calculate Syy: 
-Syy = sum(Y ^2) - (1/n) * sum(Y)^2; Syy
-# 5626.9
-
-# step 3: calculate SSE = Syy - B1-hat ^2 * Sxx
-B1.hat = beta.hat[2]
-SSE = Syy - B1.hat^2 * Sxx; SSE
-# 1116.119
-
-# step 4: s^2 = SSE / (n-2)
-s = sqrt(SSE / (n-2)); s
-# 11.81164
+# step 2: s^2 = SSE / (n-(k+1)), where k = number of beta parameters, not including intercept
+k = 1
+s = sqrt(SSE / (n-k-1)); s
+#          [,1]
+# [1,] 11.81164
 
 
-# Calculate critical t-value. There are df = n - 2 = 10 - 2 = 8
-t.crit = abs(qt((1-0.95)/2, df=n-2)); t.crit
+# Calculate critical t-value. There are df = n - (k+1) = 10 - 2 = 8
+t.crit = abs(qt((1-0.95)/2, df=n-(k+1))); t.crit
 # 2.306004
 
+# Create the vector a = (1,0) to represent we are calculating the intercept CI. 
+a = matrix(c(1,0), ncol=1)
+
 # 95% Confidence interval for Intercept, B0: 
-CI.B0 = beta.hat[1] + c(-1,1) * t.crit * s * sqrt(sum(x^2)/(n * Sxx))
+intercept.hat = t(a) %*% beta.hat; intercept.hat
+#          [,1]
+# [1,] 22.40476
+CI.B0 = intercept.hat + c(-1,1) * t.crit * s * sqrt(t(a) %*% solve(t(X) %*% X) %*% a)
 CI.B0
-# 0.9340886 43.8754352
+# [1] 0.9340886 43.8754352
+
 
 # 95% Confidence interval for Slope: B1: 
-CI.B1 = beta.hat[2] + c(-1,1) * t.crit * s * 1/sqrt(Sxx)
+# create the vector a = (0,1) for slope calculation
+a = matrix(c(0,1), ncol=1)
+slope.hat = t(a) %*% beta.hat; slope.hat
+#          [,1]
+# [1,] 3.619048
+CI.B1 = slope.hat + c(-1,1) * t.crit * s * sqrt(t(a) %*% solve(t(X) %*% X) %*% a)
 CI.B1
-# 2.151343 5.086753
+# [1] 2.151343 5.086753
+
+
+
+# part e) plot of predicted line with scatterplot of points ------------------------
+library(ggplot2)
+
+fit.data <- data.frame(fit = crate.lm$fitted.values, x=x, y=Y)
+
+ggplot(crateData, aes(x=x, y=y)) + 
+      geom_point(shape=19, size=3) +
+      geom_line(data=fit.data, aes(y=fit), colour="dodgerblue",size=1) +
+      ggtitle("Predicted Values for Distance to Freight Charge") + 
+      xlab("Distance (hundreds of miles)") + ylab("Freight Charge ($)")
+
+
+
+
+# part f) predict mean charge with distance 2000 miles ( 20 hundred miles) ----------
+
+# Create the vector a for prediction
+x.star = 20
+a = matrix(c(1, x.star), ncol=1)
+
+predicted.value = t(a) %*% beta.hat; predicted.value
+#          [,1]
+# [1,] 94.78571
+
+
+t.crit = abs(qt((1-0.90)/2, df=n-k-1)); t.crit
+# [1] -1.859548
+
+CI.mean = predicted.value + c(-1,1) * t.crit * s * sqrt(t(a) %*% solve(t(X) %*% X) %*% a)
+CI.mean
