@@ -3,6 +3,45 @@ setwd("/development/projects/statisticallyfit/github/R/RStatistics/STAT270 Infer
 options(show.signif.stars = FALSE)
 
 
+# Question 1:  ---------------------------------------------------------------------------
+
+# part a) calculating the critical z-value for the test (alpha = 0.05)
+qnorm(0.05)
+# [1] -1.644854
+
+# calculating the p-value for the test
+pnorm(-2.608746)
+# [1] 0.004543733
+
+
+# part b) critical z-value for alpha = 0.01
+qnorm(0.01)
+# [1] -2.326348
+
+# part c) calculating the power of the test
+pnorm(0.65507)
+# [1] 0.7437887
+
+# part d) calculating the critical value for the type 2 error, z_beta
+qnorm(1-0.99)
+# [1] -2.326348
+
+
+
+
+# Question 2 ----------------------------------------------------------------------------
+
+# part a) calculating critical value for 5% significance level
+qnorm(0.05)
+# [1] -1.644854
+
+# part b) calculating critical value for 95% confidence interval
+qnorm((1-0.95)/2)
+# [1] -1.959964
+
+
+
+# Question 3:  ---------------------------------------------------------------------------
 # part a) entering data and saving as tab-delimited file, 
 # using read.table to open data. ----------------------------------------------------
 crateData <- read.table("chargeData.csv", header=TRUE)
@@ -74,6 +113,7 @@ a = matrix(c(1,0), ncol=1)
 intercept.hat = t(a) %*% beta.hat; intercept.hat
 #          [,1]
 # [1,] 22.40476
+
 CI.B0 = intercept.hat + c(-1,1) * t.crit * s * sqrt(t(a) %*% solve(t(X) %*% X) %*% a)
 CI.B0
 # [1] 0.9340886 43.8754352
@@ -121,3 +161,4 @@ t.crit = abs(qt((1-0.90)/2, df=n-k-1)); t.crit
 
 CI.mean = predicted.value + c(-1,1) * t.crit * s * sqrt(t(a) %*% solve(t(X) %*% X) %*% a)
 CI.mean
+# [1]  84.3329 105.2385
