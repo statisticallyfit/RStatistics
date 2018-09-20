@@ -9,9 +9,12 @@ x = c(65, 63, 67, 64, 68, 62, 70, 66, 68, 67, 69, 71)
 y = c(68, 66, 68, 65, 69, 66, 68, 65, 71, 67, 68, 70)
 
 n = length(x)
-Sxx = sum(x^2) - (1/n) * sum(x)^2
-Syy = sum(y^2) - (1/n) * sum(y)^2
-Sxy = sum(x*y) - (1/n) * sum(x) * sum(y)
+Sxx = sum(x^2) - (1/n) * sum(x)^2; Sxx
+# [1] 84.66667
+Syy = sum(y^2) - (1/n) * sum(y)^2; Syy
+# [1] 38.91667
+Sxy = sum(x*y) - (1/n) * sum(x) * sum(y); Sxy
+# [1] 40.33333
 
 r = Sxy / sqrt(Sxx * Syy); r
 # [1] 0.7026516
@@ -34,6 +37,7 @@ t.crit = abs(qt((1-0.95)/2, df=n-2)); t.crit
 # [1] 2.228139
 
 p.value = 2 * pt(t, df=n-2, lower.tail=F); p.value
+# [1] 0.01082225
 
 
 # part b) find  correlation coeffiicent at rejection region, given n = 32
@@ -65,7 +69,7 @@ Syy = sum(y^2) - (1/n) * sum(y)^2
 X = matrix(c(rep(1, n), x, x^2), ncol=3)
 Y = matrix(y, ncol=1)
 beta.hat = solve(t(X) %*% X) %*% (t(X) %*% Y); beta.hat
-SSE = t(Y) %*% Y - t(beta.hat) %*% (t(X) %*% Y); SSE
+SSE = t(Y) %*% Y - t(beta.hat) %*% (t(X) %*% Y); SSE # need the above calculations to get SSE
 
 Fstat = ((Syy - SSE) / k) / (SSE / (n - k -1)); Fstat
 p.value = pf(Fstat, df1=k, df2=n-k-1, lower.tail=F); p.value
@@ -80,18 +84,41 @@ summary(model.lm)
 
 # part c) 
 # design matrix
-X
 
+
+X
+#      [,1] [,2] [,3]
+# [1,]    1   -3    9
+# [2,]    1   -2    4
+# [3,]    1   -1    1
+# [4,]    1    0    0
+# [5,]    1    1    1
+# [6,]    1    2    4
+# [7,]    1    3    9
 
 
 
 # QUESTION 3: --------------------------------------------------------------------
 # part a)
 # R = clearcut, T = thinned, C = control
+# blocks = F1, F2, F3 (the forest stands)
+# treatments = clearcut, thinned, control. 
 treeData <- data.frame(Y=c(4.3,10.8,8, 12.2,14.1,16.5, 8.7,11.4,14.3),
                        Treatment=c(rep("R",3),rep("T",3),rep("C",3)),
                        Block=c(rep(c("F1","F2","F3"),3)),stringsAsFactors = TRUE)
 treeData
+#     Y Treatment Block
+# 1  4.3         R    F1
+# 2 10.8         R    F2
+# 3  8.0         R    F3
+# 4 12.2         T    F1
+# 5 14.1         T    F2
+# 6 16.5         T    F3
+# 7  8.7         C    F1
+# 8 11.4         C    F2
+# 9 14.3         C    F3
+
+
 
 # part b)
 tree.lm <- lm(Y ~ Block + Treatment, data=treeData)
