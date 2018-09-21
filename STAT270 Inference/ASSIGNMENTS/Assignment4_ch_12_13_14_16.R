@@ -100,24 +100,23 @@ X
 
 # QUESTION 3: --------------------------------------------------------------------
 # part a)
-# R = clearcut, T = thinned, C = control
+# A = clearcut, B = thinned, C = control
 # blocks = F1, F2, F3 (the forest stands)
 # treatments = clearcut, thinned, control. 
-treeData <- data.frame(Y=c(4.3,10.8,8, 12.2,14.1,16.5, 8.7,11.4,14.3),
-                       Treatment=c(rep("R",3),rep("T",3),rep("C",3)),
-                       Block=c(rep(c("F1","F2","F3"),3)),stringsAsFactors = TRUE)
+treeData <- data.frame(Y=c(4.3,12.2,8.7, 10.8,14.1,11.4, 8,16.5,14.3),
+                       Block=c(rep("F1", 3), rep("F2", 3), rep("F3",3)), 
+                       Treatment=c(rep(c("A","B","C"),3)), stringsAsFactors = TRUE)
 treeData
-#     Y Treatment Block
-# 1  4.3         R    F1
-# 2 10.8         R    F2
-# 3  8.0         R    F3
-# 4 12.2         T    F1
-# 5 14.1         T    F2
-# 6 16.5         T    F3
-# 7  8.7         C    F1
-# 8 11.4         C    F2
-# 9 14.3         C    F3
-
+#      Y Block Treatment
+# 1  4.3    F1         A
+# 2 12.2    F1         B
+# 3  8.7    F1         C
+# 4 10.8    F2         A
+# 5 14.1    F2         B
+# 6 11.4    F2         C
+# 7  8.0    F3         A
+# 8 16.5    F3         B
+# 9 14.3    F3         C
 
 
 # part b)
@@ -125,44 +124,92 @@ tree.lm <- lm(Y ~ Block + Treatment, data=treeData)
 summary(tree.lm)
 anova(tree.lm)
 
-# Can reject null hypothesis of no treatment effect since p-value F = 0.02 < 0.05
+# Analysis of Variance Table
+# Response: Y
+#          Df Sum Sq Mean Sq F value  Pr(>F)
+# Block      2 34.936  17.468  6.1845 0.05971
+# Treatment  2 65.149  32.574 11.5330 0.02184
+# Residuals  4 11.298   2.824  
 
-# part c) 95% CI for difference between treatment clearcut "R" and thinned "T"
 
-# calculating the Treatment means: 
-tbl = with(treeData, tapply(Y, list(Treatment), mean))
+# Can reject null hypothesis of no treatment effect since p-value F = 0.0218 < 0.05
 
-mean.clearcut = tbl[[2]]; mean.clearcut
-# [1] 7.7
-mean.thinned = tbl[[3]]; mean.thinned
-# [1] 14.26667
+
+
+# part c) 95% CI for difference between treatment clearcut "A" and thinned "B"
 
 # Confidence interval (95%)
 n = nrow(treeData)
 b = 3 # number of blocks
 k = 3 # number of treatments
-anv = anova(tree.lm)
-s = sqrt(anv$`Mean Sq`[3]) # s is the square root of the MSE
+
+# calculating the Treatment means:
+treeBoxData <- matrix(c(4.3,10.8,8, 12.2,14.1,16.5, 8.7,11.4,14.3),ncol=3)
+colnames(treeBoxData) <- c("F1", "F2", "F3")
+rownames(treeBoxData) <- c("A", "B", "C")
+
+# Creating a function to return the data with the row and column sums
+marginalTable <- function(tbl) {
+      extraRow <- cbind(tbl, RowTotals=margin.table(tbl, margin=1))
+      extraCol <- rbind(extraRow, ColTotals=margin.table(extraRow, margin=2))
+      
+      dms <- dimnames(tbl)
+      dms[[1]] <- c(dms[[1]], "ColTotals")
+      dms[[2]] <- c(dms[[2]], "RowTotals")
+      dimnames(extraCol) <- dms 
+      
+      return(extraCol) 
+}
+
+mgTbl <- data.frame(marginalTable(treeBoxData))
+
+mean.clearcut = mgTbl$RowTotals[1] / b; mean.clearcut
+# [1] 8.4
+mean.thinned = mgTbl$RowTotals[2] /b; mean.thinned
+# [1] 12.1
+
+# OR can do rowMeans:
+rowMeans(treeBoxData)
+#    A        B        C 
+# 8.40000 12.10000 12.93333 
+
+
+# Locating the s = sqrt(MSE)
+
+anovaTestObj = anova(tree.lm); anovaTestObj
+# Analysis of Variance Table
+# Response: Y
+#           Df Sum Sq Mean Sq F value  Pr(>F)
+# Block      2 34.936  17.468  6.1845 0.05971
+# Treatment  2 65.149  32.574 11.5330 0.02184
+# Residuals  4 11.298   2.824 
+
+s = sqrt(anovaTestObj$`Mean Sq`[3]); s # s is the square root of the MSE
+# [1] 1.680608
 t.crit = abs(qt(0.025, df=n - b - k + 1)); t.crit
 
-CI.treeDiff = (mean.clearcut - mean.thinned) + c(-1,1) * t*s*sqrt(2/b)
+CI.treeDiff = (mean.clearcut - mean.thinned) + c(-1,1) * t.crit*s*sqrt(2/b)
 CI.treeDiff
-# [1] -7.492487 -5.640847
+# [1] -7.5098684  0.1098684
 
 
 
-# TODO: check section 13.9 wackerly if needed, but also lecture 7b contrasts?
 
+# QUESTION 3 c) -------------------------------------------------------------
 
+alpha = 0.1
+beta = 10
+ys <- c(3,9,5,2,2,5,2,4,2,3)
+n = length(ys)
+u = sum(ys); u
+# [1] 37 
 
-# --------------------------------------- ERASE LATER -----------------------
-# testing - wackerly grass 13.46
-grassData = data.frame(Y=c(2.764, 2.568, 2.506, 2.612,2.238,
-                           3.043,2.977,2.533,2.675,2.616,
-                           2.6,2.183,2.334,2.164,2.127,
-                           3.049,3.028,2.895,2.724,2.697),
-                       Block=c(rep("1",5),rep("2",5),rep("3",5),rep("4",5)),
-                       Treatment=c(rep(c("A","B","C","D","E"),4)),stringsAsFactors = TRUE)
-grassData
-grass.lm <- lm(Y ~ Block + Treatment, data=grassData)
-anova(grass.lm)
+alpha.star = alpha + u; alpha.star
+# [1] 37.1
+beta.star = beta/(n*beta + 1); beta.star
+# [1] 0.0990099
+
+a = qgamma(0.025, shape=alpha.star, scale=beta.star); a
+# [1] 2.587652
+b = qgamma(0.025, shape=alpha.star, scale=beta.star, lower.tail=FALSE); b
+# [1] 4.946071
