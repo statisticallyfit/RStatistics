@@ -144,7 +144,7 @@ effectPlot <- function(fit){
 
 
 
-# residual plot
+# residual plot vs fitted (autoplot(fit, which = 1))
 residualFitPlot <- function(fit, size=3, colour="black"){
       df <- data.frame(Fits=fit$fitted, Resids=fit$residuals)
       
@@ -155,10 +155,56 @@ residualFitPlot <- function(fit, size=3, colour="black"){
             xlab("Fitted values") + ylab("Residuals")
 }
 
+
 # TODO: normal qq plot for glm
+# TODO ggplotify this function so that the red dashed line stands out. Now
+# it is currently small and black, unclear in autoplot. 
+
+# Normal qq plot (autoplot(fit, which =2))
 normalityPlot <- function(fit, size=2, colour="black"){
-      autoplot(fit, which=2, size=size, colour=colour)
+      autoplot(fit, which=2, size=size, shape=19, colour=colour)
 }
+
+# TODO: autoplot which = 3(scale location plot)
+
+# cooks graph (autoplot which = 4)
+
+# TODO: redoing autoplot residuals stuff (all graphs) without the
+# smoothing line!
+cooksPlot <- function(fit){
+      data <- fit$model 
+      data$Obs <- 1:nrow(data)
+      data$Cooks <- cooks.distance(fit)
+      
+      cook.cutOff <- influence.cooksDistances(fit)$Cut[1]
+      
+      ggplot(data, aes(x=Obs, y=Cooks)) + 
+            geom_point(shape=19, size=3) + 
+            #geom_histogram(colour="blue", binwidth=1) +
+            geom_linerange(ymin=0, ymax=data$Cooks) + 
+            geom_hline(yintercept=cook.cutOff, linetype="dashed",size=1,color="red") +
+            scale_x_continuous("Observation Number") +
+            scale_y_continuous("Cook's distance") +
+            ggtitle("Cook's Distance")
+}
+
+
+
+
+
+# Studentized Residuals vs leverage plot (autoplot(lm.fit, which = 5))
+studentResidualsLeveragePlot <- function(fit, size=3, colour="purple"){
+      df <- data.frame(StudentResid=rstudent(fit), Leverage=hatvalues(fit))
+      
+      ggplot(data=df, aes(x=Leverage, y = StudentResid)) + 
+            geom_point(size=3, shape=19, colour="blue") + 
+            geom_hline(yintercept=0, size=2, linetype="longdash", colour="red") + 
+            ggtitle("Studentized Residuals vs Leverage") + 
+            xlab("Leverage") + ylab("Studentized Residuals")
+}
+
+
+
 # for multiple regression?
 residualsPlot <- function(fit, variableName, size=3, colour="slateblue"){
       xs <- fit$model[[variableName]]
@@ -337,25 +383,6 @@ modelPlot <- function (fit) {
 
 
 
-
-
-# TODO: redoing autoplot residuals stuff (all graphs) without the
-# smoothing line!
-cookGraph <- function(fit){
-      data <- fit$model 
-      data$Obs <- 1:nrow(data)
-      data$Cooks <- cooks.distance(fit)
-      
-      cook.cutOff <- influence.cooksDistances(fit)$Cut[1]
-      
-      ggplot(data, aes(x=Obs, y=Cooks)) + 
-            geom_point(shape=19, size=2) + 
-            geom_linerange(ymin=0, ymax=data$Cooks) + 
-            geom_hline(yintercept=cook.cutOff, linetype="dashed",size=1,color="red") +
-            scale_x_continuous("Observation Number") +
-            scale_y_continuous("Cook's distance") +
-            ggtitle("Cook's Distance")
-}
 
 
 

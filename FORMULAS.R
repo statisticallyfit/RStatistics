@@ -1,4 +1,4 @@
-source('/datascience/projects/statisticallyfit/github/R/RStatistics/Rfunctions.R')
+source('/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/Rfunctions.R')
 # use DescTools
 # Kurt
 # Skew
@@ -126,8 +126,8 @@ slopeCI <- function(fit, level=0.95) {
 # TODODO use Rfunctions file betaCI to get many decimal places in output
 meanCI <- function(fit, x.values=c(), level=0.95){
       predictorNames <- names(fit$model)[-1]
-      df <- data.frame(t(x.values))
-      rownames(df) <- ""
+      df <- data.frame(x.values)
+      #rownames(df) <- rep("", length(predictorNames))
       colnames(df) <- predictorNames
       
       return(predict(fit, newdata = df, interval="confidence", level=level))
@@ -135,8 +135,8 @@ meanCI <- function(fit, x.values=c(), level=0.95){
 
 predictCI <- function(fit, x.values, level=0.95){
       predictorNames <- names(fit$model)[-1]
-      df <- data.frame(rbind(x.values))
-      rownames(df) <- ""
+      df <- data.frame(cbind(x.values))
+      #rownames(df) <- ""
       colnames(df) <- predictorNames
       
       return(predict(fit, newdata = df, interval="prediction", level=level))
@@ -297,8 +297,8 @@ FTest <- function(fit) {
 
 # PREREQ: only for non-multiple regression (simple models)
 HomoskedasticityRegressionTest.Split <- function(theFormula, data, xName, xSplit,
-                                           alternative="two-sided", 
-                                           alpha=0.05){
+                                                 alternative="two-sided", 
+                                                 alpha=0.05){
       
       sample1 <- data[data[[xName]] <= xSplit, ]
       sample2 <- data[data[[xName]] > xSplit, ]
@@ -342,7 +342,7 @@ HomoskedasticityRegressionTest.Split <- function(theFormula, data, xName, xSplit
             Fcrit <- qf(alpha, df1=numerator.df, df2=denominator.df, lower.tail=F)
             p.value <- pf(Fstat, df1=numerator.df, df2=denominator.df, lower.tail=F)
       }
-            
+      
       cat("\n")      
       cat("#############################################################\n")
       cat("########     Homoskedasticity of Regression Test     ########\n")
@@ -453,7 +453,18 @@ separateArgs <- function(fit){
 
 
 
-
+# OUTLIER POINTS = are those beyond (-2,2) of std residuals
+outlier.outlierValues <- function(fit){
+      library(car)
+      srs = rstandard(fit)
+      isOutlier <- srs < -2 | srs > 2
+      print(outlierTest(fit)) # from car
+      
+      df <- data.frame(Fitted=fit$fitted.values, StandardizedResiduals=srs,
+                       IsOutlier=isOutlier)
+      
+      return(invisible())
+}
 
 # INFLUENTIAL POINTS
 # fit = the lm object
@@ -521,9 +532,9 @@ NestedLikelihoodRatioTest <- function(reducedModel, fullModel, printNice=TRUE) {
       statement <- ""
       if(pValue < 0.05){
             statement <- paste("Reject H0. Conclude at least one of the extra β ",
-            "coefficients \n",
-            "in the complete model is nonzero, so that the complete model is\n",
-            "statistically useful for predicting ", names(reducedModel$model)[1], " (y).", sep="")
+                               "coefficients \n",
+                               "in the complete model is nonzero, so that the complete model is\n",
+                               "statistically useful for predicting ", names(reducedModel$model)[1], " (y).", sep="")
       } else{
             statement <- 
                   paste("Insufficient evidence to reject Ho, that is, to conclude that",
@@ -596,15 +607,15 @@ ResidualDevianceTest <- function(fit, printNice=TRUE) {
             # G <- 2*sum( yi*log(yi/mui) + (ni-yi)*log((ni-yi)/(ni-mui)) )
             statement <- 
                   paste("Reject H0. Conclude the residual deviance is large and\n",
-                  "different from zero. So expected successes are not equal to\n",
-                  "observed successes and expected failures are not equal to \n",
-                  "observed failures. The model is not a good fit for the data.", sep="")
+                        "different from zero. So expected successes are not equal to\n",
+                        "observed successes and expected failures are not equal to \n",
+                        "observed failures. The model is not a good fit for the data.", sep="")
       } else{
             statement <- 
                   paste("Fail to reject H0. Not enough evidence to conclude that the\n",
-                  "residual deviance is not 0, so we say the residual deviance is small.\n",
-                  "So expected and observed successes/failures are similar. \n",
-                  "Thus the model is a good fit for the data.", sep="")
+                        "residual deviance is not 0, so we say the residual deviance is small.\n",
+                        "So expected and observed successes/failures are similar. \n",
+                        "Thus the model is a good fit for the data.", sep="")
       }
       
       # TODO: update null hypothesis, is not the same of the nested test H0. 

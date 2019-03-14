@@ -1,13 +1,13 @@
-setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Chapter 6, 7 - Variable Screening, Transformations/lecturedata/")
-source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/PLOTTING.R')
-source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/FORMULAS.R')
-source("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Rfunctions.R")
+setwd("/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT210 Statistical Modelling and Experimental Design/Chapter 6, 7 - Variable Screening, Transformations/")
+source('/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/PLOTTING.R')
+source('/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/FORMULAS.R')
+source("/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/Rfunctions.R")
 
 
 options(digits=10, show.signif.stars = FALSE)
 
 
-cigarData <- read.table("FTCIGAR.txt", header=TRUE)
+cigarData <- read.table("lecturedata/FTCIGAR.txt", header=TRUE)
 
 
 pairsQuantPlot(cigarData, 1:4)
@@ -35,7 +35,7 @@ summary(cigar.lm)
 
 # OVERALL good F-test while t-tests are not significant. 
 
-# OPPOSITE SIGNS: all the correlations are positive but here we have
+# OPPOSITE SIGNS: all the correlations are positive but here the estimated coeffs
 # opposite signs. Not definitive sign of multicollinearity because it 
 # depends on how all they act together, but it seems suspicious. 
 
