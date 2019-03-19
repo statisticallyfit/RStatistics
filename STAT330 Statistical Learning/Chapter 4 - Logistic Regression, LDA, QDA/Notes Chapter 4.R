@@ -3,7 +3,6 @@ library(ISLR)
 library(MASS)
 library(car)
 
-
 options(show.signif.stars = FALSE)
 
 data(Default)
@@ -85,18 +84,3 @@ posPredValue(mirror(default.tbl), positive="Yes")
 # negPredValue(default.tbl, positive="Yes")
 # posPredValue(default.tbl, positive="Yes")
 
-
-# MY NOTES (on how to use caret package) -------------------------------------------------------------------
-# Cannot pass true = vector when thre are more than two levels in data. 
-# But can do that when passing a table
-iris.lda <- lda(Species ~., data=iris)
-iris.pred <- predict(iris.lda)$class
-iris.tbl <- table(iris.pred, iris$Species); iris.tbl
-
-# sensitivity(iris.pred, iris$Species) # error
- 
-# ... when passing a table, more than two levels can be specified as 'true' or 'observed'
-sensitivity(iris.tbl, "versicolor")
-specificity(iris.tbl, iris$Species)
-
-# --------------------------------------------------------------------------------------
