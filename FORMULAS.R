@@ -878,3 +878,64 @@ bootstrapMean <- function(data, R, level=0.95){
       
       return(invisible(H.star))
 }
+
+
+
+# STAT330 Learning -----------------------------------------------------------------------
+
+# GOAL: fit lda model but attach also the observed data in a separate column. 
+# ldaFit <- function(formula())
+# TODO: how to get formula in arguments
+#ldaFit <- function(response, predictors, data){
+#      library(MASS)
+#      formulaToFit <- reformulate(response=response, termlables=predictors)
+#      lda.fit <- lda(formulaToFit, data=data)
+#      return (lda.fit)
+#}
+
+# lda.fit = the model fit by lda (MASS package)
+# GOAL: converts output of lda.fit (list) to data frame to look nicer
+ldaToDataFrame <- function(lda.fit){
+      pred.list <- predict(lda.fit)
+      # note: posterior in pred.list may be multidim array? depending on num classes
+      # so that changes num cols of this df ??
+      ldaValues <- pred.list$x
+      colnames(ldaValues) <- "LDAClassifier"
+      pred.df <- data.frame(PredictedClass = pred.list$class, ldaValues,
+                            Posterior=pred.list$posterior)
+      # note: LDA classifier == linear discriminant fits
+      return(pred.df)
+}
+
+
+# observedY = original observed y-values (categorical)
+# lda.fit = the model fit by lda (MASS package)
+# GOAL: calculate lda error rate, which is estimation of Bayes error rate. 
+ldaErrorRate <- function(lda.fit, observedY) {
+      return(1 - mean(predict(lda.fit)$class == observedY))
+}
+
+
+# GOAL: calculate confusion matrix of the lda fit
+# observedY = vector of observed y values (categorical)
+# lda.fit = model fit by lda
+# link to another type of confusion matrix: 
+# https://maths-people.anu.edu.au/~johnm/courses/mathdm/2008/pdf/r-exercisesVI.pdf
+twoWayConfusionMatrix <- function(lda.fit, observedY){
+      df = data.frame(PredictedResponse=predict(lda.fit)$class, 
+                       ObservedResponse=observedY)
+      
+      # note: returning transpose so positions of sensitivity and specificity 
+      # match my notes
+      tbl = marginalTable(table(df))
+      
+      # rename "ColTotals" to total population counts per class
+      rownames(tbl)[3] <- "TotalPopulationCounts"
+      colnames(tbl)[3] <- "TotalPredictedCounts"
+      
+      # calculate sensitivity (true positive) = lower right corner rate: TP / P
+      # TODO: apply to multivariate case
+      # calculate specificity (true negative) = upper left corner rate: TN / N
+      
+      return(tbl)
+}

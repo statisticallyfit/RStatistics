@@ -117,13 +117,13 @@ flatten.list <- function(x) {
 
 # flips columns horizontally (like mirror)
 mirrorHorizontal <- function(tbl){
-      t(apply(tbl, 1, rev))
+      as.table(t(apply(tbl, 1, rev)))
 }
 
 mirrorVertical <- function(tbl){
-      apply(tbl, 2, rev)
+      as.table(apply(tbl, 2, rev))
 }
 
 mirror <- function(tbl){
-      mirrorVertical(mirrorHorizontal(tbl))
+      as.table(mirrorVertical(mirrorHorizontal(tbl)))
 }
