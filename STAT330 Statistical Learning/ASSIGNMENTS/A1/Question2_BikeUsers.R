@@ -39,7 +39,7 @@ pairs(bikeData[,1:8]) # include all predictors but the last, since Casual = resp
 # part d) ------------------------------------------------------------------------
 bikeData$Weather <- factor(bikeData$Weather)
 bikeData$Year <- factor(bikeData$Year)
-
+bikeData$Weekend <- factor(bikeData$Weekend)
 
 # part c) --------------------------------------------------
 ggplot(data=bikeData, aes(x=Weather, y=Casual, colour=Weather)) + 
@@ -66,20 +66,18 @@ head(bikeData)
 # Use polynomial fits only for: Temperature, Humidity, Windspeed
 
 # TEMPERATURE MODEL ------ 
+
 # Using the backward approach: 
-
-# temp1.lm <- lm(Casual ~ Temperature, data=bikeData)
-# summary(temp1.lm) # continue since fit is significant
-# temp2.lm <- lm(Casual ~ Temperature + I(Temperature^2), data=bikeData)
-# summary(temp2.lm) #  quadratic coefficient is not significant
-
-temp5.lm <- lm(Casual ~ poly(Temperature, 5), data=bikeData)
+temp5.lm <- lm(Casual ~ Temperature+I(Temperature^2) + I(Temperature^3) +
+                     I(Temperature^4) + I(Temperature^5), data=bikeData)
 summary(temp5.lm) # no coefficient is significant
-temp4.lm <- lm(Casual ~ poly(Temperature, 4), data=bikeData)
+temp4.lm <- update(temp5.lm, .~. -I(Temperature^5), data=bikeData)
 summary(temp4.lm) # no coefficient is significant, so keep reducing until find
 # a significant coefficient
-temp3.lm <- lm(Casual ~ poly(Temperature, 3), data=bikeData)
-summary(temp3.lm) # all coefficients are significant, especially the third order, keep.
+temp3.lm <- update(temp4.lm, .~. -I(Temperature^4), data=bikeData)
+summary(temp3.lm) # 3rd order coeff is significant. 
+temp2.lm <- update(temp3.lm, .~. -I(Temperature^3), data=bikeData)
+summary(temp2.lm) # go back to 3rd order since no more coefficients are significant.
 
 # checking diagnostics for the best higher order model: order 3
 autoplot(temp3.lm, which=c(1,2))
@@ -88,19 +86,22 @@ autoplot(temp3.lm, which=c(1,2))
 
 
 # WINDSPEED MODEL ------
-
+wind5.lm <- lm(Casual ~ Windspeed + I(Windspeed^2) + I(Windspeed^3) + 
+                     I(Windspeed^4) + I(Windspeed^5), data=bikeData)
+summary(wind5.lm)# no coefficient is significant
+wind4.lm <- update(wind5.lm, .~. -I(Windspeed^5), data=bikeData)
+summary(wind4.lm) # no coefficient is significant
+wind3.lm <- update(wind4.lm, .~. -I(Windspeed^4), data=bikeData)
+summary(wind3.lm) # no coefficient is significant
+wind2.lm <- update(wind3.lm, . ~ . - I(Windspeed^3), data=bikeData)
+summary(wind2.lm) # no higher order coefficient is significant
 wind1.lm <- lm(Casual ~ Windspeed, data=bikeData)
 summary(wind1.lm) # marginally significant windpseed coefficient (just above significance)
-wind2.lm <- update(wind1.lm, . ~ . + I(Windspeed^2), data=bikeData)
-summary(wind2.lm) # no coefficient is significant
-wind3.lm <- update(wind2.lm, . ~ . + I(Windspeed^3), data=bikeData)
-summary(wind3.lm) # no coefficient is significant
-wind4.lm <- update(wind3.lm, . ~ . + I(Windspeed^4), data=bikeData)
-summary(wind4.lm) # no coefficient is significant
-wind5.lm <- update(wind4.lm, . ~ . + I(Windspeed^5), data=bikeData)
-summary(wind5.lm) # no coefficient is significant
 
+# Using the backward approach, start with the 5th order model and continue until
+# find a model with a significant coefficient. This happens at order 1 (linear)
 autoplot(wind1.lm, which=c(1,2))
+
 # CONCLUSION: funnel pattern in residuals indicates increasing variance of residuals, 
 # and qq plot shows non-normality at the extreme tails of the data. 
 # NOte: there is less strong funnel shape for wind1 than for other higher order
@@ -110,18 +111,20 @@ autoplot(wind5.lm, which=c(1,2))
 
 # HUMIDITY MODEL ------
 # Using the backward approach: 
-humid1.lm <- lm(Casual ~ Humidity, data=bikeData)
-summary(humid1.lm) # significant coefficient, so continue
-humid2.lm <- update(humid1.lm, . ~ .  + I(Humidity ^ 2), data=bikeData)
-summary(humid2.lm) # no more significant coefficients
-humid3.lm <- update(humid2.lm, . ~ .  + I(Humidity ^ 3), data=bikeData)
-summary(humid3.lm) # significant 3rd order term, so continue
-humid4.lm <- update(humid3.lm, . ~ .  + I(Humidity ^ 4), data=bikeData)
+humid5.lm <- lm(Casual ~ Humidity + I(Humidity^2) + I(Humidity^3) + I(Humidity^4) + 
+                      I(Humidity^5), data=bikeData)
+summary(humid5.lm) # no  significant coefficients, reduce further
+humid4.lm <- update(humid5.lm, .~. -I(Humidity^5), data=bikeData)
 summary(humid4.lm) # significant 4th order term, so continue
-humid5.lm <- update(humid4.lm, . ~ .  + I(Humidity ^ 5), data=bikeData)
-summary(humid5.lm) # no more significant coefficients, so use model 4
+humid3.lm <- update(humid4.lm, .~. -I(Humidity^4), data=bikeData)
+summary(humid3.lm) # significant 3th order term, so continue
+humid2.lm <- update(humid3.lm, .~. -I(Humidity^3), data=bikeData)
+summary(humid2.lm) #  no  significant coefficients, so keep the previous 3rd order
 
-autoplot(humid4.lm, which=c(1,2))
+# Using the forward approach, we can keep the 4th order model. 
+# Using the backward approach, we start with the 5th order model and see the last
+# significant model is the 3rd order one, so we keep the third order model. 
+autoplot(humid3.lm, which=c(1,2))
 # CONCLUSION: strong funnel shape in residuals, strong non-normality, not good model fit
 
 
@@ -129,16 +132,28 @@ autoplot(humid4.lm, which=c(1,2))
 # part g) ---------------------------------------------------------------------------
 
 # Fitting multiple regression with the higher order terms from f)
-# humid4, temp3, wind1
+# humid3, temp3, wind1
 
-head(bikeData)
 bike.multiple.lm <- lm(Casual ~ Season + Year + Weekend + Windspeed + 
-                             poly(Humidity, 3) + poly(Temperature, 3),data=bikeData)
+                             Humidity + I(Humidity^2) + I(Humidity^3) + 
+                             Temperature + I(Temperature^2) + I(Temperature^3), data=bikeData)
 
-summary(bike.multiple.lm3)
+summary(bike.multiple.lm)
 
-autoplot(bike.lm)
-shapiro.test(bike.lm$residuals)
+autoplot(bike.multiple.lm, which=c(1,2))
+shapiro.test(bike.multiple.lm$residuals)
 # funnel shape in residuals, curvature - missing predictor?
 # residuals not normal
 # many outliers and leverage points
+
+# part h) ---------------------------------------------------------------------------
+summary(bike.multiple.lm)
+
+# (i)
+# Weekend1 coefficient is negative (significantly): negative means there is higher
+# number of casual bike use on weekend (0=base level) than on weekdays. 
+# note: 0 = weekend, 1 = weekday
+
+# (ii)
+# As windspeed increases by 1 km/h, the number of casual bike users is expected
+# to decrease by about 19 people (or 20), holding other predictors constant. 
