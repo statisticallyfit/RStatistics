@@ -1,4 +1,6 @@
 setwd("/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/Chapter 3 - Linear Regression")
+source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/FORMULAS.R')
+source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/PLOTTING.R')
 library(ISLR)
 library(MASS)
 library(car)
@@ -34,7 +36,7 @@ predict(boston.lm, newdata = data.frame(lstat=c(5, 10, 15)), interval="pred")
 modelPlot(boston.lm)
 
 plotConfidenceBands.lm(boston.lm)
-plotConfPredBands.lm(bostom.lm)
+plotConfPredBands.lm(boston.lm)
 
 residualFitPlot(boston.lm)
 normalityPlot(boston.lm)
@@ -106,7 +108,7 @@ summary(boston.notage.update.lm)
 summary(lm(medv ~ lstat * age, data=Boston)) # evidence of significant interaction
 # between lstat and age p - value = 0.025
 
-# NONLINEAR TRANSFORMATIONS OF PREDICTORS ---------------------------------------
+# POLYNOMIAL (NONLINEAR) TRANSFORMATIONS OF PREDICTORS ---------------------------------------
 # I(X^2) for predictor X
 
 boston.square.lm <- lm(medv ~ lstat + I(lstat^2), data=Boston)
