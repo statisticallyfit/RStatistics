@@ -463,7 +463,7 @@ outlier.outlierValues <- function(fit){
       df <- data.frame(Fitted=fit$fitted.values, StandardizedResiduals=srs,
                        IsOutlier=isOutlier)
       
-      return(invisible())
+      return(invisible(df))
 }
 
 # INFLUENTIAL POINTS
@@ -472,9 +472,10 @@ influence.leverageValues <- function(fit){
       hs <- hatvalues(fit)
       k <- length(fit$model) - 1
       n <- nrow(fit$model)
-      h.mean <- 2*(k+1)/n 
-      isInfluential <- hs > h.mean 
-      return(data.frame(InfluentialPoints=hs, CutOffInflMean=h.mean, 
+      h.mean <- (k+1)/n 
+      h.cutoff <- 2*(k+1)/n 
+      isInfluential <- hs > h.cutoff 
+      return(data.frame(InfluentialPoints=hs, CutOff=h.cutoff, AvgLev=h.mean,
                         IsInfluential=isInfluential))
 }
 
