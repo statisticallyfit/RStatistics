@@ -59,6 +59,10 @@ mirror(default.tbl)
 
 conf.mat # print confusion matrix  (my two way matrix)
 confusionMatrix(data= pred, reference=truth, positive="Yes") # the caret library function
+# correct also
+confusionMatrix(mirror(default.tbl)) # correct
+confusionMatrix(default.tbl) # wrong
+
 
 # sensitivity = TP / P = 81 / 333 = 0.243
 sensitivity(pred, truth, positive="Yes")

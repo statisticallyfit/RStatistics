@@ -692,15 +692,17 @@ colProbabilityHat <- function(tbl){prop.table(tbl, margin=2)}
 # ---------------------- Returns table with marginal row/col sums ------------------------------
 ################ TODO make for k-way tables too, not just two-way
 marginalTable <- function(tbl) {
-      extraRow <- cbind(tbl, RowTotals=margin.table(tbl, margin=1))
-      extraCol <- rbind(extraRow, ColTotals=margin.table(extraRow, margin=2))
+      t = tbl 
+      dimnames(t) <- NULL 
+      t <- cbind(t, margin.table(t, margin=1))
+      t <- rbind(t, margin.table(t, margin=2))
       
       dms <- dimnames(tbl)
-      dms[[1]] <- c(dms[[1]], "ColTotals")
-      dms[[2]] <- c(dms[[2]], "RowTotals")
-      dimnames(extraCol) <- dms 
+      dms[[1]] <- c(dms[[1]], "") # c(dms[[1]], "ColTotals")
+      dms[[2]] <- c(dms[[2]], "")
+      dimnames(t) <- dms 
       
-      return(extraCol) 
+      return(t)
 }
 
 
