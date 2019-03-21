@@ -112,8 +112,9 @@ table(pred.label.test, testData$Direction)
 # confusion matrix
 confusionMatrix(data=pred.label.test, reference=testData$Direction, positive="Up")
 
-# test set error rate = 1 - testsetaccuracy
-1 - 0.4802
+mean("Up"== testData$Direction) # random chance percent "up"
+mean(pred.label.test == testData$Direction) # accuracy, worse than chance
+1 - 0.4802 # test error rate
 # Test set error rate is 52%, which is worse than random guessing
 
 # Causes of bad model: large p-valus for predictors
@@ -126,18 +127,26 @@ market.again.glm <- glm(Direction ~ Lag1 + Lag2, data=Smarket, family=binomial, 
 pred.probs.test = predict(market.again.glm, testData, type="response")
 pred.label.test = rep("Down", nrow(testData))
 pred.label.test[pred.probs.test > 0.5] = "Up"
+pred.label.test <- factor(pred.label.test)
+
 # conf matrix 1
 t = table(PredictionTest=pred.label.test, TruthTest=testData$Direction); t
 c = confusionMatrix(data=pred.label.test, reference=testData$Direction, positive="Up"); c
 
 accuracy = mean(pred.label.test == testData$Direction); accuracy
+mean("Up" == testData$Direction) # random chance
+1 - accuracy # test error rate
+
 # So 56% of daily movements have been correctly predicted
 # A much simpler strategy of predicting that market will increase every day will
 # also be correct 56% of the time
 # So logistic is no better than null model
 
-# But confsion matrix shows that when logistic predicts increase in the market, 
+# PosPredValue = 
+# But confsion matrix shows that on days when logistic predicts increase in the market, 
 # it has 58% accuracy rate (pospredvalue = TP / P*)
+# POS PRED VALUE: "When model predicts "pos", it has a PPV % accuracy rate"
+posPredValue(data=pred.label.test, reference=testData$Direction, positive="Up")
 # SUggests a trading strategy of buying on days when model predicts increasing market
 # and avoiding trades when model predicts decrease.
 
@@ -205,7 +214,7 @@ ggplot(data=lda.df, aes(LD1)) + geom_point(colour=lda.df$Direction,size=2.5)
 pmarket = predict(market.lda, testData)
 head(pmarket)
 table(Prediction=pmarket$class, TrueDirection=testData$Direction)
-# accuracy
+# accuracy - similar to logistic regression
 mean(pmarket$class == testData$Direction)
 
 # OR
@@ -247,7 +256,7 @@ c2
 # accuracy
 mean(p2market$class == testData$Direction)
 # QDA predictions are accurate almost 60% of the time even though the 2005 data was not
-# used to fit the model
+# used to fit the model, so more accurate than LDA and logistic
 # Suguests QDA captures true relation more accurately than linear forms of LDA and logistic
 
 
@@ -275,6 +284,7 @@ class(market.knn)
 c1 = table(Prediction=market.knn, TrueDirection=testData$Direction); c1
 marginalTable(c1)
 # accuracy
+mean(market.knn == testData$Direction)
 (43 + 83) / 252 # no better than chance! (k = 1 may be too flexible for the data)
 
 # confusion matrix 2
@@ -285,6 +295,7 @@ market.knn3 = knn(train=train.X, test=test.X, cl=train.TrueDirection, k = 3)
 #c1 = table(Prediction=market.knn3, TrueDirection=testData$Direction): c1
 # what is wrong??
 confusionMatrix(data=market.knn3, reference=testData$Direction, positive="Up")
+mean(market.knn3 == testData$Direction)
 # accuracy = 53.57% a bit better than chance
 # But increasing K further has no further improvements, so QDA is best so far
 
@@ -312,7 +323,6 @@ mean(Caravan[,1])
 testIndices = 1:1000
 train.X = standardized.X[-testIndices,]
 test.X = standardized.X[testIndices, ]
-colnames(train.X)
 
 train.Y = Caravan$Purchase[-testIndices]
 test.Y = Caravan$Purchase[testIndices]
@@ -325,28 +335,27 @@ caravan.knn = knn(train=train.X, test=test.X, cl=train.Y, k = 1)
 # how to know which is the positive class?
 confusionMatrix(data=caravan.knn, reference=test.Y, positive="Yes") 
 # test accuracy
-mean(test.Y == caravan.knn)
+mean(test.Y == caravan.knn) # model's total accuracy rate of purchase and non purchase
 # test error rate: just under 12% error rate (wrong predictions 12% of the time)
 mean(test.Y != caravan.knn)
 1 - mean(test.Y == caravan.knn)
 # Seems to be ok but look at: only 6% of customers actually purchased insurance
+# RANDOM CHANCE rate of purchase:
 mean(test.Y != "No")
-mean(test.Y == "Yes")
-# ... so  we could get the error rate down to 6% by always predicting No regardless
-# of the values of the predictors!
-
-# Overall error rate not of interest: try to find instead error rate for individuals
-
-# Model is still good: since Knn with K = 1 is far better than random guessing, 
-# when predicting for individual customers likely to buy insurance (not overall)
-table(PredictedPurchase=caravan.knn, TruePurchase=test.Y)
-9/(68 + 9) # positivve predicted rate
+mean(test.Y == "Yes") # random chance rate of purchase
+# models' accuracy rate of purchase
 posPredValue(data=caravan.knn, reference=test.Y, positive="Yes")
 
-# INTERPRETATION of Pos pred value: Among 77 customers (number of customers 
-# predicted to buy insurance), 9 of them (or 11.7%)  actually do buy insurance. 
+# ... so  we could get the error rate down to 6% by always predicting No regardless
+# of the values of the predictors! ??? (meaning?)
 
-# This is better (double) the 6% success rate obtained from random guessing (null model)
+# INTERPRETATION of Pos pred value: Among 77 customers  predicted to buy insurance, 
+# there are 9 of them (or 11.7%)  actually do buy insurance. 
+
+# INTERPRETATION OF random chance value: 6$ of real life people actually buy insurance.
+
+# Model's pos pred value is better (double) the 6% success rate obtained
+# from random guessing (null model)
 
 
 # NOTE: so confusionmatrix with positive = "Yes" is the correct one, since
@@ -392,6 +401,10 @@ pred.label.test = rep("No", 1000)
 pred.label.test[pred.probs.test > 0.5] = "Yes"
 pred.label.test <- factor(pred.label.test)
 
+# accuracy
+mean(pred.label.test == test.Y)
+# test error rate = 1 - acc
+
 table(PredictedPurchase=pred.label.test, TruePurchase=test.Y)
 posPredValue(data=pred.label.test, reference=test.Y, positive="Yes")
 
@@ -408,10 +421,8 @@ table(PredictedPurchase=pred.label.test, TruePurchase=test.Y)
 posPredValue(data=pred.label.test, reference=test.Y, positive="Yes")
 
 # INTERPRETATION pos pred value: Among the 33 customers predicted to buy insurance,
-# about 11 of them (33%) actually do buy insurance. 
-
-# This means we are correct for about 33% of these people
+# the model predicts (is correct for) about 11 of them (33%) buy insurance. 
 
 # This is 5 time sbetter than random guessing:
-mean(test.Y == "Yes") # random guessing
+mean(test.Y == "Yes") # random guessing (of the pos pred value)
 0.33333 / 0.059 # five times better

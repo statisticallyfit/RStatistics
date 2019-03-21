@@ -53,6 +53,7 @@ pred = predict(default.lda)$class
 truth = Default$default
 default.tbl = table(pred, truth)
 default.tbl
+marginalTable(default.tbl)
 
 # using the DATA.R file
 mirror(default.tbl)
