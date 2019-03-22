@@ -28,6 +28,9 @@ pairsQuantPlot <- function(data, colsVec, size=10){
 # pairsQualPlot
 
 
+# link for effects plots: 
+# http://www.flutterbys.com.au/stats/tut/tut5.3.html
+
 # interaction plot
 # TODO: fix so it looks exactly like
 # interaction.plot(...) function

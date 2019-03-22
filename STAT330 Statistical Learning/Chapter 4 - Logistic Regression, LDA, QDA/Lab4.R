@@ -278,10 +278,9 @@ train.TrueDirection <- trainData$Direction
 # then R randomly breaks the tie. 
 set.seed(1)
 market.knn <- knn(train = train.X, test = test.X, cl = train.TrueDirection, k = 1)
-class(market.knn)
 
-# confusion matrix 1
-c1 = table(Prediction=market.knn, TrueDirection=testData$Direction); c1
+# confusion matrix 1 for test data
+c1 = table(Prediction=market.knn, TrueDirection=testData$Direction)
 marginalTable(c1)
 # accuracy
 mean(market.knn == testData$Direction)
@@ -323,7 +322,6 @@ mean(Caravan[,1])
 testIndices = 1:1000
 train.X = standardized.X[-testIndices,]
 test.X = standardized.X[testIndices, ]
-
 train.Y = Caravan$Purchase[-testIndices]
 test.Y = Caravan$Purchase[testIndices]
 
@@ -334,7 +332,7 @@ caravan.knn = knn(train=train.X, test=test.X, cl=train.Y, k = 1)
 
 # how to know which is the positive class?
 confusionMatrix(data=caravan.knn, reference=test.Y, positive="Yes") 
-# test accuracy
+# test accuracy = 88.2%
 mean(test.Y == caravan.knn) # model's total accuracy rate of purchase and non purchase
 # test error rate: just under 12% error rate (wrong predictions 12% of the time)
 mean(test.Y != caravan.knn)

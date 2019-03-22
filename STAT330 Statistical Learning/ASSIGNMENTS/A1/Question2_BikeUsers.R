@@ -1,4 +1,4 @@
-setwd("/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/ASSIGNMENTS/")
+setwd("/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/ASSIGNMENTS/A1/")
 options(show.signif.stars = FALSE)
 
 library(ggplot2)
@@ -16,10 +16,12 @@ numClasses = 16
 theBinWidth = round(diff(range(bikeData$Casual)) / numClasses); theBinWidth
 
 ggplot(data=bikeData, aes(x=Casual)) + 
-      geom_histogram(color="white", fill="dodgerblue",binwidth=theBinWidth)
+      geom_histogram(color="white", fill="dodgerblue",binwidth=theBinWidth) + 
+      ggtitle("Counts of Casual Bike Users Per Day") + 
+      xlab("Number of Casual Users") + ylab("Frequency")
 
 # Or can do it with regular R
-hist(bikeData$Casual, breaks=15)
+# hist(bikeData$Casual, breaks=15)
 
 # Distribution is highly right-skewed with long right tail (skewness would be > 0)
 # This means over the 200 days, there are more likely to be few casual bike users
@@ -35,6 +37,7 @@ pairs(bikeData[,1:8]) # include all predictors but the last, since Casual = resp
 # a cloud of dots, with no linear pattern, or they are vertical series or horizontal
 # series of dots, again indicating no linear correlation. 
 
+# Part c) below part d) so I could make some variables factors beforehand 
 
 # part d) ------------------------------------------------------------------------
 bikeData$Weather <- factor(bikeData$Weather)
@@ -43,7 +46,8 @@ bikeData$Weekend <- factor(bikeData$Weekend)
 
 # part c) --------------------------------------------------
 ggplot(data=bikeData, aes(x=Weather, y=Casual, colour=Weather)) + 
-      geom_boxplot(size=1) 
+      geom_boxplot(size=1)  + 
+      ggtitle("Number of Casual Bike Users Across Weather Conditions")
 
 # There are more casual bike users for mild weather (1 = clear, few clouds) than there
 # are for heavy thunderstorms (3) and mist (2), indicated by the greather height in
@@ -59,8 +63,6 @@ summary(bike.lm)
 # Year2012 = significantly more casual users in 2012 than 2011. 
 
 # part f) ----------------------------------------------------------
-
-head(bikeData)
 
 # Date, Year, Season, Weekend, Weather are categorical
 # Use polynomial fits only for: Temperature, Humidity, Windspeed
@@ -87,7 +89,7 @@ autoplot(temp3.lm, which=c(1,2))
 
 # WINDSPEED MODEL ------
 wind5.lm <- lm(Casual ~ Windspeed + I(Windspeed^2) + I(Windspeed^3) + 
-                     I(Windspeed^4) + I(Windspeed^5), data=bikeData)
+                I(Windspeed^4) + I(Windspeed^5), data=bikeData)
 summary(wind5.lm)# no coefficient is significant
 wind4.lm <- update(wind5.lm, .~. -I(Windspeed^5), data=bikeData)
 summary(wind4.lm) # no coefficient is significant
