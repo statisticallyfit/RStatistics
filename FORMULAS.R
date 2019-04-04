@@ -35,6 +35,25 @@ MSE <- function(fit) {
       return(s^2)
 }
 
+# Validation - training MSE
+# Given a model fit on the training data, use the full Data set to calculate test info
+# to calculate the test MSE
+MSE <- function(train.fit, fullData){
+      
+      trainIndices <- as.numeric(rownames(train.fit$model))
+      yName = colnames(train.fit$model)[1]
+      y <- fullData[,yName]
+      yHat = predict(train.fit, fullData)
+      return(mean( (y - yHat)[-trainIndices]^2 ))
+}
+
+
+# take only test index rows and the predictors used in the model
+#testData <- fullData[-trainIndices, colnames(train.fit$model)]
+#testY <- testData[, 1]
+#preds = predict(train.fit, testData)
+#overallMSE <- mean( (testY - preds)^2 )
+
 standardErrorOfSlope <- function(fit) {
       x <- fit$model[[2]]
       
