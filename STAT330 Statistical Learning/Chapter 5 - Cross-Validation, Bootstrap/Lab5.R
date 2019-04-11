@@ -18,7 +18,7 @@ auto.cv.lm <- lm(mpg ~ horsepower, data=Auto, subset=trainIndices)
 ### Estimate response for all 392 observations
 fits <- predict(auto.cv.lm, Auto)
 overallMSE <- mean( (Auto$mpg - fits)[-trainIndices] ^2); overallMSE
-MSE(auto.cv.lm, Auto)
+MSE(auto.cv.lm, Auto) # HELP why is this different?
 
 
 #testData <- data.frame(mpg=Auto$mpg[-trainIndices], 

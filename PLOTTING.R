@@ -1,8 +1,13 @@
-#source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/ADVANCED_PLOTTING.R')
+source('/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/ADVANCED_PLOTTING.R')
 
 library(ggplot2)
 library(ggfortify) # for residuals plot
 library(GGally) # for pairs plot
+
+library(gridExtra)
+
+# this is for multiplots of ggplot: 
+# http://rstudio-pubs-static.s3.amazonaws.com/2852_379274d7c5734f979e106dcf019ec46c.html
 
 
 
