@@ -64,6 +64,8 @@ p.cp <- ggplot(df, aes(x=NumVars, y=Cp)) + geom_line() +
 p.bic <- ggplot(df, aes(x=NumVars, y=BIC)) + geom_line() + 
       geom_point(aes(x=iMinBIC, y=s$bic[iMinBIC]), colour="blue")
 
+grid.arrange(p.rss, p.adj, p.cp, p.bic)
+
 # ----------------
 
 par(mfrow=c(2,2))
@@ -128,6 +130,8 @@ testIndices = !trainIndices
 
 ###### SUBSET
 
+# 1) Cross Validation on full data
+
 subset.best = regsubsets(Salary ~ ., data=hitData[trainIndices, ], nvmax=numVars)
 # compute validation set error for best model of each size
 testMatrix = model.matrix(Salary ~ ., data=hitData[testIndices, ]) # an X matrix ???
@@ -173,6 +177,9 @@ coef(subset.fulldata.best, bestTrainingModel)
 # Note: the best ten-var model on full data set has a different set of vars than the
 # best ten-var model on training set
 
+
+
+# 2) Cross Validation on Train / Test data
 
 # Now choose among the models of different sizes using cross-validation. (Do best subset
 # selection within each of the k training sets)
