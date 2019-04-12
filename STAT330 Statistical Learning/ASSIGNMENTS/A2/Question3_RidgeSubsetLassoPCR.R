@@ -14,7 +14,6 @@ head(sydneyData)
 ### Data Preparation ------------------------------------------------------------------------
 
 set.seed(1)
-
 N <- nrow(sydneyData) # number of observations
 numVars <- ncol(sydneyData) - 1 # number of (p) variables/ predictors
 
@@ -33,6 +32,7 @@ Y.test <- sydneyData$crim[testIndices]
 
 # SUBSET SELECTION ---------------------------------------------------------------------------
 
+
 # Part 1) using full data set to choose the best subset using the CP, BIC, and Adj R^2
 sydney.subset <- regsubsets(crim ~ . , data=sydneyData, nvmax=numVars, method="forward")
 summarySubset <- summary(sydney.subset)
@@ -48,13 +48,16 @@ df.sub <- data.frame(NumVars=1:numVars, AdjR=summarySubset$adjr2,
 
 
 p.sub.adj <- ggplot(df.sub, aes(x=NumVars, y=AdjR)) + geom_line() + 
-      geom_point(aes(x=iMaxAdj.sub, y=df.sub$AdjR[iMaxAdj.sub]), size=3, colour="purple")
+      geom_point(aes(x=iMaxAdj.sub, y=df.sub$AdjR[iMaxAdj.sub]), size=3, colour="purple") + 
+      ggtitle("Adjusted R^2 vs Number of Predictors for Full-Data Subset Model")
 
 p.sub.cp <- ggplot(df.sub, aes(x=NumVars, y=Cp)) + geom_line() + 
-      geom_point(aes(x=iMinCp.sub, y=df.sub$Cp[iMinCp.sub]), size=3, colour="purple")
+      geom_point(aes(x=iMinCp.sub, y=df.sub$Cp[iMinCp.sub]), size=3, colour="purple") + 
+      ggtitle("Cp vs Number of Predictors for Full-Data Subset Model")
 
 p.sub.bic <- ggplot(df.sub, aes(x=NumVars, y=BIC)) + geom_line() + 
-      geom_point(aes(x=iMinBIC.sub, y=df.sub$BIC[iMinBIC.sub]), size=3, colour="purple")
+      geom_point(aes(x=iMinBIC.sub, y=df.sub$BIC[iMinBIC.sub]), size=3, colour="purple") + 
+      ggtitle("BIC vs Number of Predictors for Full-Data Subset Model")
 
 grid.arrange(p.sub.adj, p.sub.cp, p.sub.bic)
 
@@ -119,6 +122,7 @@ ggplot(df.subset, aes(x=NumVars, y=MeanCVErrors)) + geom_line() + geom_point() +
 # Final step: do best subset selection on full data set to get the final coefficients
 sydney.finalbest.subset = regsubsets(crim ~ ., data=sydneyData, nvmax=numVars)
 coefs.final.subset <- coef(sydney.finalbest.subset, iMinCV.sub)
+coefs.final.subset
 
 
 ### FORWARD SELECTION -----------------------------------------------------------------------
@@ -140,13 +144,16 @@ df.fwd <- data.frame(NumVars=1:numVars, AdjR=summaryFwd$adjr2,
 
 
 p.fwd.adj <- ggplot(df.fwd, aes(x=NumVars, y=AdjR)) + geom_line() + 
-      geom_point(aes(x=iMaxAdj.fwd, y=df.fwd$AdjR[iMaxAdj.fwd]), size=3, colour="green")
+      geom_point(aes(x=iMaxAdj.fwd, y=df.fwd$AdjR[iMaxAdj.fwd]), size=3, colour="green") + 
+      ggtitle("Adjusted R^2 vs Number of Predictors for Full-Data Forward Stepwise Model")
 
 p.fwd.cp <- ggplot(df.fwd, aes(x=NumVars, y=Cp)) + geom_line() + 
-      geom_point(aes(x=iMinCp.fwd, y=df.fwd$Cp[iMinCp.fwd]), size=3, colour="green")
+      geom_point(aes(x=iMinCp.fwd, y=df.fwd$Cp[iMinCp.fwd]), size=3, colour="green") + 
+      ggtitle("Cp vs Number of Predictors for Full-Data Forward Stepwise Model")
 
 p.fwd.bic <- ggplot(df.fwd, aes(x=NumVars, y=BIC)) + geom_line() + 
-      geom_point(aes(x=iMinBIC.fwd, y=df.fwd$BIC[iMinBIC.fwd]), size=3, colour="green")
+      geom_point(aes(x=iMinBIC.fwd, y=df.fwd$BIC[iMinBIC.fwd]), size=3, colour="green") + 
+      ggtitle("BIC vs Number of Predictors for Full-Data Forward Stepwise Model")
 
 grid.arrange(p.fwd.adj, p.fwd.cp, p.fwd.bic)
 
@@ -186,7 +193,7 @@ ggplot(df.cv.fwd, aes(x=NumVars, y=MeanCVErrors)) + geom_line() + geom_point() +
 # sydney.finalbest.fwd = regsubsets(crim ~ ., data=sydneyData, nvmax=numVars, method="forward")
 # already fit the model above
 coefs.final.fwd <- coef(sydney.fwd, iMinCV.fwd)
-
+coefs.final.fwd
 
 
 ### BACKWARD SELECTION -----------------------------------------------------------------------
@@ -209,13 +216,16 @@ df.bwd <- data.frame(NumVars=1:numVars, AdjR=summaryBwd$adjr2,
 
 
 p.bwd.adj <- ggplot(df.bwd, aes(x=NumVars, y=AdjR)) + geom_line() + 
-      geom_point(aes(x=iMaxAdj.bwd, y=df.bwd$AdjR[iMaxAdj.bwd]), size=3, colour="blue")
+      geom_point(aes(x=iMaxAdj.bwd, y=df.bwd$AdjR[iMaxAdj.bwd]), size=3, colour="blue") + 
+      ggtitle("Adjusted R^2 vs Number of Predictors for Full-Data Backward Stepwise Model")
 
 p.bwd.cp <- ggplot(df.bwd, aes(x=NumVars, y=Cp)) + geom_line() + 
-      geom_point(aes(x=iMinCp.bwd, y=df.bwd$Cp[iMinCp.bwd]), size=3, colour="blue")
+      geom_point(aes(x=iMinCp.bwd, y=df.bwd$Cp[iMinCp.bwd]), size=3, colour="blue") + 
+      ggtitle("Cp vs Number of Predictors for Full-Data Backward Stepwise Model")
 
 p.bwd.bic <- ggplot(df.bwd, aes(x=NumVars, y=BIC)) + geom_line() + 
-      geom_point(aes(x=iMinBIC.bwd, y=df.bwd$BIC[iMinBIC.bwd]), size=3, colour="blue")
+      geom_point(aes(x=iMinBIC.bwd, y=df.bwd$BIC[iMinBIC.bwd]), size=3, colour="blue") + 
+      ggtitle("BIC vs Number of Predictors for Full-Data Backward Stepwise Model")
 
 grid.arrange(p.bwd.adj, p.bwd.cp, p.bwd.bic)
 
@@ -253,6 +263,7 @@ ggplot(df.cv.bwd, aes(x=NumVars, y=MeanCVErrors)) + geom_line() + geom_point() +
 # sydney.finalbest.fwd = regsubsets(crim ~ ., data=sydneyData, nvmax=numVars, method="forward")
 # already fit the model above
 coefs.final.bwd <- coef(sydney.bwd, iMinCV.bwd)
+coefs.final.bwd
 
 
 ### RIDGE REGRESSION --------------------------------------------------------------------------
@@ -278,7 +289,7 @@ cvTestErrorMinLambda.ridge
 sydney.final.ridge <- glmnet(X, Y, alpha=0)
 # These are the coefficients of the final model using this value of lambda
 coefs.final.ridge <- predict(sydney.final.ridge, type="coefficients", s=lambda.ridge)[1:numVars + 1, ]
-
+coefs.final.ridge
 # note: these coeffs are of course not necessarily the same as from the training model 
 # since the data sets (train and full data) are different. 
 
@@ -309,6 +320,7 @@ sydney.final.lasso <- glmnet(X, Y, alpha=1)
 # These are the coefficients of the final model using this value of lambda
 coefs.final.lasso <- predict(sydney.final.lasso, type="coefficients", s=lambda.lasso)[1:numVars+1, ]
 coefs.final.lasso <- coefs.final.lasso[coefs.final.lasso != 0]
+coefs.final.lasso
 
 
 # PCR -------------------------------------------------------------------------------------
@@ -348,6 +360,7 @@ minCVTestError.pcr <- mean( (predPCR - Y.test)^2 ); minCVTestError.pcr
 # Fitting the final model with the M chosen by cross-validation
 sydney.final.pcr <- pcr(crim ~ ., data=sydneyData, scale=TRUE, ncomp=M)
 coefs.final.pcr <- coef(sydney.final.pcr, ncomp=M)[1:numVars, ,]
+coefs.final.pcr
 
 # PLS -------------------------------------------------------------------------------------
 
@@ -375,7 +388,7 @@ minCVTestError.pls <- mean( (predPLS - Y.test)^2 ); minCVTestError.pls
 # Fitting the final model with the M chosen by cross-validation
 sydney.final.pls <- plsr(crim ~ ., data=sydneyData, scale=TRUE, ncomp=M)
 coefs.final.pls <- coef(sydney.final.pls, ncomp=M)[1:numVars, ,]
-
+coefs.final.pls
 
 
 
