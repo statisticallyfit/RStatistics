@@ -1,8 +1,4 @@
-setwd("/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/Chapter 6 - Lasso, Subset, Ridge, PCR/")
-source('/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/FORMULAS.R')
-source('/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/PLOTTING.R')
-source('/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/DATA.R')
-library(ISLR)
+setwd("/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/ASSIGNMENTS/A2/")
 library(ggplot2)
 library(gridExtra)
 library(MASS)
@@ -11,26 +7,26 @@ library(leaps)
 library(glmnet)
 library(pls)
 
-data("Boston")
-head(Boston)
 
+sydneyData <- read.table("SydneyCrime.txt", header=TRUE)
+head(sydneyData)
 
 ### Data Preparation ------------------------------------------------------------------------
 
 set.seed(1)
 
-N <- nrow(Boston) # number of observations
-numVars <- ncol(Boston) - 1 # number of (p) variables/ predictors
+N <- nrow(sydneyData) # number of observations
+numVars <- ncol(sydneyData) - 1 # number of (p) variables/ predictors
 
 trainIndices <- sample(1:N, size=N/2)
 testIndices <- -trainIndices
 
-X <- model.matrix(crim ~ . -1, data=Boston)
-Y <- Boston$crim
-X.train = model.matrix(crim ~. -1, data=Boston[trainIndices, ]) 
-Y.train = Boston$crim[trainIndices]
-X.test <- model.matrix(crim ~ . -1, data=Boston[testIndices, ])
-Y.test <- Boston$crim[testIndices]
+X <- model.matrix(crim ~ . -1, data=sydneyData)
+Y <- sydneyData$crim
+X.train = model.matrix(crim ~. -1, data=sydneyData[trainIndices, ]) 
+Y.train = sydneyData$crim[trainIndices]
+X.test <- model.matrix(crim ~ . -1, data=sydneyData[testIndices, ])
+Y.test <- sydneyData$crim[testIndices]
 
 
 
@@ -38,8 +34,8 @@ Y.test <- Boston$crim[testIndices]
 # SUBSET SELECTION ---------------------------------------------------------------------------
 
 # Part 1) using full data set to choose the best subset using the CP, BIC, and Adj R^2
-boston.subset <- regsubsets(crim ~ . , data=Boston, nvmax=numVars, method="forward")
-summarySubset <- summary(boston.subset)
+sydney.subset <- regsubsets(crim ~ . , data=sydneyData, nvmax=numVars, method="forward")
+summarySubset <- summary(sydney.subset)
 
 iMinCp.sub <- which.min(summarySubset$cp); iMinCp.sub # 8 predictors chosen by Min CP
 iMinBIC.sub <- which.min(summarySubset$bic); iMinBIC.sub # 3 predictors
@@ -88,20 +84,20 @@ predict.regsubsets <- function(object, testData, id, ...) {
 # in appropriate slot in the matrix cv.errors
 
 numFolds = 10
-numVars = ncol(Boston) - 1
-folds = sample(1:numFolds, size=nrow(Boston), replace=TRUE)
+numVars = ncol(sydneyData) - 1
+folds = sample(1:numFolds, size=nrow(sydneyData), replace=TRUE)
 cv.errors = matrix(NA, nrow=numFolds, ncol=numVars, dimnames=list(Folds=NULL, Vars=paste(1:numVars)))
 
 for(j in 1:numFolds){
       # fit data on training set (observations not in the kth fold)
       #theFormula <- as.formula(paste(yname, "~ ."))
-      boston.train.subset <- regsubsets(crim ~ ., data=Boston[folds != j, ], nvmax = numVars)
+      sydney.train.subset <- regsubsets(crim ~ ., data=sydneyData[folds != j, ], nvmax = numVars)
       
       for(i in 1:numVars){ # for each model size ...
             # ... make a prediction based on the test set (data that IS in this current fold)
-            pred = predict.regsubsets(boston.train.subset, Boston[folds == j, ], id=i)
+            pred = predict.regsubsets(sydney.train.subset, sydneyData[folds == j, ], id=i)
             # compute test error using observations from test set and the predictions we made
-            cv.errors[j, i] <- mean( (Boston$crim[folds == j] - pred)^2 ) 
+            cv.errors[j, i] <- mean( (sydneyData$crim[folds == j] - pred)^2 ) 
       }
 }
 mean.cv.errors <- apply(cv.errors, 2, mean)
@@ -113,17 +109,16 @@ iMinCV.sub = which.min(mean.cv.errors); iMinCV.sub # 9 predictor model
 minCVTestError.subset <- min(mean.cv.errors); minCVTestError.subset
 # 45.98215
 
-# The model with minimum estimated test error is the 12th model (12 predictors)
 
-# Using a pink dot to denote the model with minimum estimated test MSE
+# Using a pink dot to denote the (9th predictor) model with minimum estimated test MSE
 ggplot(df.subset, aes(x=NumVars, y=MeanCVErrors)) + geom_line() + geom_point() + 
       ggtitle("Cross Validation MSEs for Best Subset Selection") +
       geom_point(x=iMinCV.sub, y=df.subset$MeanCVErrors[iMinCV.sub], color="magenta", size=3)
 
 
 # Final step: do best subset selection on full data set to get the final coefficients
-boston.finalbest.subset = regsubsets(crim ~ ., data=Boston, nvmax=numVars)
-coefs.final.subset <- coef(boston.finalbest.subset, iMinCV.sub)
+sydney.finalbest.subset = regsubsets(crim ~ ., data=sydneyData, nvmax=numVars)
+coefs.final.subset <- coef(sydney.finalbest.subset, iMinCV.sub)
 
 
 ### FORWARD SELECTION -----------------------------------------------------------------------
@@ -131,8 +126,8 @@ coefs.final.subset <- coef(boston.finalbest.subset, iMinCV.sub)
 set.seed(1)
 
 # Part 1) using full data set and graphics to do exploratory analysis 
-boston.fwd <- regsubsets(crim ~ . , data=Boston, nvmax=numVars, method="forward")
-summaryFwd <- summary(boston.fwd)
+sydney.fwd <- regsubsets(crim ~ . , data=sydneyData, nvmax=numVars, method="forward")
+summaryFwd <- summary(sydney.fwd)
 
 iMinCp.fwd <- which.min(summaryFwd$cp); iMinCp.fwd # 8 predictors chosen by Min CP
 iMinBIC.fwd <- which.min(summaryFwd$bic); iMinBIC.fwd # 3 predictors
@@ -160,7 +155,7 @@ grid.arrange(p.fwd.adj, p.fwd.cp, p.fwd.bic)
 # Part 2) using cross validation (splitting data into train / test sets)
 
 # fit the training model
-boston.train.fwd <- regsubsets(crim ~ . , data=Boston[trainIndices, ], nvmax=numVars, 
+sydney.train.fwd <- regsubsets(crim ~ . , data=sydneyData[trainIndices, ], nvmax=numVars, 
                                method="forward")
 
 # Doing cross validation to see which forward subset is the best
@@ -168,7 +163,7 @@ cv.errors.fwd = rep(NA, numVars)
 
 # Getting test errors for each model size
 for(i in 1:numVars){ # for each model size ...
-      pred = predict.regsubsets(boston.train.fwd, testData=Boston[testIndices, ], id=i)
+      pred = predict.regsubsets(sydney.train.fwd, testData=sydneyData[testIndices, ], id=i)
       # compute test error using observations from test set and the predictions we made
       cv.errors.fwd[i] <- mean( (Y.test - pred)^2 ) 
 }
@@ -188,9 +183,9 @@ ggplot(df.cv.fwd, aes(x=NumVars, y=MeanCVErrors)) + geom_line() + geom_point() +
 
 
 # Final step: do forward regression on full data set to get the final coefficients
-# boston.finalbest.fwd = regsubsets(crim ~ ., data=Boston, nvmax=numVars, method="forward")
+# sydney.finalbest.fwd = regsubsets(crim ~ ., data=sydneyData, nvmax=numVars, method="forward")
 # already fit the model above
-coefs.final.fwd <- coef(boston.fwd, iMinCV.fwd)
+coefs.final.fwd <- coef(sydney.fwd, iMinCV.fwd)
 
 
 
@@ -200,8 +195,8 @@ coefs.final.fwd <- coef(boston.fwd, iMinCV.fwd)
 set.seed(1)
 
 # Part 1) using full data set and graphics to do exploratory analysis 
-boston.bwd <- regsubsets(crim ~ . , data=Boston, nvmax=numVars, method="backward")
-summaryBwd <- summary(boston.bwd)
+sydney.bwd <- regsubsets(crim ~ . , data=sydneyData, nvmax=numVars, method="backward")
+summaryBwd <- summary(sydney.bwd)
 
 iMinCp.bwd <- which.min(summaryBwd$cp); iMinCp.bwd # 8 predictors chosen by Min CP
 iMinBIC.bwd <- which.min(summaryBwd$bic); iMinBIC.bwd # 4 predictors chosen by min BIC
@@ -229,14 +224,14 @@ grid.arrange(p.bwd.adj, p.bwd.cp, p.bwd.bic)
 # Part 2) using cross validation (splitting data into train / test sets)
 
 # fit the training model
-boston.train.bwd <- regsubsets(crim ~ . , data=Boston[trainIndices, ], nvmax=numVars, method="backward")
+sydney.train.bwd <- regsubsets(crim ~ . , data=sydneyData[trainIndices, ], nvmax=numVars, method="backward")
 
 # Doing cross validation to see which forward subset is the best
 cv.errors.bwd = rep(NA, numVars)
 
 # Getting test errors for each model size
 for(i in 1:numVars){ # for each model size ...
-      pred = predict.regsubsets(boston.train.bwd, testData=Boston[testIndices, ], id=i)
+      pred = predict.regsubsets(sydney.train.bwd, testData=sydneyData[testIndices, ], id=i)
       # compute test error using observations from test set and the predictions we made
       cv.errors.bwd[i] <- mean( (Y.test - pred)^2 ) 
 }
@@ -255,34 +250,34 @@ ggplot(df.cv.bwd, aes(x=NumVars, y=MeanCVErrors)) + geom_line() + geom_point() +
 
 
 # Final step: do forward regression on full data set to get the final coefficients
-# boston.finalbest.fwd = regsubsets(crim ~ ., data=Boston, nvmax=numVars, method="forward")
+# sydney.finalbest.fwd = regsubsets(crim ~ ., data=sydneyData, nvmax=numVars, method="forward")
 # already fit the model above
-coefs.final.bwd <- coef(boston.bwd, iMinCV.bwd)
+coefs.final.bwd <- coef(sydney.bwd, iMinCV.bwd)
 
 
 ### RIDGE REGRESSION --------------------------------------------------------------------------
 
 set.seed(1)
 
-boston.train.ridge <- cv.glmnet(x=X.train, y=Y.train, alpha=0)
-lambda.ridge <- boston.train.ridge$lambda.min; lambda.ridge
+sydney.train.ridge <- cv.glmnet(x=X.train, y=Y.train, alpha=0)
+lambda.ridge <- sydney.train.ridge$lambda.min; lambda.ridge
 # 0.7908625 is minimum lambda
 
-plot(boston.train.ridge) # plots log lambda against MSE
+plot(sydney.train.ridge) # plots log lambda against MSE
 
 # coefficients of the model with minimum lambda
-coef(boston.train.ridge)
+coef(sydney.train.ridge)
 
 # get test mse associated with this value of lambda
-pred.ridge = predict(boston.train.ridge, s=lambda.ridge, newx = X.test)
+pred.ridge = predict(sydney.train.ridge, s=lambda.ridge, newx = X.test)
 cvTestErrorMinLambda.ridge <- mean( (pred.ridge - Y.test)^2 )
 cvTestErrorMinLambda.ridge
 # 38.36719
 
 # Fit the FINAL model using this lambda (final model is defined as using the FULL data set)
-boston.final.ridge <- glmnet(X, Y, alpha=0)
+sydney.final.ridge <- glmnet(X, Y, alpha=0)
 # These are the coefficients of the final model using this value of lambda
-coefs.final.ridge <- predict(boston.final.ridge, type="coefficients", s=lambda.ridge)[1:numVars + 1, ]
+coefs.final.ridge <- predict(sydney.final.ridge, type="coefficients", s=lambda.ridge)[1:numVars + 1, ]
 
 # note: these coeffs are of course not necessarily the same as from the training model 
 # since the data sets (train and full data) are different. 
@@ -294,25 +289,25 @@ set.seed(2)
 
 # ... using the same X and Y matrices as for ridge regression .....
 
-boston.train.lasso <- cv.glmnet(x=X.train, y=Y.train, alpha=1)
-lambda.lasso <- boston.train.lasso$lambda.min; lambda.lasso
+sydney.train.lasso <- cv.glmnet(x=X.train, y=Y.train, alpha=1)
+lambda.lasso <- sydney.train.lasso$lambda.min; lambda.lasso
 # 0.1202 is minimum lambda
 
-plot(boston.train.lasso) # plots log lambda against MSE
+plot(sydney.train.lasso) # plots log lambda against MSE
 
 # Coeffs of training model with best lambda?
-coef(boston.train.lasso)
+coef(sydney.train.lasso)
 
 # Test mse associated with this value of lambda
-pred.lasso = predict(boston.train.lasso, s=lambda.lasso, newx = X.test)
+pred.lasso = predict(sydney.train.lasso, s=lambda.lasso, newx = X.test)
 cvTestErrorMinLambda.lasso = mean( (pred.lasso - Y.test)^2 )
 cvTestErrorMinLambda.lasso
 # 38.26532
 
 # Fit the FINAL model using this lambda (final model is defined as using the FULL data set)
-boston.final.lasso <- glmnet(X, Y, alpha=1)
+sydney.final.lasso <- glmnet(X, Y, alpha=1)
 # These are the coefficients of the final model using this value of lambda
-coefs.final.lasso <- predict(boston.final.lasso, type="coefficients", s=lambda.lasso)[1:numVars+1, ]
+coefs.final.lasso <- predict(sydney.final.lasso, type="coefficients", s=lambda.lasso)[1:numVars+1, ]
 coefs.final.lasso <- coefs.final.lasso[coefs.final.lasso != 0]
 
 
@@ -320,19 +315,19 @@ coefs.final.lasso <- coefs.final.lasso[coefs.final.lasso != 0]
 
 set.seed(4)
 
-boston.train.pcr <- pcr(crim ~., data=Boston[trainIndices, ], scale=TRUE, validation="CV")
-summaryPCRTrain <- summary(boston.train.pcr)
+sydney.train.pcr <- pcr(crim ~., data=sydneyData[trainIndices, ], scale=TRUE, validation="CV")
+summaryPCRTrain <- summary(sydney.train.pcr)
 
 # EVALUATING: training MSE (test MSE is preferred)
 
 # Maximum R2 seems to be at about M = 13 principal components
-validationplot(boston.train.pcr, val.type="R2")
+validationplot(sydney.train.pcr, val.type="R2")
 # Minimum training MSE seems to be at about M = 13 principal components, but no major difference
 # between the training MSE at 3 components
-validationplot(boston.train.pcr, val.type="MSEP") # to plot the MSE's
+validationplot(sydney.train.pcr, val.type="MSEP") # to plot the MSE's
 
 # Checking the number of components using MSEP() from the Mass library
-MSEP.obj <- MSEP(boston.train.pcr)
+MSEP.obj <- MSEP(sydney.train.pcr)
 # Getting the cross validation errors from the 2 by 1 by 14 dimensional array 'val'
 dim(MSEP.obj$val)
 str(MSEP.obj)
@@ -346,40 +341,40 @@ minCVTrainError.pcr <- min(cv.errors.pcr); minCVTrainError.pcr # the minimum tra
 # EVALUATING: test MSE (this is the measure to use, never training MSE)
 # Computing test error on the training model for M = 13
 M = 13
-predPCR <- predict(boston.train.pcr, X.test, ncomp = M) # predicting training with M = 173
+predPCR <- predict(sydney.train.pcr, X.test, ncomp = M) # predicting training with M = 173
 minCVTestError.pcr <- mean( (predPCR - Y.test)^2 ); minCVTestError.pcr
 # 39.27592
 
 # Fitting the final model with the M chosen by cross-validation
-boston.final.pcr <- pcr(crim ~ ., data=Boston, scale=TRUE, ncomp=M)
-coefs.final.pcr <- coef(boston.final.pcr, ncomp=M)[1:numVars, ,]
+sydney.final.pcr <- pcr(crim ~ ., data=sydneyData, scale=TRUE, ncomp=M)
+coefs.final.pcr <- coef(sydney.final.pcr, ncomp=M)[1:numVars, ,]
 
 # PLS -------------------------------------------------------------------------------------
 
 set.seed(5)
 
-boston.train.pls <- plsr(crim ~., data=Boston[trainIndices, ], scale=TRUE, validation="CV")
-summaryPLSTrain <- summary(boston.train.pls)
+sydney.train.pls <- plsr(crim ~., data=sydneyData[trainIndices, ], scale=TRUE, validation="CV")
+summaryPLSTrain <- summary(sydney.train.pls)
 
 # plotting the training MSE's
-validationplot(boston.train.pls, val.type="MSEP")
+validationplot(sydney.train.pls, val.type="MSEP")
 
 
 # EVALUATING: test MSE (this is the measure to use, never training MSE)
 
 # First get the recommended number of components, by training MSE
-MSE.obj <- MSEP(boston.train.pls)
+MSE.obj <- MSEP(sydney.train.pls)
 names(which.min(MSE.obj$val[1,1,])) # at 11 components, minimum train MSE is reached
 
 # Computing test error on the training model for M = 11
 M = 11
-predPLS <- predict(boston.train.pls, X.test, ncomp = M) # predicting training with M = 10
+predPLS <- predict(sydney.train.pls, X.test, ncomp = M) # predicting training with M = 10
 minCVTestError.pls <- mean( (predPLS - Y.test)^2 ); minCVTestError.pls
 # 39.27655
 
 # Fitting the final model with the M chosen by cross-validation
-boston.final.pls <- plsr(crim ~ ., data=Boston, scale=TRUE, ncomp=M)
-coefs.final.pls <- coef(boston.final.pls, ncomp=M)[1:numVars, ,]
+sydney.final.pls <- plsr(crim ~ ., data=sydneyData, scale=TRUE, ncomp=M)
+coefs.final.pls <- coef(sydney.final.pls, ncomp=M)[1:numVars, ,]
 
 
 
@@ -416,10 +411,10 @@ coefs.final.bwd
 length(coefs.final.bwd) - 1 # 4
 
 coefs.final.ridge # 13
-length(coefs.final.ridge)
+length(coefs.final.ridge) # 13
 
 coefs.final.lasso # 10
-length(coefs.final.lasso)
+length(coefs.final.lasso) # 10
 
 coefs.final.pcr
 length(coefs.final.pcr) # 13 

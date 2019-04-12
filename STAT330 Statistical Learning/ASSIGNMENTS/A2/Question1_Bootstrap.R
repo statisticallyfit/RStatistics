@@ -5,9 +5,10 @@ library(MASS)
 
 library(ggplot2)
 
-# Question 2
 
-# part g) plot that displays the probability of the jth observation is the bootstrap
+
+# part g) plot that displays the probability of the jth observation is the bootstrap----------
+
 # observation (or equivalaently, that the jth obs is in the bootstrap sample)
 probability <- function(n) return(1 - (1 - 1/n)^n)
 n <- 1:100000
@@ -25,7 +26,8 @@ ggplot(data=df, aes(x=n, y=p)) + geom_point(shape=19, color="dodgerblue") +
 # which is 0.6321
 
 
-# part h) Investigate with bootstrap
+# part h) Investigate with bootstrap -----------------------------------------------------
+
 # j = 4, n = 100
 # Finding numeric probability that the (j = 4th) observation is in the boostrap sample
 # Repeatedly create bootstrap samples and each time record whether or not the fourth
