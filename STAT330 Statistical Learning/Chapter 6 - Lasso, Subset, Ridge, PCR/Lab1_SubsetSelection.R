@@ -99,7 +99,7 @@ coef(hitters.subsets.lm, iMinBIC)
 summary(hitters.subsets.lm, matrix.logical = TRUE)
 
 
-# FORWARD + BACWARD SKEPTWISE -----------------------------------------------------------
+# FORWARD + BACWARD STEPWISE -----------------------------------------------------------
 
 hitters.fwd <- regsubsets(Salary ~ . , data=hitData, nvmax=19, method="forward")
 hitters.bwd <- regsubsets(Salary ~ . , data=hitData, nvmax=19, method="backward")

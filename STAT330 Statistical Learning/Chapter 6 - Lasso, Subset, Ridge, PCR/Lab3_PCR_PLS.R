@@ -57,8 +57,10 @@ hit.train.pcr <- pcr(Salary ~., data=hitData[trainIndices, ], scale=TRUE, valida
 
 validationplot(hit.train.pcr, type="MSEP")
 # From plot it looks like lowest cross validation test error estimate occurs at M = 7
+
+# Computing test error on the training model for M = 17
 M = 7 
-predPCR <- predict(hit.train.pcr, X[testIndices, ], ncomp=M)
+predPCR <- predict(hit.train.pcr, X[testIndices, ], ncomp = M) # predicting training with M = 17
 testErrorPCR <- mean( (predPCR - Y[testIndices])^2 )
 testErrorPCR
 # 96556.22

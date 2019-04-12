@@ -68,8 +68,8 @@ Y.Test
 # Get preidctions for a test set using newx argumnet
 hit.train.ridge <- glmnet(X[trainIndices, ], Y[trainIndices], alpha=0, lambda=lambdaGrid, 
                           thresh=1e-12)
-preLambda4 = predict(hit.train.ridge, s=4, newx= X[testIndices, ])
-mean( (preLambda4 - Y[testIndices])^2 )
+predLambda4 = predict(hit.train.ridge, s=4, newx= X[testIndices, ])
+mean( (predLambda4 - Y[testIndices])^2 )
 # 101036.8 # is the test MSE
 
 # If we had fit a model with just an intercept we could have predicted each test observation
