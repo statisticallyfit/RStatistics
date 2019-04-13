@@ -272,7 +272,10 @@ set.seed(1)
 
 sydney.train.ridge <- cv.glmnet(x=X.train, y=Y.train, alpha=0)
 lambda.ridge <- sydney.train.ridge$lambda.min; lambda.ridge
-# 0.7908625 is minimum lambda
+# 0.7908625 is minimum lambda that yields the lowest cross-validated MSE
+
+min(sydney.train.ridge$cvm) #this lowest CV training MSE corresponding to min lambda 
+# 48.6947 
 
 plot(sydney.train.ridge) # plots log lambda against MSE
 
@@ -308,6 +311,9 @@ plot(sydney.train.lasso) # plots log lambda against MSE
 
 # Coeffs of training model with best lambda?
 coef(sydney.train.lasso)
+
+min(sydney.train.lasso$cvm) #this lowest CV training MSE corresponding to min lambda 
+# 49.47474 
 
 # Test mse associated with this value of lambda
 pred.lasso = predict(sydney.train.lasso, s=lambda.lasso, newx = X.test)
@@ -376,8 +382,11 @@ validationplot(sydney.train.pls, val.type="MSEP")
 # EVALUATING: test MSE (this is the measure to use, never training MSE)
 
 # First get the recommended number of components, by training MSE
-MSE.obj <- MSEP(sydney.train.pls)
-names(which.min(MSE.obj$val[1,1,])) # at 11 components, minimum train MSE is reached
+MSEP.obj <- MSEP(sydney.train.pls)
+cv.errors.pls <- MSEP.obj$val[1,1,] 
+names(which.min(cv.errors.pls))
+minCVTrainError.pls <- min(cv.errors.pls); minCVTrainError.pls # the minimum training MSE
+# 48.71021
 
 # Computing test error on the training model for M = 11
 M = 11
