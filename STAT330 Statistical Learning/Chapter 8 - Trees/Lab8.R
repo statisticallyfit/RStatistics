@@ -120,7 +120,7 @@ table(PredsPruned=pred.tree.pruned, Test=Y.test)
 testError.pruned <- mean(pred.tree.pruned != Y.test)
 testError.pruned
 testError
- 
+
 # so the pruned tree did just a bit better (0.23 vs 0.285)
 # So pruning process made (1) highe rprediction accuracy and (2) interpretable tree.
 
