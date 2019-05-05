@@ -46,6 +46,7 @@ car.tree.cv$k[iMinMSE]
 
 
 # Plotting the error rate as function of both size (num leaves) and k (alpha)
+library(ggplot2)
 df <- data.frame(NumLeaves=car.tree.cv$size, Alpha=car.tree.cv$k, 
                  ErrorRates=car.tree.cv$dev)
 p1 <- ggplot(data=df, aes(x=NumLeaves, y=ErrorRates)) + geom_line(size=2, color="dodgerblue")  + geom_point(size=3) + 
@@ -63,3 +64,30 @@ text(car.prune, pretty=0)
 pred.prune <- predict(car.prune, carTest)
 testMSE.prune <- mean((pred.prune - Y.test)^2) # test MSE
 testMSE.prune
+# 5.0908
+
+
+
+
+# part d) bagging, test MSE importance...
+
+car.bag <- randomForest(Sales ~ ., data=carTrain, mtry=10, ntree=500, importance=TRUE)
+pred.bag <- predict(car.bag, carTest)
+testMSE.bag <- mean((pred.bag - carTest$Sales)^2)
+testMSE.bag
+# 2.604
+
+importance(car.bag)
+# most significant variable is price, shelvloc, age
+
+
+
+# part e) random forest
+car.rf <- randomForest(Sales ~., data=carTrain, mtry=3, ntree=500, importance=TRUE)
+pred.rf <- predict(car.rf, newdata=carTest)
+testMSE.rf <- mean((pred.rf - carTest$Sales)^2)
+testMSE.rf
+# 3.28
+
+importance(car.rf)
+# price, shelvloc

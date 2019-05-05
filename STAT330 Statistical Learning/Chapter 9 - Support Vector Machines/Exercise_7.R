@@ -63,13 +63,13 @@ testErr.poly <- mean(pred.poly != autoTest$mpgBinary); testErr.poly
 set.seed(3)
 # Cross-validation, various cost values
 tune.radial <- tune(svm, mpgBinary ~ ., data=autoTrain, kernel="radial", 
-                    ranges=list(cost=c(0.01, 0.1, 1,5,10,100,1000), gamma=0.01, 0.1, 1,5,10,100))
+                    ranges=list(cost=c(0.01, 0.1, 1,5,10,100,1000), gamma=c(0.01, 0.1, 1,5,10,100)))
 summary(tune.radial)
 tune.radial$best.performance
 # bestperformance = best train error = 0.013
-tune.radial$best.parameters
+tune.radial$best.parameters # 100, 0.01
 tune.radial$best.model
-# best parameters = cost = 100, gamma = 0.01 ? 
+# best parameters = cost = 100, gamma = 0.01 
 
 # Evaluate: 
 pred.radial <- predict(tune.radial$best.model, autoTest)
@@ -106,52 +106,23 @@ svm.final.radial <- svm(mpgBinary ~ ., data=Auto, kernel="radial", cost=100, gam
 
 
 
-# adding margins and hyperplane line
-# weight vector
-w <- t(svm.final.linear$coefs) %*% svm.final.linear$SV
-# calculate slope
-slope_1 <- -w[1]/w[2]
-intercept_1 <- svm.final.linear$rho/w[2]
-
-# mpg, displacement, linear model
-p1 <- ggplot(data=autoTrain, aes(x = displacement, y = mpg, colour=mpgBinary)) + 
-      geom_point(shape=19) + scale_colour_manual(values=c("blue", "red"))
-
-# support vectors
-df_sv <- autoTrain[svm.final.linear$index, ]
-
-# add layer marking out support vectors with purple plobs
-p2 <- p1 + geom_point(data = df_sv, aes(x=displacement, y=mpg), shape=9, size=4) + 
-      scale_colour_manual(values=c("blue", "red"))
-                      # , colour="purple", shape=9, size=4)
-
-p3 <- p2 + geom_abline(slope=slope_1, intercept=intercept_1)
-
-# Claculate margins: their intercepts are offset by 1/w[2] units on either side of decision
-# boundary
-p4 <- p3 + geom_abline(slope=slope_1, intercept=intercept_1 - 1/w[2], linetype="dashed") + 
-      geom_abline(slope=slope_1, intercept=intercept_1 + 1/w[2], linetype="dashed")
-
-
-
-
-
 ### Plotting
-plotPairs <- function(svm.fit) {
-      
-      for (name in names(Auto)[!(names(Auto) %in% c("mpg", "mpglevel", "name"))]) {
-            
-            ### Using the formula is so that "plot" function just plots the Y = mpg versus
-            # the other variable name, not one predictor versus another, as is default. 
-            # So we plot "mpg" versus "cylidners" not "cylinders" versus "displacement". i.e. 
-            
-            path = file.path("/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/Chapter 9 - Support Vector Machines/", paste("Myplot_", name, ".pdf",sep=""))
-            #jpeg(file=paste(path, "plotPairs.pdf", sep=""))
-            
-            pdf(file=path)
-                  plot(svm.fit, Auto, as.formula(paste("mpg~", name, sep = "")))
-            dev.off()      
-      }
+fp = "/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/Chapter 9 - Support Vector Machines/"
+
+pdf(file=file.path(paste(fp, "Ex7_Linear.pdf", sep="")))
+for (name in names(Auto)[!(names(Auto) %in% c("mpg", "mpglevel", "name"))]) {
+      plot(svm.final.linear, Auto, as.formula(paste("mpg~", name, sep = "")))
 }
-
-
+dev.off()
+# --------------------------
+pdf(file=file.path(paste(fp, "Ex78_Poly", ".pdf", sep="")))
+for (name in names(Auto)[!(names(Auto) %in% c("mpg", "mpglevel", "name"))]) {
+      plot(svm.final.poly, Auto, as.formula(paste("mpg~", name, sep = "")))
+}
+dev.off()
+# --------------------------
+pdf(file=file.path(paste(fp, "Ex7_Radial", ".pdf", sep="")))
+for (name in names(Auto)[!(names(Auto) %in% c("mpg", "mpglevel", "name"))]) {
+      plot(svm.final.radial, Auto, as.formula(paste("mpg~", name, sep = "")))
+}
+dev.off()
