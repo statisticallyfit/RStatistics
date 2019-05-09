@@ -17,6 +17,9 @@ carTrain <- Carseats[trainIndices, ]
 carTest <- Carseats[-trainIndices, ]
 Y.test <- carTest$Sales
 
+
+# part b) regression tree 
+
 car.train.tree <- tree(Sales ~ ., data=carTrain)
 summary(car.train.tree)
 

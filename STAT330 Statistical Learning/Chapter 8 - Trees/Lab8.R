@@ -79,12 +79,10 @@ testError <- mean(pred.tree != Y.test); testError
 # Use cross-validation to find the optimal level of tree complexity. 
 
 # Cost complexity pruning is used to select a sequence of trees for consideration. 
-
-# Use argument FUN = prune.misclass to indicate we want the classification error rate
-# to guide the cross-validation and pruning process, rather than the default (deviance)
-
 # cv.tree() reports number of leaves of each tree considered (leaves = size) and also the
 # corresponding error rate and the value of the cost-complexity parameter used (k = alpha)
+# Use argument FUN = prune.misclass to indicate we want the classification error rate
+# to guide the cross-validation and pruning process, rather than the default (deviance)
 
 set.seed(3)
 car.tree.cv <- cv.tree(car.train.tree, FUN=prune.misclass)
@@ -95,6 +93,9 @@ str(car.tree.cv)
 car.tree.cv
 car.tree.cv$size[which.min(car.tree.cv$dev)] # so the tree with 9 leaves got lowest 
 # classification error rate, with 50 cross validation errors. 
+car.tree.cv$k[which.min(car.tree.cv$dev)] # tuning parameter ALPHA with min dev is 1.75
+# Closer to zero means the subtree is closer to the largest tree. ALpha -> oo means cost
+# is minimized. 
 
 # Plotting the error rate as function of both size (num leaves) and k (alpha)
 par(mfrow=c(1,2))
@@ -152,6 +153,7 @@ plot(boston.train.tree)
 text(boston.train.tree, pretty=0)
 
 # lstat = percentage of people with lower socioeconomic status
+# Tree predicts higher median housing prices (medv, leaves) for lower lstat (socioecon status)
 boston.train.tree
 
 
@@ -218,14 +220,10 @@ testMSE.boston.bag.ntree <- mean((pred.bag - Y.test)^2); testMSE.boston.bag.ntre
 
 
 ## RANDOM FOREST
-# using mtry = m = sqrt(p) but the R function uses p / 3 by default for regression random forest
-# and sqrt(p) when building classification random forest. 
-p = ncol(bostonTrain) - 1; p 
-sqrt(p)
+# Same method as bagging except mtry is lower : m = sqrt(p), or m = p/3 by default
 
-# but book uses mtry=6
 set.seed(1)
-boston.rf <- randomForest(medv ~ ., data=bostonTrain, mtry=6, importance=TRUE)
+boston.rf <- randomForest(Casual ~ ., data=bostonTrain, mtry=6, importance=TRUE)
 boston.rf
 
 pred.rf <- predict(boston.rf, newdata=bostonTest)
@@ -289,7 +287,7 @@ zn           zn  0.1277206'
 # relative influence says lstat and rm are by far the most important variables
 str(boston.boost)
 class(boston.boost$trees)
-boston.boost$trees[[1]]
+#boston.boost$trees[[1]]
 
 
 # Partial dependence plots: marginal effect that the selected variables have on the response

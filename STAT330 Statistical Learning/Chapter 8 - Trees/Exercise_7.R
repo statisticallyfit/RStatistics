@@ -37,7 +37,8 @@ df <- data.frame(NumTrees=1:numTrees, P.mse = boston.rf_p$test$mse, P2.mse = bos
 
 ggplot(data=df, aes(x=NumTrees)) + geom_line(aes(y=P.mse, colour="green"), size=1) + 
       geom_line(aes(y=P2.mse, colour="red"), size=1) + 
-      geom_line(aes(y=PSQ.mse, colour="blue"), size=1)
+      geom_line(aes(y=PSQ.mse, colour="blue"), size=1) + 
+      xlab("Number of Trees") + ylab("Test MSE")
 
 # CONCLUDE: MSE rate is high for NumTree = 1 and decreases with increase in tree size. 
 # There must be some strong predictors since the random forest method (lower M = sqrt(p))
