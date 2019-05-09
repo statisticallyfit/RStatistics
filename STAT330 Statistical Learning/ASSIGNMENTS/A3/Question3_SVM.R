@@ -10,6 +10,13 @@ load("datacens.Rdata")
 any(is.na(datacens$train))
 any(is.na(datacens$val))
 
+# Income can stay numeric, but make a factor column of income also
+datacens$train$income <- as.numeric(datacens$train$income)
+datacens$val$income <- as.numeric(datacens$val$income)
+
+datacens$train$incomeBinary <- as.factor(datacens$train$income)
+datacens$val$incomeBinary <- as.factor(datacens$val$income)
+
 # Then take random sample of original data set, from both train and test sets. 
 Nt <- nrow(datacens$train)
 Nv <- nrow(datacens$val)
@@ -23,58 +30,86 @@ censusTest <- datacens$val[vs, ]
 
 
 
-# part b) radial kernel svm
+# part b) radial kernel svm --------------------------------------------------------------------
 
-# SVM USING CROSS-VALIDATION to select best COST AND GAMMA:  --------------
+# SVM USING CROSS-VALIDATION to select best COST AND GAMMA-
 set.seed(1)
-tune.radial <- tune(svm, income ~., data=censusTrain, kernel="radial", 
+tune.radial <- tune(svm, incomeBinary ~., data=censusTrain, kernel="radial", 
                  ranges=list(cost=c(0.01, 0.1, 1, 10, 20),gamma=c(0.5, 5, 10)))
 tune.radial
 summary(tune.radial)
 
 tune.radial$best.performance # best train error
-# 0.184
+# 0.03
 tune.radial$best.parameters # best cost and gamma
-# cost = 1, gamma = 0.5
+# cost = 10, gamma = 0.5
 tune.radial$best.model
-# num support vectors = 377, so has wide margins
+# num support vectors = 325, so has wide margins
 
+
+
+
+# part c) fit the best model -----------------------------------------------------------------
 
 ### Fitting the models using the best parameters
-bestCost <- 1
-bestGamma <- 0.5
-census.svm.radial <- svm(income ~ ., data=censusTrain, kernel="radial", cost=bestCost, gamma=bestGamma)
+bestCost <- tune.radial$best.parameters[[1]]; bestCost
+bestGamma <- tune.radial$best.parameters[[2]]; bestGamma
+census.svm.radial <- svm(incomeBinary ~ ., data=censusTrain, kernel="radial", cost=bestCost, gamma=bestGamma)
+
+
+# Training set Evaluation
+# confusion matrix: TRAIN
+pred <- predict(census.svm.radial, newx=censusTrain) # train predictions
+table(Pred = pred, Truth = censusTrain$incomeBinary)
+# 0+0 = 0 misslciassifications for training data
+trainError.radial <- mean(pred != censusTrain$incomeBinary); trainError.radial
+# 0% missclassification on training data
+
+
+
+# part d)  -------------------------------------------------------------------------------------
+
+# Test set Evaluation
+
+pred <- predict(tune.radial$best.model, newx=censusTest)
+# confusion matrix: TEST
+table(Pred=pred, Truth = censusTest$incomeBinary) # there are 85 + 98 = 183 missclassifications
+# test error
+testError.radial <- mean(pred != censusTest$incomeBinary); testError.radial
+# so 36.6% of test observations are missclassified. 
 
 
 # Plot the resulting SVC
 
 # first make all variables numerical
-censusTrain.num <- censusTrain
-censusTrain.num$income <- as.numeric(censusTrain$income)
-censusTrain.num$type_employer <- as.numeric(censusTrain$type_employer)
-censusTrain.num$education <- as.numeric(censusTrain$education)
-censusTrain.num$marital <- as.numeric(censusTrain$marital)
-censusTrain.num$occupation <- as.numeric(censusTrain$occupation)
-censusTrain.num$relationship <- as.numeric(censusTrain$relationship)
-censusTrain.num$race <- as.numeric(censusTrain$race)
-censusTrain.num$sex <- as.numeric(censusTrain$sex)
-censusTrain.num$capital_gain <- as.numeric(censusTrain$capital_gain)
-censusTrain.num$capital_loss <- as.numeric(censusTrain$capital_loss)
-censusTrain.num$country <- as.numeric(censusTrain$country)
+# censusTrain <- censusTrain.old #
+#censusTrain$type_employer <- as.numeric(censusTrain.old$type_employer)
+#censusTrain$education <- as.numeric(censusTrain.old$education)
+#censusTrain$marital <- as.numeric(censusTrain.old$marital)
+#censusTrain$occupation <- as.numeric(censusTrain.old$occupation)
+#censusTrain$relationship <- as.numeric(censusTrain.old$relationship)
+#censusTrain$race <- as.numeric(censusTrain.old$race)
+#censusTrain$sex <- as.numeric(censusTrain.old$sex)
+#censusTrain$capital_gain <- as.numeric(censusTrain.old$capital_gain)
+#censusTrain$capital_loss <- as.numeric(censusTrain.old$capital_loss)
+#censusTrain$country <- as.numeric(censusTrain.old$country)
 
 
 fp = "/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/ASSIGNMENTS/A3/"
-useNames <- names(censusTrain.num)[!names(censusTrain.num) %in% c("income")]
+useNames <- names(censusTrain)[!names(censusTrain) %in% c("income", "incomeBinary")]
 
 # Plots using the training data
-pdf(file=file.path(paste(fp, "Train_Radial.pdf", sep="")))
+
+pdf(file=file.path(paste(fp, "graphw.pdf")))
 for (name in useNames) {
-      plot(census.svm.radial, censusTrain.num, as.formula(paste("income~", name, sep = "")))
+      plot(census.svm.radial, censusTrain, as.formula(paste("income ~", name, sep = "")))
 }
 dev.off()
 
+
 # Plots using the test data
-pdf(file=file.path(paste(fp, "Testn_Radial.pdf", sep="")))
+
+pdf(file=file.path(paste(fp, "Test_Radial.pdf", sep="")))
 for (name in useNames) {
       plot(census.svm.radial, censusTest, as.formula(paste("income~", name, sep = "")))
 }
@@ -95,20 +130,3 @@ dev.off()
 # are not support vectors (not within margins). 
 
 
-
-# Training set Evaluation
-# confusion matrix: TRAIN
-pred <- predict(census.svm.radial, newx=censusTrain) # train predictions
-table(Pred = pred, Truth = censusTrain$income)
-# 2 + 18 = 20 misslciassifications for training data
-trainError.radial <- mean(pred != censusTrain$income); trainError.radial
-# 0.04 = 4% missclassification on training data
-
-
-# Test set Evaluation
-pred <- predict(tune.radial$best.model, newx=censusTest)
-# confusion matrix: TEST
-table(Pred=pred, Truth = censusTest$income) # there are 71+100=171 missclassifications
-# test error
-testError.radial <- mean(pred != censusTest$income); testError.radial
-# so 34.2% of test observations are missclassified. 
