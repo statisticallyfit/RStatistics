@@ -52,23 +52,22 @@ hyperGrid <- expand.grid(
       maxdepth = seq(8, 15, 1)
 )
 
-bikeModels <- list()
+bikeRegrTrees <- list()
 for (i in 1:nrow(hyperGrid)) {
       
-      # get minsplit, maxdepth values at row i
-      minsplit <- hyperGrid$minsplit[i]
-      maxdepth <- hyperGrid$maxdepth[i]
-      
       # train a model and store in the list
-      bikeModels[[i]] <- rpart(
+      bikeRegrTrees[[i]] <- rpart(
             formula = Casual ~ .,
             data    = bikeTrain,
             method  = "anova",
-            control = list(minsplit = minsplit, maxdepth = maxdepth)
+            # get minsplit, maxdepth values at row i
+            control = list(minsplit = hyperGrid$minsplit[i], 
+                           maxdepth = hyperGrid$maxdepth[i])
       )
 }
 
-
+# Tuning parameter = alpha: controls tradeoff between a subtree's fit 
+# vs. its complexity. 
 # function to get optimal cp (alpha) of a given tree
 getBestAlpha <- function(tree.fit) {
       # get index of minimum test error
@@ -86,14 +85,14 @@ getMinError <- function(tree.fit) {
 }
 
 
-tableBike <- hyperGrid %>%
+tableBikeRegr <- hyperGrid %>%
       # mutate adds these vector columns (list of alphas and errors) 
       # to the hyper grid
       mutate(
             # map_dbl(x, f) applies function f elementwise to vector x
             # and returns a vector
-            alpha    = purrr::map_dbl(bikeModels, getBestAlpha),
-            error = purrr::map_dbl(bikeModels, getMinError)
+            alpha    = purrr::map_dbl(bikeRegrTrees, getBestAlpha),
+            error = purrr::map_dbl(bikeRegrTrees, getMinError)
       ) %>%
       # arrange sorts the resulting matrix from above according 
       # to minimum error
@@ -105,13 +104,13 @@ tableBike <- hyperGrid %>%
 # sorted the values by minimum test error
 
 # Best cost complexity value (the alpha associated with min test error)
-bestAlpha <- tableBike$alpha[1]
+bestAlpha <- tableBikeRegr$alpha[1]
 # Minimum test error
-bestTestError <- tableBike$error[1]
+bestTestError.rtree <- tableBikeRegr$error[1]
 # Number of tree splits associated with min test error
-bestMinSplit <- tableBike$minsplit[1]
+bestMinSplit <- tableBikeRegr$minsplit[1]
 # Maximum depth associated with min test error
-bestMaxDepth <- tableBike$maxdepth[1]
+bestMaxDepth <- tableBikeRegr$maxdepth[1]
 
 
 bike.optimal.rtree <- rpart(
@@ -148,8 +147,7 @@ p2 <- ggplot(data=df, aes(x=Alpha, y=TestErrors)) +
 grid.arrange(p1, p2)
 
 # Can see that lowest test error rate is at 7 leaves
-# Tuning parameter = alpha: controls tradeoff between a subtree's fit 
-# vs. its complexity. 
+
 
 
 
@@ -160,28 +158,31 @@ grid.arrange(p1, p2)
 
 # BAGGING: bagging is special case of random forest with m = p
 set.seed(1)
-bike.train.bag.E <- randomForest(X.train, y=Y.train, xtest=X.test, ytest=Y.test, mtry=p,ntree=500,importance=TRUE)
+bike.bag.cv <- randomForest(X.train, y=Y.train, xtest=X.test, ytest=Y.test, mtry=p,ntree=500,importance=TRUE)
 set.seed(1)
-bike.train.bag <- randomForest(Casual ~ ., data=bikeTrain, mtry=p, importance=TRUE)
-bike.train.bag
-bike.train.bag.E
+bike.bag <- randomForest(Casual ~ ., data=bikeTrain, mtry=p, importance=TRUE, ntree=500)
+bike.bag
+bike.bag.cv
 # mtry = p means all p=7 predictors should be considered for each split of the tree (means
 # that bagging should be done)
 
-# Test Errors: bagging (another way to obtain it)
-pred.bag <- predict(bike.train.bag, newdata=bikeTest)
+# Test Evaluation: this is the test error corresponding to the largest tree
+pred.bag <- predict(bike.bag, newdata=bikeTest)
 testMSE.bag <- mean((pred.bag - Y.test)^2); testMSE.bag
 # 128201.3
 
 
 # Tuning parameter = number of trees
-bestNumTrees <- which.min(bike.train.bag.E$test$mse); bestNumTrees
-min(bike.train.bag.E$test$mse) # lowest test MSE, corresponding to bestNumTrees above
+bestNumTrees <- which.min(bike.bag.cv$test$mse); bestNumTrees
+# 8
+min(bike.bag.cv$test$mse) # lowest test MSE, corresponding to bestNumTrees above
 
 # Plot the test set errors versus the number of trees for p = 7
 df <- data.frame(NumTrees=1:500, TestError=bike.train.bag.E$test$mse)
 
-ggplot(data=df, aes(x=NumTrees, y = TestError)) + geom_line(size=1) +
+ggplot(data=df, aes(x=NumTrees, y = TestError)) + 
+      geom_line(size=1) + 
+      geom_vline(xintercept=bestNumTrees, color="red", linetype="dashed", size=2) +
       xlab("Number of Trees") + ylab("Test MSE")
 # Lowest test MSE corresponds to num trees = 8 
 
@@ -191,25 +192,43 @@ ggplot(data=df, aes(x=NumTrees, y = TestError)) + geom_line(size=1) +
 ## RANDOM FOREST ---
 # Same method as bagging except mtry is lower : m = sqrt(p), or m = p/3 by default
 
-set.seed(1)
-# the mtry = p/3 random forest model
-bike.train.forest.p3 <- randomForest(X.train, y=Y.train, xtest=X.test, ytest=Y.test,ntree=500, mtry=p/3, importance=TRUE)
-# mtry = sqrt(p) random forest model
-bike.train.forest.sqrtP <- randomForest(X.train, y=Y.train, xtest=X.test, ytest=Y.test,ntree=500, mtry=round(sqrt(p)), importance=TRUE)
-# mtry = p / 2 random forest model
-bike.train.forest.p2 <- randomForest(X.train, y=Y.train, xtest=X.test, ytest=Y.test,ntree=500, mtry=p/2, importance=TRUE)
-# mtry = p random forest mdoel (same as bagging case)
-bike.train.forest.p <- randomForest(X.train, y=Y.train, xtest=X.test, ytest=Y.test,ntree=500, mtry=p, importance=TRUE)
+# Method: create range of m-values to fit the model over, using a fixed ntree=500
 
-set.seed(1)
-# fitting this model with mtry = p / 3 to do predictions
-bike.train.forest <- randomForest(Casual ~ ., data=bikeTrain, ntree=500, mtry=p/3, importance=TRUE)
-bike.train.forest # algo used p = 2 (num variables tried at each split)
+set.seed(123)
 
-bike.train.forest.p
-bike.train.forest.p2
-bike.train.forest.p3
-bike.train.forest.sqrtP
+mtryValues <- 1:p #
+bikeRandForests <- list()
+for(i in mtryValues){
+      bikeRandForests[[i]] <- randomForest(X.train, y=Y.train, xtest=X.test, 
+                              ytest=Y.test, ntree=500, mtry= i, importance=TRUE)
+}
+
+# function to get optimal number of trees given a random forest model
+# that was fit using the Xtrain, ytrain method (yielding cv errors inside the object)
+getBestNumTrees <- function(fit.rf) {
+      # get index of minimum test error (this is the number of trees)
+      ntree    <- which.min(fit.rf$test$mse)
+}
+
+# function to get minimum error
+getMinError <- function(fit.rf) {
+      # get the index  of minimum test error
+      minMSE    <- min(fit.rf$test$mse)
+}
+
+mtryValues <- data.frame(mtryValues)
+tableBikeForest <- mtryValues %>%
+      # mutate adds these vector columns (list of alphas and errors) to the hyper grid
+      mutate(
+            numTrees    = purrr::map_dbl(bikeRandForests, getBestNumTrees),
+            error = purrr::map_dbl(bikeRandForests, getMinError)
+      ) %>%
+      # arrange sorts the resulting matrix from above according to minimum error
+      arrange(error) 
+
+# Fit the optimal model
+bestNumTrees <- tableBikeForest$numTrees[1]
+bestTestError.forest <- tableBikeForest$error[1]
 
 
 # Test Errors: random forest (another way to obtain it)

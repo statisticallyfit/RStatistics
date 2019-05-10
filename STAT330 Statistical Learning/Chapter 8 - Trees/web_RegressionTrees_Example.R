@@ -14,8 +14,10 @@ ames_train <- training(ames_split)
 ames_test  <- testing(ames_split)
 
 m1 <- rpart(formula = Sale_Price ~ ., data = ames_train, method  = "anova")
+rpart.plot(m1)
 
 # Tuning the parameters: alpha (cp), maxdepth, and minsplit
+# Method: setting a range of minsplit/maxdepth to find optimal alpha
 hyper_grid <- expand.grid(
       minsplit = seq(5, 20, 1),
       maxdepth = seq(8, 15, 1)
