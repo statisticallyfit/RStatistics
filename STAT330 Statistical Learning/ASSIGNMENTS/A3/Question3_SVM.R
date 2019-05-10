@@ -73,10 +73,15 @@ tune.radial$best.model
 
 # part c) fit the best model -----------------------------------------------------------------
 
+
+## TODO here binary svm: 
+# http://blog.princehonest.com/stat-learning/ch9/5.html
+# 
 ### Fitting the models using the best parameters
 bestCost <- tune.radial$best.parameters[[1]]; bestCost
 bestGamma <- tune.radial$best.parameters[[2]]; bestGamma
-census.svm.radial <- svm(incomeBinary ~ ., data=censusTrain, kernel="radial", cost=bestCost, gamma=bestGamma, scale=TRUE)
+census.svm.radial <- svm(incomeBinary ~ ., data=censusTrain, 
+                         kernel="radial", cost=bestCost, gamma=bestGamma, scale=TRUE)
 
 
 # Training set Evaluation

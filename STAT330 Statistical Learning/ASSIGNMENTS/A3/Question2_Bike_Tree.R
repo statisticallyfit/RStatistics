@@ -5,11 +5,10 @@ setwd("/development/projects/statisticallyfit/github/learningmathstat/RStatistic
 library(dplyr)       # data wrangling
 library(rpart)       # performing regression trees
 library(rpart.plot)  # plotting regression trees
-library(ipred)       # bagging
-library(caret)       # bagging
-#library(ggplot2)
+library(ggplot2)
 library(gridExtra)
-library(randomForest)
+library(randomForest) # bagging, and random forest
+library(gbm)          # boosting
 
 
 # Read in the data
@@ -39,7 +38,7 @@ X.test <- bikeTest[,-8]
 
 
 
-# part a) fit regression tree, response = casual ---------------------------------------------
+# part a) fit regression tree, response = casual =============================================
 set.seed(1)
 
 # Use cross-validation to get best number of leaves
@@ -69,7 +68,7 @@ for (i in 1:nrow(hyperGrid)) {
 # Tuning parameter = alpha: controls tradeoff between a subtree's fit 
 # vs. its complexity. 
 # function to get optimal cp (alpha) of a given tree
-getBestAlpha <- function(tree.fit) {
+getBestAlpha.rtree <- function(tree.fit) {
       # get index of minimum test error
       min    <- which.min(tree.fit$cptable[, "xerror"])
       # get the ALPHA corresponding to model with min test error. 
@@ -77,7 +76,7 @@ getBestAlpha <- function(tree.fit) {
 }
 
 # function to get minimum error of a given tree
-getMinError <- function(tree.fit) {
+getMinError.rtree <- function(tree.fit) {
       # get the index  of minimum test error
       min    <- which.min(tree.fit$cptable[, "xerror"])
       # get the actual minimum test error
@@ -91,8 +90,8 @@ tableBikeRegr <- hyperGrid %>%
       mutate(
             # map_dbl(x, f) applies function f elementwise to vector x
             # and returns a vector
-            alpha    = purrr::map_dbl(bikeRegrTrees, getBestAlpha),
-            error = purrr::map_dbl(bikeRegrTrees, getMinError)
+            alpha    = purrr::map_dbl(bikeRegrTrees, getBestAlpha.rtree),
+            error = purrr::map_dbl(bikeRegrTrees, getMinError.rtree)
       ) %>%
       # arrange sorts the resulting matrix from above according 
       # to minimum error
@@ -104,18 +103,24 @@ tableBikeRegr <- hyperGrid %>%
 # sorted the values by minimum test error
 
 # Best cost complexity value (the alpha associated with min test error)
-bestAlpha <- tableBikeRegr$alpha[1]
+bestAlpha <- tableBikeRegr$alpha[1]; bestAlpha 
+# 0.01
 # Minimum test error
-bestTestError.rtree <- tableBikeRegr$error[1]
+bestTestError.rtree <- tableBikeRegr$error[1]; bestTestError.rtree
+# 0.3786509
 # Number of tree splits associated with min test error
-bestMinSplit <- tableBikeRegr$minsplit[1]
+bestMinSplit <- tableBikeRegr$minsplit[1]; bestMinSplit
+# 9
 # Maximum depth associated with min test error
-bestMaxDepth <- tableBikeRegr$maxdepth[1]
+bestMaxDepth <- tableBikeRegr$maxdepth[1]; bestMaxDepth
+# 8
 
-
+# Fit the optimal model (fitting on the entire data set since now we have the optimal
+# tuning parameters)
+set.seed(1)
 bike.optimal.rtree <- rpart(
       formula = Casual ~ .,
-      data    = bikeTrain,
+      data    = data,
       method  = "anova",
       control = list(minsplit = bestMinSplit, 
                      maxdepth = bestMaxDepth, 
@@ -129,9 +134,7 @@ rpart.plot(bike.optimal.rtree)
 # Test Set performance of Regression Tree
 pred <- predict(bike.optimal.rtree, newdata=bikeTest)
 testMSE.rtree <- mean((pred - Y.test)^2); testMSE.rtree
-# [1] 161270.2
-
-
+# [1] 49148.42
 
 
 # Plotting the error rate as function of both size (num leaves) 
@@ -146,36 +149,37 @@ p2 <- ggplot(data=df, aes(x=Alpha, y=TestErrors)) +
       geom_line(size=2, color='magenta')   + geom_point(size=3)
 grid.arrange(p1, p2)
 
-# Can see that lowest test error rate is at 7 leaves
+# Can see that lowest test error rate is at 10 leaves
 
 
-
-
-# part b) fit three models: bagging, boosting, random forest ---------------------------------
-
+# part b) fit three models: bagging, boosting, random forest =============================
 
 ### Part (i) Selecting Tuning Parameters
 
-# BAGGING: bagging is special case of random forest with m = p
-set.seed(1)
+# BAGGING:  ------------------------------------------------------------------------------
+# bagging is special case of random forest with m = p
+set.seed(111)
 bike.bag.cv <- randomForest(X.train, y=Y.train, xtest=X.test, ytest=Y.test, mtry=p,ntree=500,importance=TRUE)
-set.seed(1)
-bike.bag <- randomForest(Casual ~ ., data=bikeTrain, mtry=p, importance=TRUE, ntree=500)
-bike.bag
-bike.bag.cv
+
 # mtry = p means all p=7 predictors should be considered for each split of the tree (means
 # that bagging should be done)
 
-# Test Evaluation: this is the test error corresponding to the largest tree
-pred.bag <- predict(bike.bag, newdata=bikeTest)
-testMSE.bag <- mean((pred.bag - Y.test)^2); testMSE.bag
-# 128201.3
-
-
 # Tuning parameter = number of trees
 bestNumTrees <- which.min(bike.bag.cv$test$mse); bestNumTrees
-# 8
+# 11
 min(bike.bag.cv$test$mse) # lowest test MSE, corresponding to bestNumTrees above
+# 125907.6
+
+# Fit the optimal model
+set.seed(1)
+bike.optimal.bag <- randomForest(Casual ~., data=data, ntree=bestNumTrees, mtry=p,
+                                 importance=TRUE)
+
+# # Test Evaluation: test error of optimal model
+pred <- predict(bike.optimal.bag, newdata=bikeTest)
+testMSE.bag <- mean((pred - Y.test)^2); testMSE.bag
+# 22665.17
+
 
 # Plot the test set errors versus the number of trees for p = 7
 df <- data.frame(NumTrees=1:500, TestError=bike.bag.cv$test$mse)
@@ -184,17 +188,14 @@ ggplot(data=df, aes(x=NumTrees, y = TestError)) +
       geom_line(size=1) + 
       geom_vline(xintercept=bestNumTrees, color="red", linetype="dashed", size=2) +
       xlab("Number of Trees") + ylab("Test MSE")
-# Lowest test MSE corresponds to num trees = 8 
+# Lowest test MSE corresponds to num trees = 11 
 
 
-
-
-## RANDOM FOREST ---
+## RANDOM FOREST -----------------------------------------------------------------------
 # Same method as bagging except mtry is lower : m = sqrt(p), or m = p/3 by default
-
 # Method: create range of m-values to fit the model over, using a fixed ntree=500
 
-set.seed(123)
+set.seed(458)
 
 # Creating mtry values
 mtryValues <- 1:p
@@ -207,14 +208,12 @@ for(i in mtryValues){
 
 # function to get optimal number of trees given a random forest model
 # that was fit using the Xtrain, ytrain method (yielding cv errors inside the object)
-getBestNumTrees <- function(fit.rf) {
+getBestNumTrees.rf <- function(fit.rf) {
       # get index of minimum test error (this is the number of trees)
       ntree    <- which.min(fit.rf$test$mse)
 }
-
-
 # function to get minimum error
-getMinError <- function(fit.rf) {
+getMinError.rf <- function(fit.rf) {
       # get the index  of minimum test error
       minMSE    <- min(fit.rf$test$mse)
 }
@@ -223,47 +222,35 @@ mtryValues <- data.frame(mtryValues)
 tableBikeForest <- mtryValues %>%
       # mutate adds these vector columns (list of alphas and errors) to the hyper grid
       mutate(
-            numTrees    = purrr::map_dbl(bikeRandForests, getBestNumTrees),
-            error = purrr::map_dbl(bikeRandForests, getMinError)
+            numTrees    = purrr::map_dbl(bikeRandForests, getBestNumTrees.rf),
+            error = purrr::map_dbl(bikeRandForests, getMinError.rf)
       ) %>%
       # arrange sorts the resulting matrix from above according to minimum error
       arrange(error) 
 
 # Fit the optimal model
-bestNumTrees <- tableBikeForest$numTrees[1]
-bestTestError.forest <- tableBikeForest$error[1]
+bestNumTrees <- tableBikeForest$numTrees[1]; bestNumTrees
+# 275
+bestTestError.forest <- tableBikeForest$error[1]; bestTestError.forest
+# 129695.2
+bestMtry <- tableBikeForest$mtry[1]; bestMtry
+# 6
+
 # random forest usually uses m = p/3 = 7/3 rounds to 2, so consider the
 # mtry = 2 model to be the random forest model. 
 # here, best mtry is at m = 7, the bagging model. 
 # Hence, bagging model does better here than random forest. 
-bestMtry <- tableBikeForest$mtry[1]
 
-bike.optimal.forest <- randomForest(Casual ~., data=bikeTrain, mtry=bestMtry,
+# Fit the optimal model on the whole data
+set.seed(1)
+bike.optimal.forest <- randomForest(Casual ~., data=data, mtry=bestMtry,
                                     ntree=bestNumTrees, importance=TRUE)
 
 # Test Set performance of Random Forest
 # Getting test error for the model fit with optimal number of trees and mtry
 pred <- predict(bike.optimal.forest, newdata=bikeTest)
 testMSE.forest <- mean((pred - Y.test)^2); testMSE.forest
-# 126646.1
-
-
-### Plot the test set errors versus the number of trees for various values of p 
-
-# First create the data frame of test errors for various values of P
-#df <- data.frame(NumTrees=1:500)
-#for(p in mtryValues[,1]){
-#      name <- paste("P_", p, sep="")
-#      df[,name] <- bikeRandForests[[p]]$test$mse
-#}
-## Now create the plots for various p
-#g <- ggplot(data=df, aes(x=NumTrees))
-#for(p in mtryValues[,1]){
-#      print(p)
-#      g <- g + geom_line(aes(y=df[,p]), size=1)
-#}
-#g <- xlab("Number of Trees") + ylab("Test MSE")
-
+# 18317.14
 
 
 ### BOOSTING------------------
@@ -271,12 +258,10 @@ testMSE.forest <- mean((pred - Y.test)^2); testMSE.forest
 library(gbm)
 
 set.seed(103)
-
 hyperGrid <- expand.grid(
       shrinkage = 10^ seq(-2, -0.2, by = 0.1), #c(.01, .1, .3),
       interaction.depth = c(1, 3, 5)
 )
-
 
 bikeBoosts <- list()
 for(i in 1:nrow(hyperGrid)) {
@@ -300,43 +285,32 @@ getBestNumTrees.boost <- function(fit.boost) {
       # get index of minimum test error (this is the number of trees)
       ntree    <- which.min(fit.boost$cv.error)
 }
-
-
 # function to get minimum error
 getMinError.boost <- function(fit.boost) {
       # get the index  of minimum test error
       err    <- min(fit.boost$cv.error)
 }
 
-#getMinTrainError.boost <- function(fit.boost) {
-#      err <- min(fit.boost$train.error)
-#}
-
-getInteractionDepth.boost <- function(fit.boost){
-      d <- fit.boost$interaction.depth
-}
-
-getShrinkage.boost <- function(fit.boost){
-      lambda <- fit.boost$shrinkage
-}
-
 tableBikeBoosts <- hyperGrid %>% 
       mutate(
-            interactionDepth = purrr::map_dbl(bikeBoosts, getInteractionDepth.boost),
-            shrinkage = purrr::map_dbl(bikeBoosts, getShrinkage.boost),
+            #interactionDepth = purrr::map_dbl(bikeBoosts, getInteractionDepth.boost),
+            #shrinkage = purrr::map_dbl(bikeBoosts, getShrinkage.boost),
             bestNumTrees    = purrr::map_dbl(bikeBoosts, getBestNumTrees.boost),
-            #minTrainError = purrr::map_dbl(bikeBoosts, getMinTrainError.boost),
             minTestError = purrr::map_dbl(bikeBoosts, getMinError.boost)
       ) %>%
       dplyr::arrange(minTestError)
 
-
-bestDepth <- tableBikeBoosts$interactionDepth[1]
-bestShrinkage <- tableBikeBoosts$shrinkage[1]
-bestNumTrees <- tableBikeBoosts$bestNumTrees[1]
-bestTestError.boost <- tableBikeBoosts$minTrainError[1]
+bestDepth <- tableBikeBoosts$interaction.depth[1]; bestDepth 
+# 3
+bestShrinkage <- tableBikeBoosts$shrinkage[1]; bestShrinkage
+# 0.01258925
+bestNumTrees <- tableBikeBoosts$bestNumTrees[1]; bestNumTrees
+# 917
+bestTestError.boost <- tableBikeBoosts$minTestError[1]; bestTestError.boost
+# 132941.9
 
 ## Fit the optimal model
+set.seed(3)
 bike.optimal.boost <- gbm(formula = Casual ~ ., 
                           distribution = "gaussian", 
                           data = bikeTrain, 
@@ -346,101 +320,53 @@ bike.optimal.boost <- gbm(formula = Casual ~ .,
                           verbose=FALSE)
 
 # Test set performance of the boosting model
-pred <- predict(bike.optimal.boost, bikeTest)
-testMSE.boost <- mean((pred - Y.test)^2)
-#trainError.boost <- tableBikeBoosts$minTestError[1]
-# $$$$$$$$$$$$$$$$$$$
-#lambdas = 10^ seq(-2, -0.2, by = 0.1) # range of lambdas to use
-#L = length(lambdas)
-
-"trainErrors = rep(NA, L)
-testErrors = rep(NA, L)
-
-for (i in 1:L) {
-      bike.train.boost <- gbm(Casual ~ ., data=bikeTrain, distribution='gaussian, 
-                              n.trees=1000,
-                              shrinkage = lambdas[i])
-      # Calculate training errors
-      pred1 = predict(bike.train.boost, bikeTrain, n.trees = 1000)
-      trainErrors[i] = mean((pred1 - Y.train)^2)
-      # Calculate testing errors
-      pred2 = predict(bike.train.boost, bikeTest, n.trees = 1000)
-      testErrors[i] = mean((pred2 - Y.test)^2)
-}
-
-df <- data.frame(Lambdas=lambdas, TrainErrors=trainErrors, TestErrors=testErrors)
-
-# Get the min train error and its index
-iMinTrain <- which.min(trainErrors); iMinTrain
-trainMSE.boost.min <- min(trainErrors); trainMSE.boost.min
-iMinTest <- which.min(testErrors); iMinTest
-testMSE.boost.min <- min(testErrors); testMSE.boost.min
-# Get the lambdas of minimum errors
-trainLambda <- lambdas[iMinTrain]; trainLambda
-testLambda <- lambdas[iMinTest]; testLambda 
-
-ggplot(data=df, aes(x=Lambdas)) + 
-      geom_line(aes(y=TrainErrors), size=1, colour='red) + 
-      geom_point(x=trainLambda, y=trainMSE.boost.min, color='red, size=3) +
-      
-      geom_line(aes(y=TestErrors), size=1, colour='blue) + 
-      geom_point(x=testLambda, y=testMSE.boost.min, color='blue, size=3) +
-      
-      xlab('Shrinkage Parameter (Lambda)) + ylab('Errors (MSE)) #+ 
-      #scale_fill_discrete(name = 'Error Type, labels = c('train error, 'test error))
-
-"
+pred <- predict(bike.optimal.boost, bikeTest, n.trees=bestNumTrees)
+testMSE.boost <- mean((pred - Y.test)^2); testMSE.boost
+# 130221.6
 
 
+### Part (ii) compare test MSEs of each model ------------------------------------------
 
-
-
-
-
-
-
-
-### Part (ii) compare test MSEs of each model
 testMSE.rtree
+# 49148.42
 testMSE.bag
+# 22665.17
 testMSE.forest
-testMSE.boost.min
-
-# The minimum test mse is from the boosting model with a lambda of 1e-10 ~ 0 (almost zero)
-testLambda
-
+# 18317.14
+testMSE.boost
+# 130221.6
 
 
+# The minimum test mse is from the boosting model with a lambda of 0.01258925
+bestShrinkage
+# 0.01258925
 
-### Part (iii) Select one model and comment on which variables are most important
+### Part (iii) ==========================================================================
+# Select one model and comment on which variables are most important
 
-# Fit the boost model corresponding to best lambda
-
-# Fitting on the whole data set since we already have the train and test error
-# for a training model with thi slambda
-
-bike.boost <- gbm(Casual ~ ., data=data, distribution="gaussian", n.trees=1000,
-                  shrinkage = testLambda)
+# Fitted the boost model corresponding to best lambda on entire data set
+bike.optimal.boost
 
 # Importance plot 1: weekend is the most important variable
-summary(bike.boost)
-#     var                  rel.inf
-# Weekend         Weekend 33.084503
-# Temperature Temperature 25.607292
-# Humidity       Humidity 13.095108
-# Windspeed     Windspeed 10.270730
-# Season           Season  9.197879
-# Year               Year  6.652674
-# Weather         Weather  2.091814
-
+summary(bike.optimal.boost)
+# var   rel.inf
+# Weekend         Weekend 33.905143
+# Temperature Temperature 17.774427
+# Season           Season 14.664052
+# Humidity       Humidity 14.589034
+# Windspeed     Windspeed  7.424385
+# Year               Year  6.771183
+# Weather         Weather  4.871775
+vip(bike.optimal.boost, color="dodgerblue", fill="blue", size=18, alpha=0.5)
 
 
 # Importance plot 2: 
-
-# Partial dependence plots: marginal effect that the selected variables have on the response
-# after integrating out the other variables. 
+# Partial dependence plots: marginal effect that the selected variables have on 
+# the response after integrating out the other variables. 
 
 # number of casual observers is higher on weekends (0) than (1) Monday/Friday
-plot(bike.boost, i="Weekend") 
+plot(bike.optimal.boost, i="Weekend") 
 # number of casual observers increases when temperature increases
-plot(bike.boost, i = "Temperature") 
+plot(bike.optimal.boost, i = "Temperature") 
+plot(bike.optimal.boost, i = "Season") 
+plot(bike.optimal.boost, i = "Humidity") 
