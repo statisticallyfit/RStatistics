@@ -107,22 +107,22 @@ svm.final.radial <- svm(mpgBinary ~ ., data=Auto, kernel="radial", cost=100, gam
 
 
 ### Plotting
-fp = "/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/Chapter 9 - Support Vector Machines/"
+fp1 = "/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/Chapter 9 - Support Vector Machines/"
 useNames <- names(Auto)[!(names(Auto) %in% c("mpg", "mpglevel", "name"))]
 
-pdf(file=file.path(paste(fp, "333222Ex7_Linear", ".pdf", sep="")))
+pdf(file=file.path(paste(fp1, "111", ".pdf", sep="")))
 for (name in useNames) {
       plot(svm.final.linear, Auto, as.formula(paste("mpg~", name, sep = "")))
 }
 dev.off()
 # --------------------------
-pdf(file=file.path(paste(fp, "Ex7_Poly", ".pdf", sep="")))
+pdf(file=file.path(paste(fp1, "Ex7_Poly", ".pdf", sep="")))
 for (name in names(Auto)[!(names(Auto) %in% c("mpg", "mpglevel", "name"))]) {
       plot(svm.final.poly, Auto, as.formula(paste("mpg~", name, sep = "")))
 }
 dev.off()
 # --------------------------
-pdf(file=file.path(paste(fp, "Ex7_Radial", ".pdf", sep="")))
+pdf(file=file.path(paste(fp1, "Ex7_Radial", ".pdf", sep="")))
 for (name in names(Auto)[!(names(Auto) %in% c("mpg", "mpglevel", "name"))]) {
       plot(svm.final.radial, Auto, as.formula(paste("mpg~", name, sep = "")))
 }

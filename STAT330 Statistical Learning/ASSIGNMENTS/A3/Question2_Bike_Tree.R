@@ -11,22 +11,22 @@ library(randomForest)
 
 # Read in the data
 data <- read.csv("bike.csv", header=TRUE)
-totalData <- data[, -1] # removing the Date column so that we don't get more than 32
+data <- data[, -1] # removing the Date column so that we don't get more than 32
 # factor levels. 
-p <- ncol(totalData) - 1; # p is the number of predictors
+p <- ncol(data) - 1; # p is the number of predictors
 
 # Make the categorical variables be factors
-totalData$Weekend <- as.factor(totalData$Weekend)
-totalData$Weather <- as.factor(totalData$Weather)
-totalData$Year <- as.factor(totalData$Year)
+data$Weekend <- as.factor(data$Weekend)
+data$Weather <- as.factor(data$Weather)
+data$Year <- as.factor(data$Year)
 
 
 # First split the data in train /test set
 set.seed(1)
-N <- nrow(totalData)
+N <- nrow(data)
 iTrain <- sample(1:N, size=0.6 * N) # ratio of 0.6 for train data, and 0.4 for test data
-bikeTrain <- totalData[iTrain, ]
-bikeTest <- totalData[-iTrain, ]
+bikeTrain <- data[iTrain, ]
+bikeTest <- data[-iTrain, ]
 
 X.train <- bikeTrain[,-8]
 Y.train <- bikeTrain$Casual
@@ -59,10 +59,15 @@ testMSE.rtree <- mean((pred - bikeTest$Casual)^2); testMSE.rtree
       # Cost complexity pruning is used to select a sequence of trees for consideration. 
       # cv.tree() reports number of leaves of each tree considered (leaves = size) and also the
       # corresponding error rate and the value of the cost-complexity parameter used (k = alpha)
+
 bike.rtree.cv <- cv.tree(bike.train.rtree)
 iMinMSE <- which.min(bike.rtree.cv$dev); iMinMSE
-bestLeaves <- bike.rtree.cv$size[iMinMSE] # so the 8-leaf tree has lowest minimum CV test error
-bestAlpha <- bike.rtree.cv$k[iMinMSE] # tuning parameter ALPHA with min dev is this value.
+bestLeaves <- bike.rtree.cv$size[iMinMSE]; bestLeaves 
+# so the 8-leaf tree has lowest minimum CV test error
+bestAlpha <- bike.rtree.cv$k[iMinMSE] ; bestAlpha
+# tuning parameter ALPHA with min dev is this value.
+
+
 # Closer to zero means the subtree is closer to the largest tree. ALpha -> oo means cost
 # is minimized. 
 
@@ -255,7 +260,7 @@ testLambda
 # Fitting on the whole data set since we already have the train and test error
 # for a training model with thi slambda
 
-bike.boost <- gbm(Casual ~ ., data=totalData, distribution="gaussian", n.trees=1000,
+bike.boost <- gbm(Casual ~ ., data=data, distribution="gaussian", n.trees=1000,
                   shrinkage = testLambda)
 
 # Importance plot 1: weekend is the most important variable

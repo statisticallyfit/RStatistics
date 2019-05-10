@@ -14,6 +14,28 @@ any(is.na(datacens$val))
 datacens$train$income <- as.numeric(datacens$train$income)
 datacens$val$income <- as.numeric(datacens$val$income)
 
+datacens$train$type_employer <- as.numeric(datacens$train$type_employer)
+datacens$train$education <- as.numeric(datacens$train$education)
+datacens$train$marital <- as.numeric(datacens$train$marital)
+datacens$train$occupation <- as.numeric(datacens$train$occupation)
+datacens$train$relationship <- as.numeric(datacens$train$relationship)
+datacens$train$race <- as.numeric(datacens$train$race)
+datacens$train$sex <- as.numeric(datacens$train$sex)
+datacens$train$capital_gain <- as.numeric(datacens$train$capital_gain)
+datacens$train$capital_loss <- as.numeric(datacens$train$capital_loss)
+datacens$train$country <- as.numeric(datacens$train$country)
+
+datacens$val$type_employer <- as.numeric(datacens$val$type_employer)
+datacens$val$education <- as.numeric(datacens$val$education)
+datacens$val$marital <- as.numeric(datacens$val$marital)
+datacens$val$occupation <- as.numeric(datacens$val$occupation)
+datacens$val$relationship <- as.numeric(datacens$val$relationship)
+datacens$val$race <- as.numeric(datacens$val$race)
+datacens$val$sex <- as.numeric(datacens$val$sex)
+datacens$val$capital_gain <- as.numeric(datacens$val$capital_gain)
+datacens$val$capital_loss <- as.numeric(datacens$val$capital_loss)
+datacens$val$country <- as.numeric(datacens$val$country)
+
 datacens$train$incomeBinary <- as.factor(datacens$train$income)
 datacens$val$incomeBinary <- as.factor(datacens$val$income)
 
@@ -35,7 +57,7 @@ censusTest <- datacens$val[vs, ]
 # SVM USING CROSS-VALIDATION to select best COST AND GAMMA-
 set.seed(1)
 tune.radial <- tune(svm, incomeBinary ~., data=censusTrain, kernel="radial", 
-                 ranges=list(cost=c(0.01, 0.1, 1, 10, 20),gamma=c(0.5, 5, 10)))
+                 ranges=list(cost=c(0.01, 0.1, 1, 10, 20),gamma=c(0.5, 5, 10)), scale=TRUE)
 tune.radial
 summary(tune.radial)
 
@@ -54,7 +76,7 @@ tune.radial$best.model
 ### Fitting the models using the best parameters
 bestCost <- tune.radial$best.parameters[[1]]; bestCost
 bestGamma <- tune.radial$best.parameters[[2]]; bestGamma
-census.svm.radial <- svm(incomeBinary ~ ., data=censusTrain, kernel="radial", cost=bestCost, gamma=bestGamma)
+census.svm.radial <- svm(incomeBinary ~ ., data=censusTrain, kernel="radial", cost=bestCost, gamma=bestGamma, scale=TRUE)
 
 
 # Training set Evaluation
@@ -82,12 +104,13 @@ testError.radial <- mean(pred != censusTest$incomeBinary); testError.radial
 # Plot the resulting SVC
 
 # first make all variables numerical
-# censusTrain <- censusTrain.old #
+#censusTrain.old <- censusTrain 
+
 #censusTrain$type_employer <- as.numeric(censusTrain.old$type_employer)
 #censusTrain$education <- as.numeric(censusTrain.old$education)
 #censusTrain$marital <- as.numeric(censusTrain.old$marital)
 #censusTrain$occupation <- as.numeric(censusTrain.old$occupation)
-#censusTrain$relationship <- as.numeric(censusTrain.old$relationship)
+#censusTrain$relationship <- as.numeric(censusTrain.old$relationship)#
 #censusTrain$race <- as.numeric(censusTrain.old$race)
 #censusTrain$sex <- as.numeric(censusTrain.old$sex)
 #censusTrain$capital_gain <- as.numeric(censusTrain.old$capital_gain)
@@ -95,12 +118,12 @@ testError.radial <- mean(pred != censusTest$incomeBinary); testError.radial
 #censusTrain$country <- as.numeric(censusTrain.old$country)
 
 
-fp = "/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/ASSIGNMENTS/A3/"
+filePath2 = "/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/ASSIGNMENTS/A3/"
 useNames <- names(censusTrain)[!names(censusTrain) %in% c("income", "incomeBinary")]
 
 # Plots using the training data
 
-pdf(file=file.path(paste(fp, "graphw.pdf")))
+pdf(file=file.path(paste(filePath2, "GG", ".pdf", sep="")))
 for (name in useNames) {
       plot(census.svm.radial, censusTrain, as.formula(paste("income ~", name, sep = "")))
 }
@@ -109,7 +132,7 @@ dev.off()
 
 # Plots using the test data
 
-pdf(file=file.path(paste(fp, "Test_Radial.pdf", sep="")))
+pdf(file=file.path(paste(filePath2, "Test_Radial.pdf", sep="")))
 for (name in useNames) {
       plot(census.svm.radial, censusTest, as.formula(paste("income~", name, sep = "")))
 }
