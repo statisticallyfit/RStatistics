@@ -1,10 +1,13 @@
 setwd("/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/ASSIGNMENTS/A3")
 
-library(tree)
-#library(ISLR)
-#library(MASS)
+#library(tree)
 
-# TODO uncomment #library(ggplot2)
+library(dplyr)       # data wrangling
+library(rpart)       # performing regression trees
+library(rpart.plot)  # plotting regression trees
+library(ipred)       # bagging
+library(caret)       # bagging
+#library(ggplot2)
 library(gridExtra)
 library(randomForest)
 
@@ -37,49 +40,116 @@ X.test <- bikeTest[,-8]
 
 
 # part a) fit regression tree, response = casual ---------------------------------------------
-bike.train.rtree <- tree(Casual ~ ., data=bikeTrain)
-bike.train.rtree
-
-summary(bike.train.rtree)
-# Have 8 leaves (terminal nodes)
-
-# left node: predicted values for Weekend = 0, and the right half of the tree - for
-# Weekend = 1
-plot(bike.train.rtree)
-text(bike.train.rtree, pretty=0)
-
-
-# Test Set performance of Regression Tree
-pred <- predict(bike.train.rtree, newdata=bikeTest)
-testMSE.rtree <- mean((pred - bikeTest$Casual)^2); testMSE.rtree
-# [1] 164796.1
-
+set.seed(1)
 
 # Use cross-validation to get best number of leaves
       # Cost complexity pruning is used to select a sequence of trees for consideration. 
       # cv.tree() reports number of leaves of each tree considered (leaves = size) and also the
       # corresponding error rate and the value of the cost-complexity parameter used (k = alpha)
 
-bike.rtree.cv <- cv.tree(bike.train.rtree)
-iMinMSE <- which.min(bike.rtree.cv$dev); iMinMSE
-bestLeaves <- bike.rtree.cv$size[iMinMSE]; bestLeaves 
-# so the 8-leaf tree has lowest minimum CV test error
-bestAlpha <- bike.rtree.cv$k[iMinMSE] ; bestAlpha
-# tuning parameter ALPHA with min dev is this value.
+hyperGrid <- expand.grid(
+      minsplit = seq(5, 20, 1),
+      maxdepth = seq(8, 15, 1)
+)
+
+bikeModels <- list()
+for (i in 1:nrow(hyperGrid)) {
+      
+      # get minsplit, maxdepth values at row i
+      minsplit <- hyperGrid$minsplit[i]
+      maxdepth <- hyperGrid$maxdepth[i]
+      
+      # train a model and store in the list
+      bikeModels[[i]] <- rpart(
+            formula = Casual ~ .,
+            data    = bikeTrain,
+            method  = "anova",
+            control = list(minsplit = minsplit, maxdepth = maxdepth)
+      )
+}
 
 
-# Closer to zero means the subtree is closer to the largest tree. ALpha -> oo means cost
-# is minimized. 
+# function to get optimal cp (alpha) of a given tree
+getBestAlpha <- function(tree.fit) {
+      # get index of minimum test error
+      min    <- which.min(tree.fit$cptable[, "xerror"])
+      # get the ALPHA corresponding to model with min test error. 
+      cp <- tree.fit$cptable[min, "CP"] 
+}
 
-# Plotting the error rate as function of both size (num leaves) and k (alpha)
-df <- data.frame(NumLeaves=bike.rtree.cv$size, Alpha=bike.rtree.cv$k, 
-                 ErrorRates=bike.rtree.cv$dev)
-p1 <- ggplot(data=df, aes(x=NumLeaves, y=ErrorRates)) + geom_line(size=2, color='dodgerblue')  + geom_point(size=3)
-p2 <- ggplot(data=df, aes(x=Alpha, y=ErrorRates)) + geom_line(size=2, color='magenta')   + geom_point(size=3)
+# function to get minimum error of a given tree
+getMinError <- function(tree.fit) {
+      # get the index  of minimum test error
+      min    <- which.min(tree.fit$cptable[, "xerror"])
+      # get the actual minimum test error
+      xerror <- tree.fit$cptable[min, "xerror"] 
+}
+
+
+tableBike <- hyperGrid %>%
+      # mutate adds these vector columns (list of alphas and errors) 
+      # to the hyper grid
+      mutate(
+            # map_dbl(x, f) applies function f elementwise to vector x
+            # and returns a vector
+            alpha    = purrr::map_dbl(bikeModels, getBestAlpha),
+            error = purrr::map_dbl(bikeModels, getMinError)
+      ) %>%
+      # arrange sorts the resulting matrix from above according 
+      # to minimum error
+      arrange(error) 
+
+
+### Fit the optimal model
+# Take the first value of each relevant column since 'arrange' above
+# sorted the values by minimum test error
+
+# Best cost complexity value (the alpha associated with min test error)
+bestAlpha <- tableBike$alpha[1]
+# Minimum test error
+bestTestError <- tableBike$error[1]
+# Number of tree splits associated with min test error
+bestMinSplit <- tableBike$minsplit[1]
+# Maximum depth associated with min test error
+bestMaxDepth <- tableBike$maxdepth[1]
+
+
+bike.optimal.rtree <- rpart(
+      formula = Casual ~ .,
+      data    = bikeTrain,
+      method  = "anova",
+      control = list(minsplit = bestMinSplit, 
+                     maxdepth = bestMaxDepth, 
+                     cp = bestAlpha)
+)
+
+### Plot the tree
+rpart.plot(bike.optimal.rtree)
+
+
+# Test Set performance of Regression Tree
+pred <- predict(bike.optimal.rtree, newdata=bikeTest)
+testMSE.rtree <- mean((pred - bikeTest$Casual)^2); testMSE.rtree
+# [1] 161270.2
+
+
+
+
+# Plotting the error rate as function of both size (num leaves) 
+# and cp (alpha)
+df <- data.frame(NumLeaves=bike.optimal.rtree$cptable[,"nsplit"] + 1, 
+                 Alpha=bike.optimal.rtree$cptable[,"CP"], 
+                 TestErrors=bike.optimal.rtree$cptable[,"xerror"])
+
+p1 <- ggplot(data=df, aes(x=NumLeaves, y=TestErrors)) + 
+      geom_line(size=2, color='dodgerblue')  + geom_point(size=3)
+p2 <- ggplot(data=df, aes(x=Alpha, y=TestErrors)) + 
+      geom_line(size=2, color='magenta')   + geom_point(size=3)
 grid.arrange(p1, p2)
 
-# Can see that lowest test error rate is at 8 leaves
-# Tuning parameter = alpha: controls tradeoff between a subtree's fit vs. its complexity. 
+# Can see that lowest test error rate is at 7 leaves
+# Tuning parameter = alpha: controls tradeoff between a subtree's fit 
+# vs. its complexity. 
 
 
 

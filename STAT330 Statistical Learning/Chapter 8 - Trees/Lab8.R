@@ -103,6 +103,7 @@ plot(car.tree.cv$size, car.tree.cv$dev, type="b")
 plot(car.tree.cv$k, car.tree.cv$dev, type="b")
 
 # Or use ggplot
+
 df <- data.frame(NumLeaves=car.tree.cv$size, Alpha=car.tree.cv$k, ErrorRates=car.tree.cv$dev)
 p1 <- ggplot(data=df, aes(x=NumLeaves, y=ErrorRates)) + geom_line(size=2, color="dodgerblue")  + geom_point(size=3)
 p2 <- ggplot(data=df, aes(x=Alpha, y=ErrorRates)) + geom_line(size=2, color="magenta")   + geom_point(size=3)
@@ -223,7 +224,7 @@ testMSE.boston.bag.ntree <- mean((pred.bag - Y.test)^2); testMSE.boston.bag.ntre
 # Same method as bagging except mtry is lower : m = sqrt(p), or m = p/3 by default
 
 set.seed(1)
-boston.rf <- randomForest(Casual ~ ., data=bostonTrain, mtry=6, importance=TRUE)
+boston.rf <- randomForest(medv ~ ., data=bostonTrain, mtry=6, importance=TRUE)
 boston.rf
 
 pred.rf <- predict(boston.rf, newdata=bostonTest)
@@ -267,6 +268,46 @@ library(gbm)
 set.seed(1)
 boston.boost <- gbm(medv ~ ., data=bostonTrain, distribution = "gaussian", 
                     n.trees=5000, interaction.depth = 4) # maxdepth = 4
+
+
+############
+# Brenda Vo's example using cv.folds
+bvo.boost.boston=gbm(medv~.,data=bostonTrain,distribution="gaussian",n.trees=5000, 
+                     interaction.depth=3, shrinkage=0.1, cv.folds = 5, verbose = F )
+
+
+names(bvo.boost.boston)
+names(boston.boost)
+
+# get number of trees B for which test error is minimum
+gbm.perf(bvo.boost.boston, method="cv")
+#  504
+# or
+iMinTE <- which.min(bvo.boost.boston$cv.error); iMinTE
+# 504
+iMinRE <- which.min(bvo.boost.boston$train.error); iMinRE
+
+# Cv boost: Test vs Train error
+df <- data.frame(TestMSE = bvo.boost.boston$cv.error, TrainMSE = bvo.boost.boston$train.error,
+                 numtrees=1:5000)
+
+ggplot(data=df,aes(x=numtrees, color=c("TestMSE", "TrainMSE"))) + 
+      geom_line(aes(y=TestMSE, colour="TestMSE"), size=1)  + 
+      geom_line(aes(y=TrainMSE, colour="TrainMSE"), size=1) +
+      geom_vline(aes(xintercept = iMinTE), color="black", linetype="dashed",size=1) +
+      
+      scale_colour_discrete(name="Error Type", breaks=c("TestMSE", "TrainMSE"), 
+                            labels=c("Test error", "Train error")) + 
+      xlab("Number of trees") + ylab("Error (MSE)")
+
+# --- now use the hyper grid approach:
+
+# 1) keep ntree fixed = 5000
+# 2) do hypergrid of depth / shrinkage values
+# (3) find optimal num trees (for a model record is min test error and corresp. numtrees)
+# 4) return: use SMALLEST of all min test errors to return corresp. num trees.
+#############
+
 boston.boost
 summary(boston.boost)
 'var    rel.inf
