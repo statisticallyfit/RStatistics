@@ -210,6 +210,7 @@ getBestNumTrees <- function(fit.rf) {
       ntree    <- which.min(fit.rf$test$mse)
 }
 
+
 # function to get minimum error
 getMinError <- function(fit.rf) {
       # get the index  of minimum test error
@@ -229,13 +230,16 @@ tableBikeForest <- mtryValues %>%
 # Fit the optimal model
 bestNumTrees <- tableBikeForest$numTrees[1]
 bestTestError.forest <- tableBikeForest$error[1]
+bestMtry <- tableBikeForest$mtry[1]
 
+bike.optimal.forest <- randomForest(Casual ~., data=bikeTrain, mtry=bestMtry,
+                                    ntree=bestNumTrees, importance=TRUE)
 
-# Test Errors: random forest (another way to obtain it)
+# Test Set performance of Random Forest
 # Getting test error for the model fit with 500 trees
-pred.forest <- predict(bike.train.forest, newdata=bikeTest)
-testMSE.forest <- mean((pred.forest - Y.test)^2); testMSE.forest
-# 182607.2167
+pred <- predict(bike.optimal.forest, newdata=bikeTest)
+testMSE.forest <- mean((pred - Y.test)^2); testMSE.forest
+# 126646.1
 
 
 # Tuning parameter = number of trees. Finding best number of trees: for which test error is a minimum. 
