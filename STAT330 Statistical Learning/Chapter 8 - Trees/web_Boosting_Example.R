@@ -116,3 +116,6 @@ gbm.fit.final <- gbm(
       n.cores = NULL, # will use all cores by default
       verbose = FALSE
 )  
+
+
+vip(gbm.fit.final)

@@ -128,7 +128,7 @@ rpart.plot(bike.optimal.rtree)
 
 # Test Set performance of Regression Tree
 pred <- predict(bike.optimal.rtree, newdata=bikeTest)
-testMSE.rtree <- mean((pred - bikeTest$Casual)^2); testMSE.rtree
+testMSE.rtree <- mean((pred - Y.test)^2); testMSE.rtree
 # [1] 161270.2
 
 
@@ -178,7 +178,7 @@ bestNumTrees <- which.min(bike.bag.cv$test$mse); bestNumTrees
 min(bike.bag.cv$test$mse) # lowest test MSE, corresponding to bestNumTrees above
 
 # Plot the test set errors versus the number of trees for p = 7
-df <- data.frame(NumTrees=1:500, TestError=bike.train.bag.E$test$mse)
+df <- data.frame(NumTrees=1:500, TestError=bike.bag.cv$test$mse)
 
 ggplot(data=df, aes(x=NumTrees, y = TestError)) + 
       geom_line(size=1) + 
@@ -196,7 +196,9 @@ ggplot(data=df, aes(x=NumTrees, y = TestError)) +
 
 set.seed(123)
 
-mtryValues <- 1:p #
+# Creating mtry values
+mtryValues <- 1:p
+
 bikeRandForests <- list()
 for(i in mtryValues){
       bikeRandForests[[i]] <- randomForest(X.train, y=Y.train, xtest=X.test, 
@@ -230,77 +232,133 @@ tableBikeForest <- mtryValues %>%
 # Fit the optimal model
 bestNumTrees <- tableBikeForest$numTrees[1]
 bestTestError.forest <- tableBikeForest$error[1]
+# random forest usually uses m = p/3 = 7/3 rounds to 2, so consider the
+# mtry = 2 model to be the random forest model. 
+# here, best mtry is at m = 7, the bagging model. 
+# Hence, bagging model does better here than random forest. 
 bestMtry <- tableBikeForest$mtry[1]
 
 bike.optimal.forest <- randomForest(Casual ~., data=bikeTrain, mtry=bestMtry,
                                     ntree=bestNumTrees, importance=TRUE)
 
 # Test Set performance of Random Forest
-# Getting test error for the model fit with 500 trees
+# Getting test error for the model fit with optimal number of trees and mtry
 pred <- predict(bike.optimal.forest, newdata=bikeTest)
 testMSE.forest <- mean((pred - Y.test)^2); testMSE.forest
 # 126646.1
 
 
-# Tuning parameter = number of trees. Finding best number of trees: for which test error is a minimum. 
-iP3 = which.min(bike.train.forest.p3$test$mse) ; iP3 
-# 324
-iP2 = which.min(bike.train.forest.p2$test$mse) ; iP2 
-# 5
-iP = which.min(bike.train.forest.p$test$mse) ; iP
-# 150
-iSqrtP <- which.min(bike.train.forest.sqrtP$test$mse) ; iSqrtP
-# 107
+### Plot the test set errors versus the number of trees for various values of p 
 
-# Lowest test MSE for the models with various mtry tuning parameters
-minP3 <- min(bike.train.forest.p3$test$mse); minP3 
-# 179725.972
-minP2  <- min(bike.train.forest.p2$test$mse); minP2
-# 128608.5718
-minP <- min(bike.train.forest.p$test$mse); minP
-# 131210.9002
-minSqrtP <- min(bike.train.forest.sqrtP$test$mse); minSqrtP
-# 152466.7358
-
-# Plot the test set errors versus the number of trees for various values of p 
-df <- data.frame(NumTrees=1:500, 
-                 P = bike.train.forest.p$test$mse, 
-                 P2 = bike.train.forest.p2$test$mse, 
-                 P3 = bike.train.forest.p3$test$mse,
-                 PSQ = bike.train.forest.sqrtP$test$mse)
-
-ggplot(data=df, aes(x=NumTrees)) + 
-      geom_line(aes(y=P), size=1, colour="black") + 
-      geom_point(x=iP, y=minP, color="black", size=3) +
-
-      geom_line(aes(y=P2), size=1, colour="dodgerblue") + 
-      geom_point(x=iP2, y=minP2, color="dodgerblue", size=3) +
-      
-      geom_line(aes(y=P3), size=1, colour="purple") + 
-      geom_point(x=iP3, y=minP3, color="purple", size=3) +
-      
-      geom_line(aes(y=PSQ), size=1, colour="magenta") + 
-      geom_point(x=iSqrtP, y=minSqrtP, color="magenta", size=3) +
-      
-      xlab("Number of Trees") + ylab("Test MSE") + 
-      scale_fill_discrete(name = "Model Type (mtry)", labels = c("m = p", "m = p/2", "m = p/3", "m = sqrt(p)"))
+# First create the data frame of test errors for various values of P
+#df <- data.frame(NumTrees=1:500)
+#for(p in mtryValues[,1]){
+#      name <- paste("P_", p, sep="")
+#      df[,name] <- bikeRandForests[[p]]$test$mse
+#}
+## Now create the plots for various p
+#g <- ggplot(data=df, aes(x=NumTrees))
+#for(p in mtryValues[,1]){
+#      print(p)
+#      g <- g + geom_line(aes(y=df[,p]), size=1)
+#}
+#g <- xlab("Number of Trees") + ylab("Test MSE")
 
 
 
-### BOOSTING
+### BOOSTING------------------
 
 library(gbm)
 
 set.seed(103)
 
+hyperGrid <- expand.grid(
+      shrinkage = 10^ seq(-2, -0.2, by = 0.1), #c(.01, .1, .3),
+      interaction.depth = c(1, 3, 5)
+)
 
-lambdas = 10^ seq(-10, -0.2, by = 0.1) # range of lambdas to use
-L = length(lambdas)
-trainErrors = rep(NA, L)
+
+bikeBoosts <- list()
+for(i in 1:nrow(hyperGrid)) {
+      
+      # train model
+      bike.boost.cv <- gbm(
+            formula = Casual ~ .,
+            distribution = "gaussian",
+            data = bikeTrain,
+            n.trees = 5000,
+            interaction.depth = hyperGrid$interaction.depth[i],
+            shrinkage = hyperGrid$shrinkage[i],
+            cv.folds=10,
+            n.cores = NULL, # will use all cores by default
+            verbose = FALSE
+      )
+      bikeBoosts[[i]] <- bike.boost.cv
+}
+
+getBestNumTrees.boost <- function(fit.boost) {
+      # get index of minimum test error (this is the number of trees)
+      ntree    <- which.min(fit.boost$cv.error)
+}
+
+
+# function to get minimum error
+getMinError.boost <- function(fit.boost) {
+      # get the index  of minimum test error
+      err    <- min(fit.boost$cv.error)
+}
+
+#getMinTrainError.boost <- function(fit.boost) {
+#      err <- min(fit.boost$train.error)
+#}
+
+getInteractionDepth.boost <- function(fit.boost){
+      d <- fit.boost$interaction.depth
+}
+
+getShrinkage.boost <- function(fit.boost){
+      lambda <- fit.boost$shrinkage
+}
+
+tableBikeBoosts <- hyperGrid %>% 
+      mutate(
+            interactionDepth = purrr::map_dbl(bikeBoosts, getInteractionDepth.boost),
+            shrinkage = purrr::map_dbl(bikeBoosts, getShrinkage.boost),
+            bestNumTrees    = purrr::map_dbl(bikeBoosts, getBestNumTrees.boost),
+            #minTrainError = purrr::map_dbl(bikeBoosts, getMinTrainError.boost),
+            minTestError = purrr::map_dbl(bikeBoosts, getMinError.boost)
+      ) %>%
+      dplyr::arrange(minTestError)
+
+
+bestDepth <- tableBikeBoosts$interactionDepth[1]
+bestShrinkage <- tableBikeBoosts$shrinkage[1]
+bestNumTrees <- tableBikeBoosts$bestNumTrees[1]
+bestTestError.boost <- tableBikeBoosts$minTrainError[1]
+
+## Fit the optimal model
+bike.optimal.boost <- gbm(formula = Casual ~ ., 
+                          distribution = "gaussian", 
+                          data = bikeTrain, 
+                          n.trees = bestNumTrees, 
+                          interaction.depth = bestDepth, 
+                          shrinkage = bestShrinkage, 
+                          verbose=FALSE)
+
+# Test set performance of the boosting model
+pred <- predict(bike.optimal.boost, bikeTest)
+testMSE.boost <- mean((pred - Y.test)^2)
+#trainError.boost <- tableBikeBoosts$minTestError[1]
+# $$$$$$$$$$$$$$$$$$$
+#lambdas = 10^ seq(-2, -0.2, by = 0.1) # range of lambdas to use
+#L = length(lambdas)
+
+"trainErrors = rep(NA, L)
 testErrors = rep(NA, L)
 
 for (i in 1:L) {
-      bike.train.boost <- gbm(Casual ~ ., data=bikeTrain, distribution="gaussian", n.trees=1000,
+      bike.train.boost <- gbm(Casual ~ ., data=bikeTrain, distribution='gaussian, 
+                              n.trees=1000,
                               shrinkage = lambdas[i])
       # Calculate training errors
       pred1 = predict(bike.train.boost, bikeTrain, n.trees = 1000)
@@ -322,14 +380,22 @@ trainLambda <- lambdas[iMinTrain]; trainLambda
 testLambda <- lambdas[iMinTest]; testLambda 
 
 ggplot(data=df, aes(x=Lambdas)) + 
-      geom_line(aes(y=TrainErrors), size=1, colour="red") + 
-      geom_point(x=trainLambda, y=trainMSE.boost.min, color="red", size=3) +
+      geom_line(aes(y=TrainErrors), size=1, colour='red) + 
+      geom_point(x=trainLambda, y=trainMSE.boost.min, color='red, size=3) +
       
-      geom_line(aes(y=TestErrors), size=1, colour="blue") + 
-      geom_point(x=testLambda, y=testMSE.boost.min, color="blue", size=3) +
+      geom_line(aes(y=TestErrors), size=1, colour='blue) + 
+      geom_point(x=testLambda, y=testMSE.boost.min, color='blue, size=3) +
       
-      xlab("Shrinkage Parameter (Lambda)") + ylab("Errors (MSE)") #+ 
-      #scale_fill_discrete(name = "Error Type", labels = c("train error", "test error"))
+      xlab('Shrinkage Parameter (Lambda)) + ylab('Errors (MSE)) #+ 
+      #scale_fill_discrete(name = 'Error Type, labels = c('train error, 'test error))
+
+"
+
+
+
+
+
+
 
 
 
