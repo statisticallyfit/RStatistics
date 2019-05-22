@@ -90,13 +90,14 @@ ggplot(data=df, aes(x=PrincipalComponent, y=CPVE)) +
 
 # CLUSTERING ------------------------------------------------------------------------------
 
-# making two clusters in the data
+# making two clusters in the data (with only 2 predictors)
 set.seed(2)
 x = matrix(rnorm(50*2), ncol=2)
 x[1:25, 1] = x[1:25, 1] + 3
 x[1:25, 2] = x[1:25, 2] - 4
 x <- data.frame(x)
 
+# 2 = means identify 2 clusters
 data.km <- kmeans(x, 2, nstart=20)
 data.km
 names(data.km)
@@ -194,6 +195,8 @@ ggdendrogram(hclust(dd, method="complete"), rotate=FALSE, theme=F, size=3) +
 
 
 
+
+
 # NC160 DATA EXAMPLE --------------------------------------------------------------------
 
 data("NCI60")
@@ -236,21 +239,25 @@ assignColor <- function(vec) {
 
 # Plotting the principal component score vectors
 par(mfrow=c(1,2))
+
 length(nci.labs)
 nrow(nci.pca$x)
 
 plot(nci.pca$x[,1:2], col=assignColor(nci.labs), pch=19, xlab="Z1", ylab="Z2")
-plot(nci.pca$x[,1:3], col=assignColor(nci.labs), pch=19, xlab="Z1", ylab="Z3")
+plot(nci.pca$x[,c(1,3)], col=assignColor(nci.labs), pch=19, xlab="Z1", ylab="Z3")
 
 
-# Or ggplot - check - same?
-df <- data.frame(Z1=nci.pca$x[,1], Z2=nci.pca$x[,2], labels=assignColor(nci.labs))
-ggplot(data=df, aes(x=Z1, y=Z2, color=labels)) + geom_point(size=3) + 
-      ggtitle("First two PC") + scale_colour_manual(values=df$labels)
+# Or ggplot 
+# Got help on how to get different color per point from this source: 
+# https://github.com/slowkow/ggrepel/issues/82
+df <- data.frame(Z1=nci.pca$x[,1], Z2=nci.pca$x[,2], 
+                 Z3=nci.pca$x[,3], labels=assignColor(nci.labs))
 
-df <- data.frame(Z1=nci.pca$x[,1], Z3=nci.pca$x[,3], labels=assignColor(nci.labs))
-ggplot(data=df, aes(x=Z1, y=Z3, color=labels)) + geom_point(size=3) + 
-      scale_colour_manual(values=df$labels)
+ggplot(data=df, aes(x=Z1, y=Z2)) + geom_point(size=3, colour=df$labels, fill=df$labels) + 
+      ggtitle("PC1 and PC2")
+ggplot(data=df, aes(x=Z1, y=Z3)) + geom_point(size=3, colour=df$labels, fill=df$labels) + 
+      ggtitle("PC1 and PC3")
+
 # Cell lines corresponding to a single cancer type tend to have similar values on the first
 # few princiapl component score vectors. Shows that cell lines from the same canceer
 # type tend to have similar gene expression levels. 
@@ -260,28 +267,119 @@ summary(nci.pca)
 #plot(nci.pca) # plotting the variance explained (first row) by the first few components.
 # squaring values rom pca$sdev
 
-# Better to plot PVE and cum PVE
+
+
+
+
+# Better to plot PVE and cumulative PVE
 pve = 100*nci.pca$sdev^2 / sum(nci.pca$sdev^2)
 head(pve)
-# same as: 
+
 summary(nci.pca)$importance
+# Another way: pve
+summary(nci.pca)$importance[2,] #pve
+summary(nci.pca)$importance[3,] #cpve
 
-numPCs <- dim(nci.pca$x)[2]
-df <- data.frame(PrincipalComponent=1:numPCs, PVE=pve, CPVE = cumsum(pve))
 
-par(mfrow=c(1,2))
-plot(pve , type ="o", ylab =" PVE ", xlab =" Principal Component ",
-     col =" blue ")
+numPCs <- dim(nci.pca$x)[2]; numPCs
+df <- data.frame(PC=1:numPCs, PVE=pve, CPVE = cumsum(pve))
 
-plot(cumsum(pve) , type ="o", ylab =" PVE ", xlab =" Principal Component ",
-     col =" blue ")
+ggplot(data=df, aes(x=PC, y=PVE)) + geom_line(size=1, color="dodgerblue") +
+      geom_point(size=3, color="navyblue", alpha=0.5) + ggtitle("Scree Plot: Proportion of Variance explained")
 
-# HELP: not working
-ggplot(data=df, aes(x=PrincipalComponent, y=PVE)) + geom_line(size=1, colour="dodgerblue") +
-      geom_point(size=3) + ggtitle("Scree Plot: Proportion of Variance explained")
-
-ggplot(data=df, aes(x=PrincipalComponent, y=CPVE)) + 
-      geom_line(size=1, colour="dodgerblue") + geom_point(size=3) + 
+ggplot(data=df, aes(x=PC, y=CPVE)) + 
+      geom_line(size=1, color="dodgerblue") + geom_point(size=3, color="navyblue", alpha=0.5) + 
       ggtitle("Scree Plot: Cumulative Proportion of Variance explained")
 
-# pg 419
+# See from CPVE: the first seven principal components explain around 40% of the variance
+# in the data. Not huge amount. 
+# From PVE: the seventh principal component explains around 3 % of variance in the data
+# Elbow poitn of diminishing returns: after the seventh principal component. 
+
+
+#### Hierarchical Clustering ON NC160 -----------------------------------------------------
+
+# Goal: see if the observations cluster into distinct types of cancer. 
+# Standardize variables to mean zero and sd = 1
+
+nciScaledData <- scale(nci.data)
+mean(nciScaledData)
+sd(nciScaledData)
+
+# Do hierarchical clustering with complete, single, average linkage
+# euclidean distance as dissimilarity measure. 
+dd <- dist(nciScaledData)
+
+par(mfrow=c(1,1))
+plot(hclust(dd, "complete"), labels=nci.labs, xlab="", sub="", ylab="")
+plot(hclust(dd, "average"), labels=nci.labs, xlab="", sub="", ylab="")
+plot(hclust(dd, "single"), labels=nci.labs, xlab="", sub="", ylab="")
+
+ggdendrogram(hclust(dd, method="complete"), rotate=FALSE, theme=F, size=2) + 
+      labs(title="Complete Linkage with Euclidean Distance")
+ggdendrogram(hclust(dd, method="average"), rotate=FALSE, theme=F, size=2) + 
+      labs(title="Complete Average with Euclidean Distance")
+ggdendrogram(hclust(dd, method="single"), rotate=FALSE, theme=F, size=2) + 
+      labs(title="Complete Single with Euclidean Distance")
+
+# Single linkage = gives trailing clusters: large clusters onto which individual 
+# obs attach one by one
+# Complete and average yield balanced clusters. 
+
+# Answer to question: yes cell lines within single cancer type do cluster together
+# breast together, melaoma together, ovarian together, leukemia together. 
+
+
+# Can cut the dendrogram at the height to yield a particular number of clusters
+hc.cancer <- hclust(dd) #using complete linkage
+names(hc.cancer)
+hc.cutree <- cutree(hc.cancer, 4) # cut tree to yield 4 clusters
+hc.cutree
+
+table(hc.cutree, nci.labs)
+# Leukemia cell lines: all fall in cluster 3
+# Breast cell lines: spread out over three different clusters
+
+# Plotting the cut
+par(mfrow=c(1,1))
+plot(hc.cancer, labels=nci.labs)
+abline(h=139, col="red") # height 139 produces 4 cluster groups (guess it by eye)
+
+
+
+### KMEANS CLUSTERING ------------------------------------------------------------
+
+set.seed(2)
+# trying to identify 4 clusters in the data
+nci.kmeans <- kmeans(nciScaledData, 4, nstart=20)
+names(nci.kmeans)
+
+nci.kmeans$cluster
+table(KMClusters=nci.kmeans$cluster, HCClusters=hc.cutree) # comparing hierarch cluster with kmeans cluster
+
+# See: the four clusters obtained from hierarchical and kmeans are different: 
+# Cluster 2 in kmeans (vertical) is identical to cluster 3 in hierarchical clustering (???)
+# But other clusters differ: 
+# --> cluster 4 in kmeans contains a portion of observations assigned to cluster 1 by 
+#     hierarchical clustering, and all observations assigned to cluster 2 by hierarch.
+
+
+
+# Doing hierarchical clustering on just the first few princiapl component score vectors
+# instead of entire data matrix:
+nci.hc.smaller <- hclust(dist(nci.pca$x[, 1:5]))
+nci.hc.smaller
+
+plot(nci.hc.smaller, labels=nci.labs, main="Hier. Clust. on First Five Score Vectors")
+# or ggplot
+nci.hc.smaller$labels <- nci.labs
+ggdendrogram(nci.hc.smaller, theme_dendro = F, rotate=F)
+
+
+table(HCFirstFive = cutree(nci.hc.smaller, 4), Labels=nci.labs)
+# cutree on smaller cluster to yield 4 clusters
+
+
+
+# Results are different: from before, using full data
+table(HCAllData=hc.cutree, Labels=nci.labs)
