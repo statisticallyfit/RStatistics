@@ -9,17 +9,11 @@ library(corrplot)
 
 # part b) PCA on pacific pacifics dataset
 
-
 pacificData <- read.csv("Pacific Islands.csv")
 
 # We predict the supplementary categorical variables at the end using PCA.
 pacific.supp <- pacificData[,14]
 
-head(pacificData)
-p <- ncol(pacificData) # number of features
-p
-n <- nrow(pacificData) # number of observations
-n
 
 # Finding a low-dimensional representation using PCA
 pacificData <- pacificData[,-1]
@@ -27,9 +21,18 @@ pacific.pca <- PCA(pacificData, quali.sup=13, scale.unit=TRUE, graph=F)
 # Have min(n-1, p) = 12 principal components
 pacific.pca
 
+p <- ncol(pacificData) # number of features
+n <- nrow(pacificData) # number of observations
+
+
+# Need to standardize because each variable has different means and variances and units
+# are different so PCA will be affected.
+apply(pacificData[,1:(p-1)], 2, mean)
+apply(pacificData[,1:(p-1)], 2, sd)
+
+
 
 # Scree plot (PVE / eigenvalues) -----------------------
-
 
 # Eigenvalues: amount of variance retained by each principle component is called
 # its eigenvalue. 
@@ -45,17 +48,6 @@ pacific.pca$eig[,2] # PVE
 # --> cumulative PVE is 94% at 4th principal component
 pacific.pca$eig[,3]
 
-# Eigenvalues can be used to determine the number of principal components to retain after
-# PCA (Kaiser, 1961):
-#     ---> An eigenvalue > 1 indicates that PCs account for more variance than accounted
-# by one of the original variables in standardized data. This is commonly used
-# as a cutoff point for which PCs are retained. This holds true only when the
-# data are standardized.
-#     ---> You can also limit the number of component to that number that accounts
-# for a certain fraction of the total variance. For example, if you are satisfied
-# with 70% of the total variance explained then use the number of components
-# to achieve that.
-
 # elbow = around 4 PCs since 94% of variation in the observations is explained using
 # 4 PC's. The fourth PC adds 6.68% more explanation:
 pacific.pca$eig[,2]
@@ -64,10 +56,11 @@ fviz_screeplot(pacific.pca, addlabels=TRUE, barfill="powderblue", barcolor="deep
                ggtheme=theme_gray(), main="Percent Variation Explained")
 
 
-
 # Graphs of individuals ---------------------------------------------
 # COS2 - quality of representation for individuals
 ## # red are individual obs which are most strongly represented by the PC1 and PC2
+pacific.pca$ind$cos2
+
 fviz_pca_ind(pacific.pca, 
              col.ind="cos2", 
              geom = "point",
@@ -84,12 +77,14 @@ fviz_pca_ind(pacific.pca,
 # principal component.
 # Basing the interpretation of a component on  the observations whose contribution 
 # is larger than the average contribution.
+pacific.pca$ind$contrib
+
 fviz_pca_ind(pacific.pca, 
              col.ind="contrib", 
              pointsize="contrib", repel=TRUE) +
       scale_color_gradient2(low="white", mid="blue",
                             high="red", 
-                            midpoint=mean(us.ind$contrib)) + theme_gray()
+                            midpoint=mean(pacific.pca$ind$contrib)) + theme_gray()
 
 
 
@@ -108,7 +103,9 @@ fviz_pca_ind(pacific.pca,
 
 ## COS 2 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Cos 2 = quality of representation of variables on a factor map
-corrplot(pacific.pca$var$cos2, is.cor=F) # best
+corrplot(pacific.pca$var$cos2, is.cor=F) 
+
+pacific.pca$var.cos2 
 
 fviz_pca_var(pacific.pca, 
              col.var="cos2", 
