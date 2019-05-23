@@ -42,12 +42,12 @@ fviz_dist(res.dist, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4
 # Provides you with a calculated guess on the best number of clusters to use.  Optimal K is based partly on the Gap
 # statistic (y-axis) as well as other properties.  This graphic suggests that you use K = 3 however both K = 4 and 
 # K = 5 look somewhat favourable as well.
-fviz_nbclust(my_data, kmeans, method = "gap_stat")
+fviz_nbclust(USArrests, kmeans, method = "gap_stat")
 
 # This is another way of finding a best guess for K.  This method actually uses 30 different indices and then reports
 # the frequency of best choice for each.  This process suggests K = 2 and then K = 4. 
 set.seed(123)
-res.nbclust <- NbClust(my_data, distance = "euclidean", min.nc = 2, max.nc = 10, method = "complete", index ="all") 
+res.nbclust <- NbClust(USArrests, distance = "euclidean", min.nc = 2, max.nc = 10, method = "complete", index ="all") 
 factoextra::fviz_nbclust(res.nbclust) + theme_minimal()
 
 # Visualize a K-means cluster using K = 3.  You can come back to this line and re-run the analysis (and visualization)
