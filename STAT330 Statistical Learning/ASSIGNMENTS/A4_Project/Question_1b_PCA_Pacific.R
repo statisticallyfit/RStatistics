@@ -1,5 +1,4 @@
 setwd("/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/ASSIGNMENTS/A4_Project")
-
 library(ggfortify) # for ggplot version of biplot (plotting principal component score vectors)
 library("ggplot2")
 library("factoextra")
@@ -7,13 +6,10 @@ library(FactoMineR)
 library(ggcorrplot)
 library(corrplot)
 
-# part b) PCA on pacific pacifics dataset
-
 pacificData <- read.csv("Pacific Islands.csv")
 
 # We predict the supplementary categorical variables at the end using PCA.
 pacific.supp <- pacificData[,14]
-
 
 # Finding a low-dimensional representation using PCA
 pacificData <- pacificData[,-1]
@@ -24,21 +20,15 @@ pacific.pca
 p <- ncol(pacificData) # number of features
 n <- nrow(pacificData) # number of observations
 
-
 # Need to standardize because each variable has different means and variances and units
 # are different so PCA will be affected.
 apply(pacificData[,1:(p-1)], 2, mean)
 apply(pacificData[,1:(p-1)], 2, sd)
 
-
-
 # Scree plot (PVE / eigenvalues) -----------------------
 
 # Eigenvalues: amount of variance retained by each principle component is called
 # its eigenvalue. 
-# Eigenvalues are large for the first PCs and small
-# for the subsequent PCs. That is, the first PCs corresponds to the directions with the
-# maximum amount of variation in the data set
 pacific.pca$eig
 
 # --> sum of all eigen values result in a total variance of 1226, explained by all PC's
@@ -57,7 +47,9 @@ fviz_screeplot(pacific.pca, addlabels=TRUE, barfill="powderblue", barcolor="deep
 
 
 # Graphs of individuals ---------------------------------------------
-# COS2 - quality of representation for individuals
+
+# COS2   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# quality of representation for individuals 
 ## # red are individual obs which are most strongly represented by the PC1 and PC2
 pacific.pca$ind$cos2
 
@@ -68,15 +60,9 @@ fviz_pca_ind(pacific.pca,
       scale_color_gradient2(low="white", mid="blue",
                             high="red") + theme_gray()
 
-# CONTRIB
+# CONTRIB  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Color individuals by contribution to PC
 
-# Contribution is always between 0 and 1. 
-# For a given component, the sum of the contributions of all observations = 1. 
-# The larger the value of the contribution, the more the observation  contributes to the 
-# principal component.
-# Basing the interpretation of a component on  the observations whose contribution 
-# is larger than the average contribution.
 pacific.pca$ind$contrib
 
 fviz_pca_ind(pacific.pca, 
@@ -87,19 +73,9 @@ fviz_pca_ind(pacific.pca,
                             midpoint=mean(pacific.pca$ind$contrib)) + theme_gray()
 
 
-
 # Graphs of variables ---------------------------------------------
 
-# Or called variable correlation plots
-# Shows relation between all variables
-
-# INTERPRETATION of graphs of variables: 
-# --> positive correlateled variables are grouped together
-# --> negatively correlated variables are positioned on opposite sides of the plot
-#     origin (opposed quadrants)
-# --> distance between variables and the origin measures the quality of the variables
-#     on this graph. Variables away from the origin are important. 
-
+# Or called variable correlation plots # Shows relation between all variables
 
 ## COS 2 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Cos 2 = quality of representation of variables on a factor map
@@ -112,28 +88,8 @@ fviz_pca_var(pacific.pca,
              gradient.cols=c("#00AFBB", "#E7B800", "#FC4E07"), #c("white", "blue", "red"),
              repel=TRUE, ggtheme=theme_gray())
 
-# INTERPRET COS2
-# --> high cos2 = good representation of a variable (predictor) on the principal component
-#     means the PC represents it well (goal). Then, we see the variable is positioned
-#     close to the circumference of the correlation circle. 
-# --> low cos2 of a variable for a PC is not perfectly represented by the PC. Then
-#     the variable is close to center of circle, away from borders. 
-
-# For a given variable, the sum of the cos2 on all the principal components is equal to one.
-# If a variable is perfectly represented by only two principal components (Dim.1 & Dim.2),
-# the sum of the cos2 on these two PCs is equal to one. In this case the variables will be
-# positioned on the circle of correlations.
-# For some of the variables, more than 2 components might be required to perfectly
-# represent the data. In this case the variables are positioned inside the circle of 
-# correlations
-
-
 ## CONTRIB +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # Color by contributions to the PC
-# --> variables correlated with first few pc's (PC1, PC2) are the most important
-# to explaining the variability in data (highest contrib)
-# --> variables not correlated with any PC of with last dimensions are variables with 
-# low contribution (contrib) and are not important to data
 
 # INTERPRET: 
 # large contrib value for a component => the more the variable contributes to that component.
@@ -148,7 +104,6 @@ fviz_pca_var(pacific.pca,
              gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
              repel = TRUE) +     # Avoid text overlapping) 
       theme_gray()
-
 
 
 ### Final biplot -----------------------------------------------
@@ -175,10 +130,10 @@ fviz_pca_biplot(pacific.pca, repel = TRUE,
 
 ### Interpreting supplementary variables -----------------------
 
-# Predicted results (coordinates, correlation, and cos2) for the supplementaru 
+# Predicted results (coordinates, correlation, and cos2) for the supplementary variables
 # categorical variable Region
 pacific.pca$quali.sup # predicted results for supplementary variables
-# (in this case we have no supplementary individs)
+# (in this case we have no supplementary individuals)
 
 group.region <- as.factor(pacific.supp)
 fviz_pca_ind(pacific.pca,
