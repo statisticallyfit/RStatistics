@@ -55,7 +55,7 @@ ggplot(jobData, aes(x=JOB, y=CONSERVATIVE, color=JOB)) + geom_boxplot(size=1) +
 #ggplot(jobData, aes(x=OUTDOOR, y=CONSERVATIVE, color=JOB)) + geom_point(size=2.5)
 #ggplot(jobData, aes(x=CONSERVATIVE, y=SOCIAL, color=JOB)) + geom_point(size=2.5)
 # no clear separations between jobs for the different predictors
-
+# so logistic is good to use
  
 
 # part b) ------------------------------------------------------

@@ -199,8 +199,9 @@ confusionMatrix(data=week.train.knn1, reference=testData$Direction, positive="Up
 acc.knn = mean(week.train.knn1 == testData$Direction); acc.knn
 # this is test error rate
 
-# this is train error rate
-mean(week.train.knn1 == trainData$Direction)
+# this is train error rate -- -CORRECTION - nope need to see Assg 1 Q3 classif for how
+# to get the test and train knn errors. 
+# mean(week.train.knn1 == trainData$Direction)
 
 # Sensitivity: TP/P = when the market goes up, the knn says up 50.8% of the time
 sensitivity(mirror(knn.tbl), positive="Up")
