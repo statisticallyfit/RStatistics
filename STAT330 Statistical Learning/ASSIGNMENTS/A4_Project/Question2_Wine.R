@@ -1,5 +1,8 @@
 setwd("/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT330 Statistical Learning/ASSIGNMENTS/A4_Project")
 
+# Sources
+# http://uc-r.github.io/random_forests
+# wine: https://rstudio-pubs-static.s3.amazonaws.com/175762_83cf2d7b322c4c63bf9ba2487b79e77e.htmls
 library(ggplot2)
 #library(corrplot)
 library(ggcorrplot)
@@ -114,12 +117,12 @@ p.alc <- ggplot(data=wineData, aes(x=alcohol, fill=quality)) +
       ggtitle("Quality of Alcohol")
 
 # Fixed acidity, volatile, citric acid, residual sugar
-grid.arrange(p.fixed, p.vol, p.citric, p.sugar)
-grid.arrange(p.chlo, p.freesulf, p.totsulf, p.density)
-grid.arrange(p.pH, p.sulph, p.alc)
+#grid.arrange(p.fixed, p.vol, p.citric, p.sugar)
+#grid.arrange(p.chlo, p.freesulf, p.totsulf, p.density)
+#grid.arrange(p.pH, p.sulph, p.alc, nrow=2)
 #OR in larger groups
-#grid.arrange(p.fixed, p.vol, p.citric, p.sugar,  p.chlo, p.freesulf)
-#grid.arrange(p.totsulf, p.density, p.pH, p.sulph, p.alc)
+grid.arrange(p.fixed, p.vol, p.citric, p.sugar,  p.chlo, p.freesulf)
+grid.arrange(p.totsulf, p.density, p.pH, p.sulph, p.alc)
 
 # Generally, classes are not well separated according to each variable. The means are 
 # similar and the density by quality is not well separated for quality = low versus high. 
@@ -128,7 +131,7 @@ grid.arrange(p.pH, p.sulph, p.alc)
 # NOnlinear decision boundary?
 # Scatterplots: to see what kind of decision boundary there is
 ggplot(data=wineData, aes(x=fixed.acidity, y=free.sulfur.dioxide, colour=quality)) + 
-      geom_point(size=1)
+      geom_point(size=1) + ggtitle("Fixed Acidity vs Free Sulfur Dioxide")
 # generally no clear separation, so use KNN for most flexible model fit
 
 
@@ -147,15 +150,15 @@ iTrain <- sample(x=1:N, size=(2/3)*N) # training indices
 wineTrain <- wineData[iTrain, ]
 wineTest <- wineData[-iTrain, ]
 
-X.train <- as.matrix(wineTrain[, -12]) # all predictors from train
-X.test <- as.matrix(wineTest[, -12]) # all predictors from test
-Y.train <- as.matrix(wineTrain$quality) # 
-Y.test <- as.matrix(wineTest$quality)
+#X.train <- as.matrix(wineTrain[, -12]) # all predictors from train
+#X.test <- as.matrix(wineTest[, -12]) # all predictors from test
+#Y.train <- as.matrix(wineTrain$quality) # 
+#Y.test <- as.matrix(wineTest$quality)
 
-X.train2 <- wineTrain[,-12]
-X.test2 <- wineTest[,-12]
-Y.train2 <- as.factor(wineTrain$quality)
-Y.test2 <- as.factor(wineTest$quality)
+X.train <- wineTrain[,-12]
+X.test <- wineTest[,-12]
+Y.train <- as.factor(wineTrain$quality)
+Y.test <- as.factor(wineTest$quality)
 
 
 # MODEL 1: KNN ============================================================================
@@ -207,21 +210,25 @@ results
 k = which.min(results$KNNPerformance$TestErrorRate); k
 which.max(results$KNNPerformance$TestAccuracyRate)
 
+# the best model
+results$KNNModels[[k]] # training and test models
 
-# confusion matrix for the kth model (best)
+# confusion matrix for the best (k  =1) model
 cm.train.knn.best <- results$KNNConfusionMatrices[[k]]$TrainConfusionMatrix
 cm.train.knn.best
 cm.test.knn.best <- results$KNNConfusionMatrices[[k]]$TestConfusionMatrix
 cm.test.knn.best
 
-
-# hich model has lowest test error rate
+# Proportion of correct predictions on train data
 train.acc.knn.best <- results$KNNPerformance$TrainAccuracyRate[k]; train.acc.knn.best
 #  1
+# Proportion of correct predictions on test data
 test.acc.knn.best <- results$KNNPerformance$TestAccuracyRate[k]; test.acc.knn.best
 #  0.69606
+# Proportion of wrong predictions on train data
 train.error.knn.best <- results$KNNPerformance$TrainErrorRate[k]; train.error.knn.best
 # 0
+# Proportion of wrong predictions on test data
 test.error.knn.best <- results$KNNPerformance$TestErrorRate[k]; test.error.knn.best
 # 0.30394
 
@@ -238,88 +245,94 @@ hyperGrid <- expand.grid(
 wineRandForests <- vector("list", length=nrow(hyperGrid))
 
 for(i in 1:nrow(hyperGrid)) {
-      model <- randomForest(X.train2, y=Y.train2, xtest=X.test2, ytest=Y.test2,
+      model <- randomForest(X.train, y=Y.train, xtest=X.test, ytest=Y.test,
                             ntree           = 500,
                             oob.error = TRUE,
                             mtry            = hyperGrid$Mtry[i],
                             nodesize        = hyperGrid$NodeSize[i])
       model$test$err.rate <- data.frame(model$test$err.rate)
       wineRandForests[[i]]  <- model 
-      'wineRandForests[[i]]  <- randomForest(
-            formula         = quality ~ ., 
-            data            = wineTrain, 
-            ntree           = 500,
-            mtry            = hyperGrid$Mtry[i],
-            nodesize        = hyperGrid$NodeSize[i],
-            sampsize        = hyperGrid$SampleFrac[i] # fraction of observations to sample
-            
-      )'
-      'wineRandForests[[i]]  <- ranger(
-            formula         = quality ~ ., 
-            data            = wineTrain, 
-            num.trees           = 500,
-            mtry            = hyperGrid$Mtry[i],
-            min.node.size        = hyperGrid$NodeSize[i],
-            sample.fraction    = hyperGrid$SampleFrac[i], # fraction of observations to sample
-            seed=123
-      )'
 }
 
-
-'
-# function to get optimal number of trees by using OOB error
-getBestNumTrees.rf <- function(fit.rf) {
-      # get index of minimum test error (this is the number of trees)
-      ntree    <- which.min(fit.rf$err.rate[,"OOB"])
-}
+# get index of minimum test error (this is the number of trees)
+getBestNumTrees.rf <- function(fit.rf) { which.min(fit.rf$test$err.rate$Test) }
 # function to get minimum error
-getMinOOBError.rf <- function(fit.rf) {
-      minOOB    <- min(fit.rf$err.rate[,"OOB"])
-}'
-
-
-
-getOob <- function(fit.rng) { fit.rng$prediction.error }
-getTestErr <- function(fit.rng) {mean(fit.rng$predictions != Y.test[,]) }
+getMinError.rf <- function(fit.rf) {  min(fit.rf$test$err.rate$Test) }
 
 tableWine = hyperGrid %>%
       mutate(
-            oobErr = purrr::map_dbl(wineRandForests, getOob),
-            testErr = purrr::map_dbl(wineRandForests, getTestErr))
-
+            NumTrees = purrr::map_dbl(wineRandForests, getBestNumTrees.rf),
+            TestErr = purrr::map_dbl(wineRandForests, getMinError.rf))
 
 # arrange sorts the resulting matrix from above according to minimum error
-tableWine.ord <- tableWine %>% arrange(testErr) 
+tableWine.ord <- tableWine %>% arrange(TestErr) 
 # Describe
-tableWine.ord
+tableWine.ord # best test error with mtry = 10, and numtrees = 34
 
 #Get the id of the best model
-BM <- which.min(tableWine$testErr); BM
-# 6
+BM <- which.min(tableWine$TestErr); BM
+# 10
+wineBest.rf <- wineRandForests[[BM]]
 
 # Get the optimal tuning parameters
-bestNumTrees.forest <- tableBikeForest$numTrees[BM]; bestNumTrees.forest
-# 275
-bestTestError.forest <- tableBikeForest$error[BM]; bestTestError.forest
-# 129695.2
-bestMtry.forest <- tableBikeForest$mtry[BM]; bestMtry.forest
-# 6
-# random forest with m = 6 is the best model
+bestNumTrees <- tableWine$NumTrees[BM]; bestNumTrees
+# 34
+bestTestError <- tableWine$TestErr[BM]; bestTestError
+# 0.195122
+bestMtry <- tableWine$Mtry[BM]; bestMtry
+# 10
 
 # Fit the optimal model on the whole data
-set.seed(1)
-bike.optimal.forest <- randomForest(Casual ~., data=data, mtry=bestMtry.forest,
-                                    ntree=bestNumTrees.forest, importance=TRUE)
+set.seed(45)
+wine.optimal.forest <- randomForest(quality ~., data=wineData, mtry=bestMtry,
+                                    ntree=bestNumTrees, importance=TRUE)
 
 #Describe
-bike.optimal.forest # has training error performance there
+wine.optimal.forest # has training error performance there
 
 
 # Plot the test errors for the  best random forest model
-df <- data.frame(TestMSE = wineRandForests[[BM]]$test$mse, NumTrees=1:500)
+df <- data.frame(TestErr = wineRandForests[[BM]]$test$err.rate$Test, NumTrees=1:500)
 
 ggplot(data=df,aes(x=NumTrees)) + 
-      geom_line(aes(y=TestMSE), colour="deeppink", size=1)  + 
-      geom_point(x=bestNumTrees.forest, y=bestTestError.forest, color="black", size=4)+
-      geom_vline(aes(xintercept = bestNumTrees.forest), color="black", linetype="dashed",size=1) +
+      geom_line(aes(y=TestErr), colour="deeppink", size=1)  + 
+      geom_point(x=bestNumTrees, y=bestTestError, color="black", size=4)+
+      geom_vline(aes(xintercept = bestNumTrees), color="black", linetype="dashed",size=1) +
       ggtitle("Test Errors for Random Forest Cross-Validation Model")
+
+
+### Confusion matrices for best model
+wineBest.rf
+
+# Confusion matrices for train data on optimal model
+pred.opt.train = predict(wine.optimal.forest, wineTrain)
+cm.opt.train = table(Pred=pred.opt.train, Truth=Y.train)
+
+# Confusion matrix for test data for optimal model
+pred.opt.test = predict(wine.optimal.forest, wineTest)
+cm.opt.test = table(Pred=pred.opt.test, Truth=Y.test)
+
+
+# Proportion of correct predictions on train data
+train.acc.rf.best <- mean(pred.opt.train == Y.train); train.acc.rf.best
+# 1
+# Proportion of correct predictions on test data
+test.acc.rf.best <- mean(pred.opt.test == Y.test); test.acc.rf.best
+# 0.9962477
+# Train error for optimal model
+train.err.rf.best <- mean(pred.opt.train != Y.train); train.err.rf.best
+# 0
+# Test error for optimal model
+test.err.rf.best <- mean(pred.opt.test != Y.test); test.err.rf.best
+# 0.003752345
+
+
+# Comparing errors for both models
+train.error.knn.best
+# 0
+train.err.rf.best
+# 0
+test.error.knn.best
+# 0.30394
+test.err.rf.best
+# 0.003752345

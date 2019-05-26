@@ -87,21 +87,10 @@ dist.euclid <- dist(finchData.scaled, method = "euclidean")
 dist.cor <- get_dist(finchData.scaled, method="pearson")
 #dist.corr <- as.dist(1 - cor(t(finchData.scaled)))
 
-
-# Going to use these linkage types: 
-# --> Complete linkage = distance between two clusters is defined as maximum value of all
-#     pairwise distances between elements in cluster 1 and elements in cluster 2. 
-# --> Ward's minimum variance method: minimizes the total within-cluster variance. 
-#     At each step the pair of clusters with minimum betwee-ncluster distance are merged. 
-
 # Hierarchical clustering using complete linkage, euclidean distance
 finch.complete.euclid.hc <- hclust(dist.euclid, method="complete")
-# Hierarchical clustering using ward linkage, euclidean distance
-finch.ward.euclid.hc <- hclust(dist.euclid, method="ward.D2")
 # Hierarchical clustering using complete linkage, correlation distance
 finch.complete.cor.hc <- hclust(dist.cor, method="complete")
-# Hierarchical clustering using ward linkage, correlation distance
-finch.ward.cor.hc <- hclust(dist.cor, method="ward.D2")
 # Hierarchical clustering using average linkage, euclidean distance
 finch.avg.euclid.hc <- hclust(dist.euclid, method="average")
 # Hierarchical clustering using average linkage, correlation distance
@@ -118,12 +107,8 @@ finch.avg.cor.hc <- hclust(dist.cor, method="average")
 # Good cor values are 0.75
 cor(dist.euclid, cophenetic(finch.complete.euclid.hc))
 #  0.6087543
-cor(dist.euclid, cophenetic(finch.ward.euclid.hc))
-# [1] 0.5064933
 cor(dist.cor, cophenetic(finch.complete.cor.hc))
 # [1] 0.5706778
-cor(dist.cor, cophenetic(finch.ward.cor.hc))
-# [1] 0.6352593
 cor(dist.euclid, cophenetic(finch.avg.euclid.hc))
 # [1] 0.7131127
 cor(dist.cor, cophenetic(finch.avg.cor.hc))
@@ -138,41 +123,14 @@ cor(dist.cor, cophenetic(finch.avg.cor.hc))
 # Getting optimal k to show the tree cluster groups. 
 nb.comp.euc <- NbClust(finchData.scaled, diss=dist.euclid, distance=NULL,
                          min.nc = 2, max.nc = 10, method = "complete", index ="all") 
-#fviz_nbclust(nb.comp.euc) + theme_gray()
 nb.comp.cor <- NbClust(finchData.scaled, diss=dist.cor, distance=NULL,
                        min.nc = 2, max.nc = 10, method = "complete", index ="all") 
-nb.ward.euc <- NbClust(finchData.scaled, diss=dist.euclid, distance=NULL,
-                       min.nc = 2, max.nc = 10, method = "ward.D2", index ="all") 
-nb.ward.cor <- NbClust(finchData.scaled, diss=dist.cor, distance=NULL,
-                       min.nc = 2, max.nc = 10, method = "ward.D2", index ="all") 
-nb.avg.euc <- NbClust(finchData.scaled, diss=dist.euclid, distance=NULL,
-                       min.nc = 2, max.nc = 10, method = "average", index ="all") 
-'*** : The Hubert index is a graphical method of determining the number of clusters.
-In the plot of Hubert index, we seek a significant knee that corresponds to a 
-significant increase of the value of the measure i.e the significant peak in Hubert
-index second differences plot. 
-
-*** : The D index is a graphical method of determining the number of clusters. 
-In the plot of D index, we seek a significant knee (the significant peak in Dindex
-                                                    second differences plot) that corresponds to a significant increase of the value of
-the measure. 
-
-******************************************************************* 
-      * Among all indices:                                                
-      * 6 proposed 2 as the best number of clusters 
-* 5 proposed 3 as the best number of clusters 
-* 4 proposed 4 as the best number of clusters 
-* 4 proposed 5 as the best number of clusters 
-* 1 proposed 6 as the best number of clusters 
-* 2 proposed 9 as the best number of clusters 
-* 2 proposed 10 as the best number of clusters 
-
-***** Conclusion *****                            
-      
-      * According to the majority rule, the best number of clusters is  2'
-
 nb.avg.cor <- NbClust(finchData.scaled, diss=dist.cor, distance=NULL,
                        min.nc = 2, max.nc = 10, method = "average", index ="all") 
+
+# Going to show only this one as it scored the best in cophenetic distance. 
+nb.avg.euc <- NbClust(finchData.scaled, diss=dist.euclid, distance=NULL,
+                      min.nc = 2, max.nc = 10, method = "average", index ="all") 
 # All of them used k = 2 as optimal k
 
 
@@ -192,38 +150,22 @@ fviz_dend(finch.complete.euclid.hc,  k = 2, cex=0.9, color_labels_by_k=TRUE, rec
           repel=TRUE,ggtheme=theme_gray(), 
           main="Cluser Dendrogram: Complete Linkage, Euclidean Distance")
 
-fviz_dend(finch.ward.euclid.hc, k = 2, cex=0.9, color_labels_by_k=TRUE, rect=TRUE, 
-          repel=TRUE,ggtheme=theme_gray(), 
-          main="Cluser Dendrogram: Ward Linkage, Euclidean Distance")
-
 fviz_dend(finch.complete.cor.hc, k = 2, cex=0.9, color_labels_by_k=TRUE, rect=TRUE, 
           repel=TRUE,ggtheme=theme_gray(), 
           main="Cluser Dendrogram: Complete Linkage, Correlation Distance")
 
-fviz_dend(finch.ward.cor.hc, k = 2, cex=0.9, color_labels_by_k=TRUE, rect=TRUE, 
-          repel=TRUE,ggtheme=theme_gray(), 
-          main="Cluser Dendrogram: Ward Linkage, Correlation Distance")
-
+# Showing only this
 fviz_dend(finch.avg.euclid.hc, k = 2, cex=0.9, color_labels_by_k=TRUE, rect=TRUE, 
           repel=TRUE,ggtheme=theme_gray(), 
           main="Cluser Dendrogram: Average Linkage, Euclidean Distance")
 
+# See: majority of observations are in cluster 1, contrary to kmeans model
+cutree(finch.avg.euclid.hc, k = 2)
+
+
 fviz_dend(finch.avg.cor.hc, k = 2, cex=0.9, color_labels_by_k=TRUE, rect=TRUE, 
           repel=TRUE,ggtheme=theme_gray(), 
           main="Cluser Dendrogram: Average Linkage, Correlation Distance")
-
-
-# Cutting dendroggram into groups
-finch.hcut <-  hcut(finchData.scaled, k = 6, stand = TRUE)
-fviz_dend(finch.hcut, k = 6, # cut in 6 groups
-          cex=0.9, # label size
-          #k_colors=c("#2E9FDF", "#00AFBB", "#E7B800", "#FC4E07"),
-          color_labels_by_k=TRUE, # color labels by groups
-          rect=TRUE, # add rectangle around groups
-          repel=TRUE,
-          ggtheme=theme_gray(),
-          main="Cluster dendrogram: Average Linkage, Euclidean Distance")
-
 
 
 # Compare the dendrograms: 
@@ -234,25 +176,18 @@ fviz_dend(finch.hcut, k = 6, # cut in 6 groups
 
 # These were the two highest models (yielding highest correlation between distance
 # matrix and cophenetic distance)
-dend.ward.cor <- as.dendrogram(finch.ward.cor.hc)
+dend.comp.cor <- as.dendrogram(finch.complete.cor.hc)
 dend.avg.euclid <- as.dendrogram(finch.avg.euclid.hc)
 # list to hold dendrograms
-dendList <- dendlist(dend.ward.cor, dend.avg.euclid)
+dendList <- dendlist(dend.comp.cor, dend.avg.euclid)
 
-tanglegram(dend.ward.cor, dend.avg.euclid, 
+tanglegram(dend.comp.cor, dend.avg.euclid, 
            common_subtrees_color_branches=TRUE, # Color common branches
            main=paste("entanglement = ", round(entanglement(dendList), 3)))
 
-tanglegram(as.dendrogram(finch.ward.euclid.hc), dend.avg.euclid, 
-           common_subtrees_color_branches=TRUE, # Color common branches
-           main=paste("entanglement = ", 
-                      round(entanglement(dendlist(as.dendrogram(finch.ward.euclid.hc), 
-                                                  dend.avg.euclid)), 3)))
 
 # Another way to compare dendrograms: correlation matrix between a list
-dendList <- dendlist("Ward_Cor"=as.dendrogram(finch.ward.cor.hc), 
-                     "Ward_Euclid"=as.dendrogram(finch.ward.euclid.hc),
-                     "Avg_Cor"=as.dendrogram(finch.avg.cor.hc), 
+dendList <- dendlist("Avg_Cor"=as.dendrogram(finch.avg.cor.hc), 
                      "Avg_Euclid"=as.dendrogram(finch.avg.euclid.hc),
                      "Complete_Cor"=as.dendrogram(finch.complete.cor.hc), 
                      "Complete_Euclid"=as.dendrogram(finch.complete.euclid.hc))
