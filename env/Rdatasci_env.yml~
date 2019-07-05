@@ -1,0 +1,102 @@
+name: Rdatasci_env
+
+channels: 
+  - conda-forge
+  - defaults
+  - r
+  - rdonnelly # for rstudio
+  - jmorrison # for faraway
+  # - chameroy # for aiccmodavg
+  - erblast # for ISLR
+
+
+
+dependencies:
+
+  # =======
+  # core
+  # =======
+  - r=3.5.0
+  - rstudio=1.2.502
+
+  # ==============
+  # Data Science
+  # ==============
+  - r-rpart
+  - r-e1071
+  - r-gbm
+  - r-rsample
+  - r-tree
+  - r-randomforest
+  - r-factoextra
+  - r-factominer
+  - r-cluster
+  - r-nbclust
+  - r-dendextend
+  - r-hmisc
+  ##- r-matrixstats
+  - r-catools
+  - r-aod
+  ####- r-aed
+  ####- r-dae
+  - r-boot
+  - r-caret
+  - r-class
+  - r-car
+  - r-cardata
+  - r-leaps
+  - r-glmnet
+  - r-nnet # feedforward neural networks
+  - r-pls
+  - r-lattice
+  - r-lme4
+  - r-nlme
+  ## - r-aiccmodavg 
+  ##- r-splines
+  - r-geepack
+
+  # ==============
+  # Plotting
+  # ==============
+  - conda-forge::r-ggally
+  - r-ggplot2
+  ###########- r-autoplot
+  - r-autoplotly
+  - r-ggfortify
+  - r-ggcorrplot
+  - r-ggeffects
+  - r-effects
+  - r-corrplot
+  - r-ggdendro
+  - r-rpart.plot
+  - r-gridextra
+  - r-magrittr
+  - r-rocr
+  - r-cowplot
+
+
+  # ==============
+  # Data Tools
+  # ==============
+  - r-dplyr
+  - r-stringr
+  - r-tidyr
+  - r-purrr
+  - r-reshape2
+
+
+  # ==============
+  # Data Sets (from books, web)
+  # ==============
+  # AmesHousing
+  # AppliedPredictiveModeling
+  # ISLR
+  - r-mass
+  - r-islr
+  #- r-faraway
+
+
+
+
+
+

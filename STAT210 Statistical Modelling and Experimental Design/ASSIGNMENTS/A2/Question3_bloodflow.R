@@ -1,5 +1,5 @@
-setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/ASSIGNMENTS/A2/")
-source('/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Rfunctions.R')
+setwd("/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT210 Statistical Modelling and Experimental Design/ASSIGNMENTS/A2/")
+source('/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/Rfunctions.R')
 
 library(ggplot2)
 library(car)

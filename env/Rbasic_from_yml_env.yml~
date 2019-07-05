@@ -1,0 +1,17 @@
+name: Rbasic_from_yml_env
+
+channels: 
+  - conda-forge
+  - defaults
+  - r
+  - rdonnelly
+
+
+
+dependencies:
+
+  # =======
+  # core
+  # =======
+  - r=3.6.0
+  - rstudio=1.2.502

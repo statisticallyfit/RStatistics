@@ -49,104 +49,107 @@ interactionPlot <- function(data, xFactor, traceFactor, response){
 }
 
 
+#### ERROR: TO FIX ###
 
 # takes single model or block model and plots the effects
-effectPlot <- function(fit){
-      require(gtable)
-      require(effects)
-      
-      
-      
-      # Considers the blocking model with 2 qualitative factors and gives the equivalent
-      # of plot(allEffects(lm(Yield ~ Location + Herbicide))) for eample. 
-      # NOTE: cannot just use singleEffectsPlot twice since the CI estimates
-      # from the block model are different than the CI estimates from
-      # the separate predictor models. 
-      
-      #TODO: currently doesn't handle examples like N*P plant growth in prac7
-      blockModelEffectsPlot <- function(block.fit) {
-            require(gtable)
-            require(gridExtra)
-            require(effects)
-            
-            eff <- allEffects(block.fit)
-            
-            # Now there are only 2 factors so we just have 2 plots
-            x1Name <- names(eff)[[1]]
-            x2Name <- names(eff)[[2]]
-            yName <- eff[[x1Name]]$response
-            
-            # Make the df of information
-            df1 <- data.frame(X1=eff[[x1Name]]$variables[[x1Name]]$levels,
-                             Y1=eff[[x1Name]]$fit,
-                             lower1=eff[[x1Name]]$lower, upper1=eff[[x1Name]]$upper)
-                             
-            df2 <- data.frame(X2=eff[[x2Name]]$variables[[x2Name]]$levels,
-                             Y2=eff[[x2Name]]$fit,  
-                             lower2=eff[[x2Name]]$lower, upper2=eff[[x2Name]]$upper,
-                             stringsAsFactors = TRUE)
-            
-            df1 <- setNames(df1, nm=c(x1Name, yName, "lower1", "upper1"))
-            df2 <- setNames(df2, nm=c(x2Name, yName, "lower2", "upper2"))
-            
-            # Plot the data
-            g1 <- ggplot(df1, aes_string(x=x1Name, y=yName)) + 
-                  geom_errorbar(aes(ymin=lower1, ymax=upper1), width=0.2,size=1.5,
-                                color="palevioletred1") + 
-                  geom_line(color="steelblue1", aes(group=1), size=1.5) + 
-                  geom_point(size=5, shape=19) + 
-                  scale_x_discrete(limits=df1[[x1Name]])+
-                  ggtitle(paste(x1Name, "Effects Plot"))
-            
-            g2 <- ggplot(df2, aes_string(x=x2Name, y=yName)) + 
-                  geom_errorbar(aes(ymin=lower2, ymax=upper2), width=0.2,size=1.5,
-                                color="palevioletred1") + 
-                  geom_line(color="steelblue1", aes(group=1), size=1.5) + 
-                  geom_point(size=5, shape=19) + 
-                  scale_x_discrete(limits=df2[[x2Name]])+
-                  ggtitle(paste(x2Name, "Effects Plot"))
-            
-            # Now combining the plots into one page
-            grid.arrange(g1, g2, nrow=1)
-      }
-      
-      # Plots one single effect for the single qual variable model
-      # plot(allEffects(lm(Yield ~ Location)))
-      singleEffectPlot <- function(fit){
-            
-            eff <- allEffects(fit)
-            
-            # Now there are only 2 factors so we just have 2 plots
-            xName <- names(eff)[[1]]
-            yName <- eff[[xName]]$response
-            
-            # Make the df of information
-            df <- data.frame(X=eff[[xName]]$variables[[xName]]$levels,
-                             Y=eff[[xName]]$fit, 
-                             lower=eff[[xName]]$lower, upper=eff[[xName]]$upper,
-                             stringsAsFactors = TRUE)
-            df <- setNames(df, nm=c(xName, yName, "lower", "upper"))
-            
-            # Plot the data
-            ggplot(df, aes_string(x=xName, y=yName)) + 
-                  geom_errorbar(aes(ymin=lower, ymax=upper), width=0.2,size=1.5,
-                                color="palevioletred1") + 
-                  geom_line(color="steelblue1", aes(group=1), size=1.5) + 
-                  geom_point(size=5, shape=19) + 
-                  scale_x_discrete(limits=df[[xName]]) +
-                  ggtitle(paste(xName, "Effects Plot"))
-      }
-      
-      
-      # inside effectsPlot()
-      eff <- allEffects(fit)
-      numPredictors = length(names(eff))
-      
-      if(numPredictors == 2) blockModelEffectsPlot(fit)
-      else if(numPredictors == 1) singleEffectPlot(fit)
-      
-      # if more than 2 predictors nothing happens. 
-}
+# 
+# effectPlot <- function(fit){
+#       require(gtable)
+#       require(effects)
+#       
+#       
+#       
+#       # Considers the blocking model with 2 qualitative factors and gives the equivalent
+#       # of plot(allEffects(lm(Yield ~ Location + Herbicide))) for eample. 
+#       # NOTE: cannot just use singleEffectsPlot twice since the CI estimates
+#       # from the block model are different than the CI estimates from
+#       # the separate predictor models. 
+#       
+#       #TODO: currently doesn't handle examples like N*P plant growth in prac7
+#       blockModelEffectsPlot <- function(block.fit) {
+#             require(gtable)
+#             require(gridExtra)
+#             require(effects)
+#             
+#             eff <- allEffects(block.fit)
+#             
+#             # Now there are only 2 factors so we just have 2 plots
+#             x1Name <- names(eff)[[1]]
+#             x2Name <- names(eff)[[2]]
+#             yName <- eff[[x1Name]]$response
+#             
+#             # Make the df of information
+#             df1 <- data.frame(X1=eff[[x1Name]]$variables[[x1Name]]$levels,
+#                              Y1=eff[[x1Name]]$fit,
+#                              lower1=eff[[x1Name]]$lower, upper1=eff[[x1Name]]$upper)
+#                              
+#             df2 <- data.frame(X2=eff[[x2Name]]$variables[[x2Name]]$levels,
+#                              Y2=eff[[x2Name]]$fit,  
+#                              lower2=eff[[x2Name]]$lower, upper2=eff[[x2Name]]$upper,
+#                              stringsAsFactors = TRUE)
+#             
+#             df1 <- setNames(df1, nm=c(x1Name, yName, "lower1", "upper1"))
+#             df2 <- setNames(df2, nm=c(x2Name, yName, "lower2", "upper2"))
+#             
+#             # Plot the data
+#             g1 <- ggplot(df1, aes_string(x=x1Name, y=yName)) + 
+#                   geom_errorbar(aes(ymin=lower1, ymax=upper1), width=0.2,size=1.5,
+#                                 color="palevioletred1") + 
+#                   geom_line(color="steelblue1", aes(group=1), size=1.5) + 
+#                   geom_point(size=5, shape=19) + 
+#                   scale_x_discrete(limits=df1[[x1Name]])+
+#                   ggtitle(paste(x1Name, "Effects Plot"))
+#             
+#             g2 <- ggplot(df2, aes_string(x=x2Name, y=yName)) + 
+#                   geom_errorbar(aes(ymin=lower2, ymax=upper2), width=0.2,size=1.5,
+#                                 color="palevioletred1") + 
+#                   geom_line(color="steelblue1", aes(group=1), size=1.5) + 
+#                   geom_point(size=5, shape=19) + 
+#                   scale_x_discrete(limits=df2[[x2Name]])+
+#                   ggtitle(paste(x2Name, "Effects Plot"))
+#             
+#             # Now combining the plots into one page
+#             grid.arrange(g1, g2, nrow=1)
+#       }
+#       
+#       # Plots one single effect for the single qual variable model
+#       # plot(allEffects(lm(Yield ~ Location)))
+#       singleEffectPlot <- function(fit){
+#             
+#             eff <- allEffects(fit)
+#             
+#             # Now there are only 2 factors so we just have 2 plots
+#             xName <- names(eff)[[1]]
+#             yName <- eff[[xName]]$response
+#             
+#             # Make the df of information
+#             df <- data.frame(X=eff[[xName]]$variables[[xName]]$levels,
+#                              Y=eff[[xName]]$fit, 
+#                              lower=eff[[xName]]$lower, upper=eff[[xName]]$upper,
+#                              stringsAsFactors = TRUE)
+#             df <- setNames(df, nm=c(xName, yName, "lower", "upper"))
+#             
+#             # Plot the data
+#             ggplot(df, aes_string(x=xName, y=yName)) + 
+#                   geom_errorbar(aes(ymin=lower, ymax=upper), width=0.2,size=1.5,
+#                                 color="palevioletred1") + 
+#                   geom_line(color="steelblue1", aes(group=1), size=1.5) + 
+#                   geom_point(size=5, shape=19) + 
+#                   scale_x_discrete(limits=df[[xName]]) +
+#                   ggtitle(paste(xName, "Effects Plot"))
+#       }
+#       
+#       
+#       # inside effectsPlot()
+#       eff <- allEffects(fit)
+#       numPredictors = length(names(eff))
+#       
+#       if(numPredictors == 2) blockModelEffectsPlot(fit)
+#       else if(numPredictors == 1) singleEffectPlot(fit)
+#       
+#       # if more than 2 predictors nothing happens. 
+# }
+
 
 
 
@@ -161,6 +164,19 @@ residualFitPlot <- function(fit, size=3, colour="black"){
             geom_hline(yintercept=0, size=1, linetype="longdash", colour="red") +
             ggtitle("Residuals vs Fitted") + 
             xlab("Fitted values") + ylab("Residuals")
+}
+
+# Residuals density plot (single variable regression)
+residualDensityPlot <- function(fit, size=2){
+      df <- data.frame(Residuals = fit$residuals)
+      
+      ggplot(data=df, aes(x=Residuals)) + 
+            geom_density(alpha=0.3, size=2, colour="purple4", fill="purple") + # the empirical density
+            xlab("Residuals") + 
+            stat_function(fun=dnorm,  # the standard normal dist
+                          args = list(mean=mean(df$Residuals), sd=sd(df$Residuals)),
+                          colour="black", size=1, linetype="dashed") + 
+            ggtitle("Residual Density vs Standard Normal Distribution")
 }
 
 

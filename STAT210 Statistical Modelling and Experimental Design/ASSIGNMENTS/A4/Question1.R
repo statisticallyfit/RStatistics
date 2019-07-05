@@ -1,4 +1,4 @@
-setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/ASSIGNMENTS/A4")
+setwd("/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT210 Statistical Modelling and Experimental Design/ASSIGNMENTS/A4")
 
 options(digits=10, show.signif.stars = FALSE)
 library(dae)
