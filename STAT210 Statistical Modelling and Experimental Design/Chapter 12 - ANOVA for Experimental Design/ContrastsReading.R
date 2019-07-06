@@ -1,4 +1,5 @@
-setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/")
+setwd("/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT210 Statistical Modelling and Experimental Design/")
+source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/DATA.R')
 
 options(digits=10, show.signif.stars = FALSE)
 
@@ -65,6 +66,9 @@ betaCI(melon.orthog.lm)
 # overall mean is the intercept of contrasts
 # Add any means that are in contrasts (source: summary table)
 summary(melon.orthog.lm)
+
+
+# MANUALLY 
 # mu = 26.8
 # mu_A = 26.8 + -6.8 + 0.5 = 20.5
 # mu_B = 26.8 - (-6.8)  + 3.8 = 37.4
@@ -75,9 +79,21 @@ summary(melon.orthog.lm)
 
 # mu_D = 26.8 - (-6.8) - (3.8) = 29.8
 
+
+# BETTER WAY: 
+mat.intercept <- cbind(c(1,1,1,1), mat)
+colnames(mat.intercept) <- c("Intercept", "ACvBD", "AvC", "BvD")
+mat.intercept
+cofs <- summary(melon.orthog.lm)$coef[,1]
+cofs <- cbind(cofs)
+mat.intercept %*% cofs
+
+
+# EVEN BETTER WAY: using tapply
 attach(melonData)
 tapply(Yield, INDEX=list(Variety), mean)
 # tapply gives the means directly!!!
+detach(melonData)
 
 
 # ------------------------------------------------------------------------------------------
@@ -128,6 +144,7 @@ testContrastsOrthogonal(melon.diffAllThree.lm) # nope not orthogonal
 helmerts = makeOrthogonalContrasts.df(factorNames=LETTERS[1:4], 
                         contrastNames=c("AvBCD","BvCD","CvD"), mirror=TRUE)
 helmerts
+# TODO this is not ready, FIX
 contrs = makeOrthogonalContrasts.lm(data=melonData,
                                     contrastNames=c("AvBCD","BvCD","CvD"),
                                     mirror=TRUE); contrs

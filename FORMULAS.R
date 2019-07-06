@@ -503,8 +503,20 @@ influence.cooksDistances <- function(fit) {
       k <- length(fit$model) - 1
       n <- nrow(fit$model)
       Fcrit <- qf(0.5, df1=k+1, df2=n-k-1)
-      isInfluential <- cks > Fcrit 
-      return(data.frame(CooksPoints=cks, CutOffFcrit=Fcrit,
+      cks.fvalues <- pf(cks, df1=k+1, df2=n-k-1)
+      
+      # TODO: check if my method here cks > Fcrit is correct: 
+      # or do we use cks.fvalues > Fcrit???
+      isInfluential <- cks > Fcrit | cks >= 1
+      # https://newonlinecourses.science.psu.edu/stat501/node/340/ 
+      # An alternative method for interpreting Cook's distance that is sometimes 
+      # used is to relate the measure to the F(p, n–p) distribution and to find the 
+      # corresponding percentile value. If this percentile is less than about
+      # 10 or 20 percent, then the case has little apparent influence on the
+      # fitted values. On the other hand, if it is near 50 percent or even higher, 
+      # then the case has a major influence. (Anything "in between" is more ambiguous.)
+
+      return(data.frame(CooksPoints=cks, CooksFValues=cks.fvalues, CutOffFcrit=Fcrit,
                         IsInfluential=isInfluential))
 }
 

@@ -9,6 +9,8 @@ library(ggplot2)
 library(GGally)
 # library(dae) # interaction plots ? 
 library(effects) # effects plot
+library(ggeffects)
+library(lattice)
 
 
 ## EXAMPLE 1.1 #########################################################################
@@ -82,16 +84,68 @@ anova(fuel.weight.lm)
 
 # Example 1.3 - Salary and Gender ##############################################
 
-# Gender: 0 = male, 1 = female
+# Gender: 1 = male, 2 = female
 # YrsEm = years employed
 salaryData <- read.table("salary.txt", header=TRUE)
-salaryData$Gender <- factor(salaryData$Gender)
+salaryData$Gender <- factor(salaryData$Gender, labels=c("M", "F"))
+salaryData.nocontr <- salaryData
+
+# Define contrasts
+contrasts(salaryData$Gender) <- c(0.5, -0.5)
+G.names <- c("M", "F")
+
+# Set up lattice graphics, no color, double line width
+line <- trellis.par.get("plot.line")
+line$lwd=2
+trellis.par.set("plot.line", line)
+
+# Exploratory xyplot
+xyp.eda1 <- xyplot(Salary ~ YrsEm|Gender, data=salaryData, 
+                   panel=function(x,y) { 
+                         panel.xyplot(x, y); 
+                         panel.loess(x, y)
+                         })
+print(xyp.eda1)
+
 
 # Plot of salary vs yrsEm for each gender
 interactionPlot(data=salaryData, xFactor="YrsEm", traceFactor="Gender", response="Salary")
 
+# Fit the interaction model, including the design matrix
+salary.interact.lm <- lm(Salary ~ Gender*YrsEm, data=salaryData, x = TRUE)
+salary.interact.nocontr.lm <- lm(Salary ~ Gender*YrsEm, data=salaryData.nocontr, x=TRUE)
+
+# ANOVA summary (for model with contrasts we set )
+summary(salary.interact.lm)
+anova(salary.interact.lm)
+aov(salary.interact.lm)
+
+# Anova summary for model with auto-generated contrasts
+summary(salary.interact.nocontr.lm)
+
+# Compare contrasts
+getContrastMatrix(salary.interact.lm)
+salary.interact.lm$x
+
+getContrastMatrix(salary.interact.nocontr.lm)
+salary.interact.nocontr.lm$x
+
+v1 = salary.interact.lm$x[,2]
+v2 = salary.interact.nocontr.lm$x[,2]
+cbind(v1, v2)
+
+
 # Effects plot
-salary.interact.lm <- lm(Salary ~ Gender + YrsEm + Gender*YrsEm, data=salaryData)
 salary.eff <- allEffects(salary.interact.lm)
 print(salary.eff)
 plot(salary.eff)
+# or do with ggplotting --- HELP does is warning
+#preds <- ggpredict(salary.interact.lm, full.data = TRUE, terms=c("YrsEm", "Gender"))
+#preds
+#plot(preds) #+ theme_gray()
+
+
+# Diagnostics: 
+## from QQ plot: non straight so nonnormal residuals
+## resids vs fitted: curvature or fan shape so nonconstant variance. 
+autoplot(salary.interact.lm)
