@@ -55,6 +55,7 @@ dependencies:
   ## - r-aiccmodavg 
   ##- r-splines
   - r-geepack
+  - r-bnlearn-4.4.1
 
   # ==============
   # Plotting

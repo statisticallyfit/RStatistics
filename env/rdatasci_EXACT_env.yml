@@ -1,6 +1,7 @@
 name: rdatasci_env
 channels:
   - rdonnelly
+  - r
   - conda-forge
   - defaults
 dependencies:
@@ -56,7 +57,7 @@ dependencies:
   - make=4.2.1=h14c3975_2004
   - ncurses=6.1=hf484d3e_1002
   - openjdk=8.0.192=h14c3975_1003
-  - openssl=1.0.2r=h14c3975_0
+  - openssl=1.0.2s=h7b6447c_0
   - pandoc=2.7.3=0
   - pango=1.40.14=hf0c64fd_1003
   - pcre=8.43=he6710b0_0
@@ -67,6 +68,7 @@ dependencies:
   - r-abind=1.4_5=r351h6115d3f_1001
   - r-acepack=1.4.1=r351ha65eedd_1002
   - r-aod=1.3.1=r351_0
+  - r-ape=5.3=r351h0357c0b_0
   - r-assertthat=0.2.1=r351h6115d3f_0
   - r-backports=1.1.4=r351hcdcec82_0
   - r-base=3.5.1=he45234b_1005
@@ -76,6 +78,7 @@ dependencies:
   - r-bit64=0.9_7=r351h96ca727_1000
   - r-bitops=1.0_6=r351h96ca727_1002
   - r-blob=1.1.1=r351_1001
+  - r-bnlearn=4.4.1=r351h96ca727_0
   - r-boot=1.3_22=r351_0
   - r-car=3.0_3=r35h6115d3f_0
   - r-cardata=3.0_2=r351h6115d3f_0
@@ -87,12 +90,16 @@ dependencies:
   - r-cli=1.1.0=r351h6115d3f_0
   - r-clipr=0.6.0=r351h6115d3f_0
   - r-cluster=2.1.0=r35h9bbef5b_0
+  - r-coda=0.19_3=r351h6115d3f_0
   - r-codetools=0.2_16=r351h6115d3f_1000
   - r-colorspace=1.4_1=r351hcdcec82_0
+  - r-combinat=0.0_8=r351h6115d3f_1001
   - r-config=0.3=r351h6115d3f_1001
+  - r-corpcor=1.6.9=r351h6115d3f_1001
   - r-corrplot=0.84=r351_1001
   - r-cowplot=0.9.4=r351h6115d3f_0
   - r-crayon=1.3.4=r351h6115d3f_1001
+  - r-cubature=2.0.3=r351h29659fb_0
   - r-curl=3.3=r351h96ca727_0
   - r-data.table=1.12.2=r351hcdcec82_0
   - r-dbi=1.0.0=r351h6115d3f_1001
@@ -109,12 +116,18 @@ dependencies:
   - r-factoextra=1.0.5=r351_1001
   - r-factominer=1.42=r35h6115d3f_0
   - r-fansi=0.4.0=r351h96ca727_1000
+  - r-fastica=1.2_1=r351h96ca727_0
+  - r-fbasics=3042.89=r351h96ca727_0
+  - r-fgarch=3042.83=r351ha65eedd_0
   - r-flashclust=1.01_2=r351ha65eedd_1002
   - r-forcats=0.4.0=r351h6115d3f_0
   - r-foreach=1.4.4=r351h6115d3f_1001
+  - r-forecast=8.4=r351h29659fb_0
   - r-foreign=0.8_71=r351h96ca727_1002
   - r-forge=0.2.0=r351h6115d3f_0
   - r-formula=1.2_3=r351h6115d3f_1001
+  - r-fracdiff=1.4_2=r351h96ca727_4
+  - r-gdata=2.18.0=r351h6115d3f_0
   - r-geepack=1.2_1=r351hf484d3e_1002
   - r-generics=0.0.2=r351h6115d3f_1001
   - r-ggally=1.4.0=r351h6115d3f_1000
@@ -127,11 +140,16 @@ dependencies:
   - r-ggrepel=0.8.1=r351h0357c0b_0
   - r-ggsci=2.9=r351h6115d3f_1001
   - r-ggsignif=0.5.0=r351h6115d3f_0
+  - r-glmmtmb=0.2.3=r351h29659fb_0
   - r-glmnet=2.0_18=r35h9bbef5b_0
   - r-glue=1.3.1=r351hcdcec82_0
+  - r-gnm=1.1_0=r351h96ca727_1002
   - r-gower=0.2.1=r35hcdcec82_0
+  - r-gplots=3.0.1=r351h6115d3f_0
   - r-gridextra=2.3=r351h6115d3f_1001
+  - r-gss=2.1_9=r351ha65eedd_0
   - r-gtable=0.3.0=r351h6115d3f_0
+  - r-gtools=3.8.1=r351h96ca727_0
   - r-haven=2.1.1=r351h0357c0b_0
   - r-highr=0.8=r351h6115d3f_0
   - r-hmisc=4.2_0=r35h9bbef5b_0
@@ -154,7 +172,10 @@ dependencies:
   - r-lava=1.6.5=r351h6115d3f_0
   - r-lazyeval=0.2.2=r351hcdcec82_0
   - r-leaps=3.0=r351ha65eedd_1002
+  - r-learnbayes=2.15.1=r351h6115d3f_1000
   - r-lme4=1.1_21=r351h0357c0b_0
+  - r-lmertest=3.1_0=r351h6115d3f_0
+  - r-lmtest=0.9_37=r35h9bbef5b_0
   - r-lubridate=1.7.4=r351h29659fb_1001
   - r-magrittr=1.5=r351h6115d3f_1001
   - r-maptools=0.9_5=r35hcdcec82_0
@@ -162,7 +183,10 @@ dependencies:
   - r-mass=7.3_51.4=r351hcdcec82_0
   - r-matrix=1.2_17=r351hcdcec82_0
   - r-matrixmodels=0.4_1=r351h6115d3f_1001
-  - r-mgcv=1.8_28=r351hcdcec82_0
+  - r-mcmcglmm=2.29=r351h0357c0b_0
+  - r-meta=4.9_5=r35h6115d3f_0
+  - r-metafor=2.1_0=r35h6115d3f_0
+  - r-mgcv=1.8_24=r351h96ca727_0
   - r-mime=0.7=r35hcdcec82_0
   - r-miniui=0.1.1.1=r351h6115d3f_1000
   - r-minqa=1.2.4=r351h80f5a37_1002
@@ -193,13 +217,17 @@ dependencies:
   - r-progress=1.2.2=r351h6115d3f_0
   - r-promises=1.0.1=r351h29659fb_1000
   - r-purrr=0.3.2=r351hcdcec82_0
+  - r-quadprog=1.5_5=r351ha65eedd_4
+  - r-quantmod=0.4_13=r351h6115d3f_0
   - r-quantreg=5.41=r35h9bbef5b_0
+  - r-qvcalc=1.0.0=r35h6115d3f_0
   - r-r2d3=0.2.3=r351h6115d3f_1000
   - r-r6=2.4.0=r351h6115d3f_0
   - r-randomforest=4.6_14=r351ha65eedd_1000
   - r-rappdirs=0.3.1=r351h96ca727_1002
   - r-rcolorbrewer=1.1_2=r351h6115d3f_1001
   - r-rcpp=1.0.1=r351h0357c0b_0
+  - r-rcpparmadillo=0.8.600.0.0=r351h29659fb_0
   - r-rcppeigen=0.3.3.5.0=r351h29659fb_0
   - r-rcpproll=0.3.0=r351h29659fb_1000
   - r-rcurl=1.95_4.12=r351hcdcec82_0
@@ -207,6 +235,7 @@ dependencies:
   - r-readxl=1.3.1=r351h0357c0b_0
   - r-recipes=0.1.5=r351h6115d3f_0
   - r-recommended=3.5.1=r351_1001
+  - r-relimp=1.0_5=r351h6115d3f_1001
   - r-rematch=1.0.1=r351h6115d3f_1001
   - r-reshape=0.8.8=r351h96ca727_0
   - r-reshape2=1.4.3=r351h29659fb_1003
@@ -216,12 +245,14 @@ dependencies:
   - r-rjsonio=1.3_1.1=r351h29659fb_1000
   - r-rlang=0.4.0=r35hcdcec82_0
   - r-rmarkdown=1.13=r35h6115d3f_0
+  - r-rocr=1.0_7=r351h6115d3f_4
   - r-rpart=4.1_15=r351hcdcec82_0
   - r-rpart.plot=3.0.7=r351h6115d3f_0
   - r-rprojroot=1.3_2=r351h6115d3f_1001
   - r-rsample=0.0.4=r351h6115d3f_1000
   - r-rsconnect=0.8.13=r351h6115d3f_0
   - r-rstudioapi=0.10=r351h6115d3f_0
+  - r-sandwich=2.5_1=r35h6115d3f_0
   - r-scales=1.0.0=r351h29659fb_1001
   - r-scatterplot3d=0.3_41=r351h6115d3f_1000
   - r-shiny=1.3.2=r351h6115d3f_0
@@ -233,17 +264,27 @@ dependencies:
   - r-sparsem=1.77=r351ha65eedd_1001
   - r-spatial=7.3_11=r351h96ca727_1002
   - r-squarem=2017.10_1=r351h6115d3f_1001
+  - r-stabledist=0.7_1=r351h6115d3f_0
   - r-stringi=1.4.3=r351h0357c0b_0
   - r-stringr=1.4.0=r351h6115d3f_0
+  - r-strucchange=1.5_1=r351h6115d3f_1001
   - r-survey=3.36=r351h6115d3f_0
   - r-survival=2.44_1.1=r351hcdcec82_0
+  - r-tensora=0.36.1=r351h96ca727_1000
   - r-tibble=2.1.3=r35hcdcec82_0
   - r-tidyr=0.8.3=r351h0357c0b_0
   - r-tidyselect=0.2.5=r351h29659fb_1000
   - r-timedate=3043.102=r351h6115d3f_1000
+  - r-timeseries=3042.102=r351h6115d3f_0
   - r-tinytex=0.14=r35h6115d3f_0
+  - r-tmb=1.7.15=r35h0357c0b_0
   - r-tree=1.0_39=r351ha65eedd_1000
+  - r-tseries=0.10_45=r351ha65eedd_0
+  - r-ttr=0.23_3=r351ha65eedd_0
+  - r-urca=1.3_0=r351ha65eedd_1002
+  - r-uroot=2.0_9=r351h29659fb_0
   - r-utf8=1.1.4=r351h96ca727_1000
+  - r-vars=1.5_3=r351h6115d3f_1001
   - r-vctrs=0.1.0=r351h96ca727_1000
   - r-viridis=0.5.1=r351h6115d3f_1001
   - r-viridislite=0.3.0=r351h6115d3f_1001
@@ -251,9 +292,11 @@ dependencies:
   - r-xfun=0.8=r35h6115d3f_0
   - r-xml2=1.2.0=r351h29659fb_1002
   - r-xtable=1.8_4=r351h6115d3f_0
+  - r-xts=0.11_0=r351h96ca727_0
   - r-yaml=2.2.0=r351h96ca727_1001
   - r-zeallot=0.1.0=r351h6115d3f_1000
   - r-zip=2.0.2=r35hcdcec82_0
+  - r-zoo=1.8_6=r35hcdcec82_0
   - readline=7.0=hf8c457e_1001
   - rstudio=1.2.502=hcfd39f1_0
   - sqlite=3.28.0=h8b20d00_0
