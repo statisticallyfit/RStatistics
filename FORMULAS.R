@@ -500,10 +500,11 @@ influence.leverageValues <- function(fit){
 
 influence.cooksDistances <- function(fit) {
       cks <- cooks.distance(fit)
-      k <- length(fit$model) - 1
+      p <- length(fit$coef) # p = number of parameters
       n <- nrow(fit$model)
-      Fcrit <- qf(0.5, df1=k+1, df2=n-k-1)
-      cks.fvalues <- pf(cks, df1=k+1, df2=n-k-1)
+      # Cooks distance Di follows an F-distribution: Di ~ F(df1=p, df2=n-p)
+      Fcrit <- qf(0.5, df1=p, df2=n-p)
+      cks.fprob <- pf(cks, df1=p, df2=n-p)
       
       # TODO: check if my method here cks > Fcrit is correct: 
       # or do we use cks.fvalues > Fcrit???
@@ -516,7 +517,8 @@ influence.cooksDistances <- function(fit) {
       # fitted values. On the other hand, if it is near 50 percent or even higher, 
       # then the case has a major influence. (Anything "in between" is more ambiguous.)
 
-      return(data.frame(CooksPoints=cks, CooksFValues=cks.fvalues, CutOffFcrit=Fcrit,
+      return(data.frame(CooksPoints=cks, FcritValue=Fcrit,
+                           CooksFProb=cks.fprob, FcritProb=rep(0.5, n),
                         IsInfluential=isInfluential))
 }
 
@@ -622,7 +624,7 @@ DevianceTest <- function(fit){
 # expected failures with observed ones. (global F-test)
 # Equivalent to global F-test, tests overall model fit. 
 ResidualDevianceTest <- function(fit, printNice=TRUE) { 
-      # residualdeviance has chi-square distribution on n - k degrees freedom. 
+      # residualdeviance has chi-square distribution on n - k - 1 degrees freedom. 
       df <- fit$df.residual # always n - k - 1, where k+1 = num params/coefs
       dev <- fit$deviance
       result <- data.frame(LikRatio=dev, df=df,
@@ -702,16 +704,32 @@ NullDevianceTest <- function(model){
 }
 
 
-DevianceResiduals <- function(obsData, expData=NULL) {
-      # doing chi-test just to get expected values. 
-      if(!is.null(expData)) chi.test <- chisq.test(obsData, p=expData/sum(expData))
-      else chi.test <- chisq.test(obsData)
-      os <- obsData 
-      es <- chi.test$exp 
-      return(sign(os - es) * sqrt(abs(2 * os * log(os/es))))
+#DevianceResiduals <- function(obsData, expData=NULL) {
+#      # doing chi-test just to get expected values. 
+#      if(!is.null(expData)) chi.test <- chisq.test(obsData, p=expData/sum(expData))
+#      else chi.test <- chisq.test(obsData)
+#      os <- obsData 
+#      es <- chi.test$exp 
+#      return(sign(os - es) * sqrt(abs(2 * os * log(os/es))))
+#}
+#
+
+
+# GOAL: computes the deviance residuals for a poisson glm
+
+# TODO: how to check that family == poisson? (string-based comparison?)
+# if this is not a poisson glm, this result will be wrong
+
+# must be the same as residuals(fit)
+
+DevianceResiduals.Poisson <- function(fit) {
+   yi <- fit$model[1]
+   mui <- fit$fitted.values
+   
+   si <- sign(yi - mui)
+   di <- si * sqrt(2 * (yi * log(yi/mui) - (yi - mui)))
+   return(di[,])
 }
-
-
 
 
 

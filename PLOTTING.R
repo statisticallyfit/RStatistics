@@ -157,7 +157,9 @@ interactionPlot <- function(data, xFactor, traceFactor, response){
 
 # residual plot vs fitted (autoplot(fit, which = 1))
 residualFitPlot <- function(fit, size=3, colour="black"){
-      df <- data.frame(Fits=fit$fitted, Resids=fit$residuals)
+   # note: using residuals(fit) rather than fit$residuals allows us to use the
+   # deviance residuals in case fit is a glm object. 
+      df <- data.frame(Fits=fit$fitted, Resids=residuals(fit))
       
       ggplot(data=df, aes(x=Fits, y=Resids)) + 
             geom_point(size=size, shape=19, colour=colour) + 
@@ -340,6 +342,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 
 # TODO: make interaction plot with ggplot: groupBy = default arg and etc
 # see Example 7.3 Diesel Interaction for the format. 
+# TODO: add proper R2 formula for glms
 
 ## Function to use ggplot and add R^2 and so forth
 # x.value = the value at which to do meanCI and predicCI intervals
@@ -352,7 +355,7 @@ modelPlot <- function (fit) {
       x.names = names(fit$model)[-1]
       y.name = names(fit$model)[1]
       
-      R2 = round(summary(fit)$adj.r.squared, 4)
+      #R2 = round(summary(fit)$adj.r.squared, 4)
       intercept = round(fit$coef[[1]], 4)
       slopes = round(as.numeric(fit$coef[-1]), 4)
       
@@ -395,7 +398,7 @@ modelPlot <- function (fit) {
       
             stat_smooth(method = "lm", col="dodgerblue", lwd=1) +
                   
-            labs(title = paste("R^2 = ", R2, "\n",
+            labs(title = paste(#"R^2 = ", R2, "\n",
                                "Reg. Line: ", theFormula, #"\n",
                                #" p-value =", pValue,"\n",
                                #"MeanCI = (", mean.ci[1],", ",mean.ci[2],")\n",
