@@ -604,15 +604,27 @@ NestedLikelihoodRatioTest <- function(reducedModel, fullModel, printNice=TRUE) {
 # NOTE: use the count = cbind(success, total) y-value when fitting the fit model
 # so that here tempData is made of two cols. Do not let y be a proportion
 # otherwise we get weird results. 
-DevianceTest <- function(fit){
-      family <- fit$family
-      tempData <- data.frame(fit$model[1])
-      theFormula <- as.formula(paste(colnames(tempData), " ~ 1", sep=""))
-      nullModel <- glm(theFormula, family=family, data=tempData)
+DevianceTest <- function(fit, printNice=TRUE){
       
-      result <- NestedLikelihoodRatioTest(nullModel, fit, printNice = TRUE)
+      # Check if the fitted model contains an offset. If so, we need to fit
+      # the null model with this same offset
+      # The nullData contains the response column observations and the 
+      # offset in another column
+   
+      nullData <- data.frame(fit$model[1], OFFSET=fit$offset)
+      yName <- colnames(nullData)[1]
+   
+      theFormula <- as.formula(paste(yName, "~ offset(OFFSET)", sep=""))
       
-      return(invisible(result))
+      nullModel <- glm(theFormula, family=fit$family, data=nullData)
+      
+      result <- NestedLikelihoodRatioTest(nullModel, fit, printNice = printNice)
+      
+      if(printNice){
+         return(invisible(result))
+      } else {
+         return(result)
+      }
 }
 
 
@@ -665,10 +677,10 @@ ResidualDevianceTest <- function(fit, printNice=TRUE) {
             cat("#####################################################################\n")
             cat("#######        Likelihood-Ratio Residual Deviance Test        #######\n")
             cat("#####################################################################\n")
-            cat("\tH0: residual deviance ΔG = 0 \n") #; cat(paste(nf[[2]], nf[[1]], nf[3]))
+            cat("\tH0: residual deviance G = 0 \n") #; cat(paste(nf[[2]], nf[[1]], nf[3]))
             #cat("\n")
-            cat("\tHA: residual deviance ΔG != 0\n\n") #; cat(paste(na[[2]], na[[1]], na[3]))
-            cat("  ΔG:\t\t                                ", result$LikRatio, "\n")
+            cat("\tHA: residual deviance G != 0\n\n") #; cat(paste(na[[2]], na[[1]], na[3]))
+            cat("  G:\t\t                                ", result$LikRatio, "\n")
             cat("  df:\t\t                                ", result$df, "\n")
             cat("  p-value:\t\t                        ", result$PValue, "\n\n")
             cat(statement)
@@ -682,22 +694,11 @@ ResidualDevianceTest <- function(fit, printNice=TRUE) {
 
 
 
-
-#ResidualDevianceTest <- function(model){
-#      # residualdeviance has chi-square distribution on n - k degrees freedom. 
-#      df <- model$df.residual
-#      dev <- deviance(model)
-#      result <- data.frame(ResidualDeviance=dev, df=df,
-#                       PValue= 1 - pchisq(dev, df=df))
-#      row.names(result) <- ""
-#      return(result)
-#}
-
 NullDevianceTest <- function(model){
       # null deviance has chi-square distribution on n - 1 degrees freedom. 
       df <- model$df.null
       dev <- model$null.deviance
-      result <- data.frame(ResidualDeviance=dev, df=df,
+      result <- data.frame(NullDeviance=dev, df=df,
                            PValue= 1 - pchisq(dev, df=df))
       row.names(result) <- ""
       return(result)
@@ -731,7 +732,16 @@ DevianceResiduals.Poisson <- function(fit) {
    return(di[,])
 }
 
-
+ResidualDevianceTest.Poisson <- function(fit){
+   devianceRes <- DevianceResiduals.Poisson(fit)
+   deviance <- sum(devianceRes^2)
+   
+   result <- data.frame(ResidualDeviance=deviance, 
+                        PValue=1-pchisq(deviance, df=fit$df.residual),
+                        DegreesFreedom = fit$df.residual)
+   
+   return(result)
+}
 
 
 # ---------------------- Row/Col Probability Estimates -----------------------------------------

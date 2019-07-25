@@ -510,7 +510,8 @@ plotConfidenceBands.glm <- function(fit){
       xs <- data.frame(seq(from=from,to=to, len=nrow(fit$model)))
       colnames(xs) <- xName
       
-      CI <- data.frame(predict(fit, newdata=xs, type="link", se.fit=TRUE))[1:2]
+      #CI <- data.frame(predict(fit, newdata=xs, type="link", se.fit=TRUE))[1:2]
+      CI <- data.frame(predict(fit, type="link", se.fit=TRUE))[1:2]
       conf.df <- data.frame(xs[xName], fit = invLink(CI$fit), 
                             lwr = invLink(CI$fit - 2*CI$se.fit), 
                             upr = invLink(CI$fit + 2*CI$se.fit))
