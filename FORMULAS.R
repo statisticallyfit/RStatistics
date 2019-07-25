@@ -552,16 +552,21 @@ NestedLikelihoodRatioTest <- function(reducedModel, fullModel, printNice=TRUE) {
       pi.hat.Ha <- fullModel$fitted.values
       # don't know why this doesn't work when comparing null Mod with alternative
       #likRatioStat <- -2 * sum(y * log(pi.hat.Ho/pi.hat.Ha) + (1-y)*log((1-pi.hat.Ho)/(1-pi.hat.Ha)))
-      likRatioStat <- reducedModel$deviance - fullModel$deviance; likRatioStat
+      likRatioStat <- reducedModel$deviance - fullModel$deviance
       
       # note: df.null = n - 1, df.resid = n - k - 1, k = num params (not incl. B0)
       df <- reducedModel$df.residual - fullModel$df.residual
       pValue <- 1 - pchisq(likRatioStat, df)
       chi.crit <- qchisq(0.05, df=df, lower.tail=F)
       
-      result <- data.frame(Deviance.Ho=reducedModel$deviance, Deviance.Ha=fullModel$dev,
-                           df.Ho=reducedModel$df.residual, df.Ha=fullModel$df.residual,
-                           df=df, LikRatio=likRatioStat, ChiCrit=chi.crit, PValue=pValue)
+      result <- rbind(c(ResidualDev.Ho=reducedModel$deviance, 
+                        ResidualDev.Ha=fullModel$dev,
+                        df.res.Ho=reducedModel$df.residual, 
+                        df.res.Ha=fullModel$df.residual,
+                        df.dev=df, 
+                        Deviance=likRatioStat, ChiCrit=chi.crit, PValue=pValue))
+      rownames(result) <- ""
+      result <- data.frame(result)
       
       statement <- ""
       if(pValue < 0.05){
@@ -588,7 +593,7 @@ NestedLikelihoodRatioTest <- function(reducedModel, fullModel, printNice=TRUE) {
             cat("\n")
             cat("\tHA: complete model is true: "); cat(paste(na[[2]], na[[1]], na[3]))
             cat("\n\n")
-            cat("  ΔG:\t\t                                ", result$LikRatio, "\n")
+            cat("  ΔG:\t\t                                ", result$Deviance, "\n")
             #cat("  Critical Chi-square (α = 0.05):               ", ChiCrit, "\n")
             cat("  df:\t\t                                ", result$df, "\n")
             cat("  p-value:\t\t                        ", result$PValue, "\n\n")
@@ -611,10 +616,20 @@ DevianceTest <- function(fit, printNice=TRUE){
       # The nullData contains the response column observations and the 
       # offset in another column
    
-      nullData <- data.frame(fit$model[1], OFFSET=fit$offset)
-      yName <- colnames(nullData)[1]
-   
-      theFormula <- as.formula(paste(yName, "~ offset(OFFSET)", sep=""))
+      nullData <- NULL
+      yName <- NULL
+      theFormula <- NULL 
+      
+      if(!is.null(fit$offset)){
+            nullData <- data.frame(fit$model[1], OFFSET=fit$offset)
+            yName <- colnames(nullData)[1]
+         
+            theFormula <- as.formula(paste(yName, "~ offset(OFFSET)", sep=""))
+      } else {
+            nullData <- data.frame(fit$model[1])
+            yName <- colnames(nullData)[1]
+            theFormula <- as.formula(paste(yName, "~ 1", sep=""))
+      }
       
       nullModel <- glm(theFormula, family=fit$family, data=nullData)
       
@@ -638,9 +653,9 @@ DevianceTest <- function(fit, printNice=TRUE){
 ResidualDevianceTest <- function(fit, printNice=TRUE) { 
       # residualdeviance has chi-square distribution on n - k - 1 degrees freedom. 
       df <- fit$df.residual # always n - k - 1, where k+1 = num params/coefs
-      dev <- fit$deviance
-      result <- data.frame(LikRatio=dev, df=df,
-                           PValue= 1 - pchisq(dev, df=df))
+      res.dev <- fit$deviance
+      result <- data.frame(LikRatio=res.dev, df=df,
+                           PValue= 1 - pchisq(res.dev, df=df))
       row.names(result) <- ""
       
       
