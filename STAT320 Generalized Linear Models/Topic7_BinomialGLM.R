@@ -112,11 +112,11 @@ admit2.glm <- glm(admit ~ gre + gpa + rank, data=greData2, family=binomial)
 # INTERPRET THE COEFFICIENTS: 
 cof <- cbind(summary(admit2.glm)$coef[,1])
 
-cof # log odds 
+cof # coefs = change in log odds 
 
-exp(cof) # the odds 
+exp(cof) #coefs = the odds ratios
 
-100*(exp(cof) - 1) # percentage changes in odds 
+100*(exp(cof) - 1) # coefs = the percentage changes in odds 
 
 # ---> RANK_1: holding gre, gpa fixed, the odds of being admitted to a rank 1 university
 # is 96.490% higher than for a rank 2 university
@@ -158,7 +158,7 @@ predict(admit.glm, type="response") # this predicts using the training data
 
 
 
-#### 7.4 EBINOMIAL DATA -----------------------------------------------------------------
+#### 7.4 BINOMIAL DATA -----------------------------------------------------------------
 
 # Example 7.4.1: single quantitative predictor
 
@@ -214,11 +214,13 @@ ResidualDevianceTest(beetle.count.glm)
 
 
 # INTERPRET COEFFICIENTS: -------------------------------------------------------------
-cof <- cbind(summary(beetle.glm)$coef[,1]); cof 
+cof <- cbind(summary(beetle.glm)$coef[,1])
 
-exp(cof)
+cof # coefs = change in log odds
 
-100*(exp(cof)-1)
+exp(cof) # coefs = odds ratio
+
+100*(exp(cof)-1) # coefs = percent change in odds
 
 # ---> LDOSE: for a 1 unit increase in log(dose), the odds of beetles dying versus not
 # dying increases by 7.645% . 
@@ -339,7 +341,7 @@ cof <- summary(ratio.glm)$coef[,1]
 cof 
 pvalues <- summary(ratio.glm)$coef[,4]
 
-cbind(Odds=exp(cof), OddsPercentChange=100*(exp(cof) - 1),Pvalues=pvalues)
+cbind(OddsRatio=exp(cof), OddsRatioPercentChange=100*(exp(cof) - 1),Pvalues=pvalues)
 
 # ---> genotypeB: the odds of male vs odds of female is 38.18% lower for a genotypeB
 # versus a genotypeA insect. This is not significant (p = 0.40)
@@ -367,7 +369,7 @@ anova(ratioC.glm, test="Chisq") # same interpretation as when baselevel = "A"
 cofC <- summary(ratioC.glm)$coef[,1]
 pvalues <- summary(ratioC.glm)$coef[,4]
 
-cbind(Odds=exp(cofC), OddsPercentChange=100*(exp(cofC)-1), PValues=pvalues)
+cbind(OddsRatio=exp(cofC), OddsRatioPercentChange=100*(exp(cofC)-1), PValues=pvalues)
 
 # ---> genotypeA: the odds of having a male offspring is 64.83% lower for genotype A than 
 # for genotypeC (and this difference is significant: p = 0.0126)

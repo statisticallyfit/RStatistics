@@ -165,12 +165,13 @@ cooks.distance(fault.glm)
 
 # SECTION 6.3: Contingency Table (2x2) -------------------------------------------
 # P = present, A = absent, GallA = wasp gall species A, GallB = species B
-gallData.long <- data.frame(GallA=c(rep("P", 57), rep("A", 54)),
+
+aphidData.long <- data.frame(GallA=c(rep("P", 57), rep("A", 54)),
                        GallB=c(rep("P",13), rep("A",44), rep("P",25), rep("A",29)))
-tbl <- table(gallData.long)
+tbl <- table(aphidData.long)
 mtbl <- marginalTable(tbl); mtbl
 
-gallData <- data.frame(count=c(13, 44, 25, 29), gallA=c(rep("P", 2), rep("A", 2)), gallB=c("P", "A", "P", "A") )
+aphidData <- data.frame(count=c(13, 44, 25, 29), gallA=c(rep("P", 2), rep("A", 2)), gallB=c("P", "A", "P", "A") )
 
 # Chisquare Test of Independence ==================================================
 X2 <- chisq.test(tbl, correct=F); X2
@@ -190,9 +191,9 @@ X2$expected
 # log(u_ij) = mu + row_i + col_j
 
 # MODEL OF INDEPENDENCE OF ROW and COL: no interaction term. (Y ~ row + col)
-gall.indep.glm <- glm(count ~ gallA + gallB, data=gallData, family=poisson)
+gall.indep.glm <- glm(count ~ gallA + gallB, data=aphidData, family=poisson)
 # put here saturated model as well
-gall.saturated.glm <- glm(count ~ gallA * gallB, data=gallData, family=poisson, x=T)
+gall.saturated.glm <- glm(count ~ gallA * gallB, data=aphidData, family=poisson, x=T)
 
 #anova(gall.indep.glm, test="Chisq") # note: the p-values correspond to the DEVIANCEs
 # for each row and column (each term in the glm), NOT to the residual deviance.
@@ -217,13 +218,13 @@ anova(gall.indep.glm, gall.saturated.glm, test="Chisq")
 
 
 # misc: could also comparing the A and A + B models
-ga.glm <-glm(count ~ gallA, data=gallData, family=poisson)
+ga.glm <-glm(count ~ gallA, data=aphidData, family=poisson)
 anova(ga.glm, gall.indep.glm, test="Chisq")
 NestedLikelihoodRatioTest(ga.glm, gall.indep.glm, printNice=F)
 
 
 # SATURATED MODEL: with interaction term (dependence model)
-gall.saturated.glm <- glm(count ~ gallA * gallB, data=gallData, family=poisson, x=T)
+gall.saturated.glm <- glm(count ~ gallA * gallB, data=aphidData, family=poisson, x=T)
 
 anova(gall.saturated.glm, test="Chisq") # p-values are for deviance not resid deviance
 # INTERPRET: the last row tests the interaction term, just like the nested test:
@@ -253,14 +254,14 @@ aphidData$tree <- factor(aphidData$tree)
 # Fit a glm with no pooling
 
 # STEP 1: fit the SATURATED MODEL: always fit the saturated model to start with.
-aphid.saturated.glm <- glm(count ~ tree*aphid*hole, data=aphidData, family=poisson)
-anova(aphid.saturated.glm, test="Chisq")
+aphid.poissonsaturated.glm <- glm(count ~ tree*aphid*hole, data=aphidData, family=poisson)
+anova(aphid.poissonsaturated.glm, test="Chisq")
 # INTERPRET: deviance p-value = 0.977 for three-way interaction term ==>
 # no evidence of three way interaction between tree, aphid, and hole. 
 
 # STEP 2: remove the three-way term, just keep all two-way terms. 
-aphid.alltwoway.glm <- glm(count ~ (tree + aphid + hole)^2, data=aphidData, family=poisson)
-anova(aphid.alltwoway.glm, test="Chisq")
+aphid.poissonalltwoway.glm <- glm(count ~ (tree + aphid + hole)^2, data=aphidData, family=poisson)
+anova(aphid.poissonalltwoway.glm, test="Chisq")
 # There is evidence of tree:aphid, and tree:hole interaction, but since p-value is
 # 0.954 for deviance of aphid:hole interaction term, we can remove that. 
 
@@ -268,19 +269,19 @@ anova(aphid.alltwoway.glm, test="Chisq")
 # anova tests terms consecutively, better
 # to use the summary table to test significance of all terms at once to determine
 # which are better to remove, given all others have been fitted. ?????????????
-# summary(aphid.alltwoway.glm)
+# summary(aphid.poissonalltwoway.glm)
 
 
 # STEP 3: removing unnecessary interactions: aphid: hole
-aphid.twoway.glm <- update(aphid.alltwoway.glm, ~. -aphid:hole, data=aphidData, family=poisson)
-anova(aphid.twoway.glm, test="Chisq")
+aphid.poissontwoway.glm <- update(aphid.poissonalltwoway.glm, ~. -aphid:hole, data=aphidData, family=poisson)
+anova(aphid.poissontwoway.glm, test="Chisq")
 # INTERPRET: all terms are important now
 
 
 # STEP 4: comparing all the models
-anova(aphid.twoway.glm, aphid.alltwoway.glm, aphid.saturated.glm, test="Chisq")
-NestedLikelihoodRatioTest(aphid.twoway.glm, aphid.alltwoway.glm, printNice=F)
-NestedLikelihoodRatioTest(aphid.alltwoway.glm, aphid.saturated.glm, printNice=F)
+anova(aphid.poissontwoway.glm, aphid.poissonalltwoway.glm, aphid.poissonsaturated.glm, test="Chisq")
+NestedLikelihoodRatioTest(aphid.poissontwoway.glm, aphid.poissonalltwoway.glm, printNice=F)
+NestedLikelihoodRatioTest(aphid.poissonalltwoway.glm, aphid.poissonsaturated.glm, printNice=F)
 
 # When p-value is high, can say that the missing term ebtween the two models
 # being compared is not significant => no association for those terms. 

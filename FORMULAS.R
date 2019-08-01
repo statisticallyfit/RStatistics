@@ -557,14 +557,15 @@ NestedLikelihoodRatioTest <- function(reducedModel, fullModel, printNice=TRUE) {
       # note: df.null = n - 1, df.resid = n - k - 1, k = num params (not incl. B0)
       df <- reducedModel$df.residual - fullModel$df.residual
       pValue <- 1 - pchisq(likRatioStat, df)
-      chi.crit <- qchisq(0.05, df=df, lower.tail=F)
+      #chi.crit <- qchisq(0.05, df=df, lower.tail=F)
       
       result <- rbind(c(ResidualDev.Ho=reducedModel$deviance, 
                         ResidualDev.Ha=fullModel$dev,
                         df.res.Ho=reducedModel$df.residual, 
                         df.res.Ha=fullModel$df.residual,
                         df.dev=df, 
-                        Deviance=likRatioStat, ChiCrit=chi.crit, PValue=pValue))
+                        Deviance=likRatioStat, PValue=pValue))
+                        #ChiCrit=chi.crit, 
       rownames(result) <- ""
       result <- data.frame(result)
       
