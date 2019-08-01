@@ -74,10 +74,10 @@ anova(aphid.poissontwoway.glm, aphid.poissonalltwoway.glm, test="Chisq")
 # EQUIVALENCE BETWEEN BINOMIAL AND POISSON MODELS EXPLAINED:  ============================
 
 ### Binomial: hole/total ~ tree + aphid
-# Test: use anova table - is aphid term significant?
+# Test question: use anova table - is aphid term significant?
 
 ### Poisson: count ~ tree + aphid + hole + tree:aphid + tree:hole + aphid:hole
-# Test: use anova table - is aphid:hole term significant?
+# Test question: use anova table - is aphid:hole term significant?
 
 # the p-values of the tree:hole, aphid:hole in poisson correspond to p-values of the
 # tree, aphid terms in the binomial. 

@@ -23,6 +23,9 @@ levels(homeData$status) # since No is first in this list, it is the base level.
 # Fit logistic model with simple linear predictor where status = Y, income = X
 income.glm <- glm(status ~ income, family=binomial, data=homeData)
 
+# interpret coefs (later). Here is the summary table for presentation in part (a)
+summary(income.glm)
+
 # part b) --------------------------------------------------------------------------
 
 anova(income.glm, test='Chisq')
@@ -114,6 +117,8 @@ exp(linearPredictor(newX))/(1 + exp(linearPredictor(newX)))
 
 # Plotting
 ggplot(data=homeDataNoFactor, aes(x=income, y=status)) + geom_point(size=3) + 
-      geom_line( aes(y=income.glm$fitted.values), color="dodgerblue", size=1)
+      geom_line( aes(y=income.glm$fitted.values), color="dodgerblue", size=1) + 
+      ggtitle("Probability of Ownership vs. Income") + 
+      ylab("Predicted and Observed probabilities")
 
 # Higher probability of home ownership when income is higher. 
