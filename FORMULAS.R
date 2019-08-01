@@ -574,7 +574,7 @@ NestedLikelihoodRatioTest <- function(reducedModel, fullModel, printNice=TRUE) {
             statement <- paste("Reject H0. Conclude at least one of the extra β ",
                                "coefficients \n",
                                "in the complete model is nonzero, so that the complete model is\n",
-                               "statistically useful for predicting ", names(reducedModel$model)[1], " (y).", sep="")
+                               "better for predicting Y = ", names(reducedModel$model)[1], ".", sep="")
       } else{
             statement <- 
                   paste("Insufficient evidence to reject Ho, that is, to conclude that",
@@ -588,7 +588,7 @@ NestedLikelihoodRatioTest <- function(reducedModel, fullModel, printNice=TRUE) {
             na = formula(fullModel)
             cat("\n")
             cat("#####################################################################\n")
-            cat("#######                 Likelihood-Ratio Test                 #######\n")
+            cat("#######             Nested Likelihood-Ratio Test              #######\n")
             cat("#####################################################################\n")
             cat("\tH0: reduced model is true: "); cat(paste(nf[[2]], nf[[1]], nf[3]))
             cat("\n")
