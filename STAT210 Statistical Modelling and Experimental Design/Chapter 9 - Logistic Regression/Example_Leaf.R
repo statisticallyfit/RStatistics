@@ -28,8 +28,6 @@ ggplot(leafDataFactor, aes(x=Visited, y=LeafHeight, colour=Visited)) +
 # for non visited leaves, the height is smaller. Is this significant? 
 summary(lm(LeafHeight ~ Visited, data=leafDataFactor)) # yes there is  a significant diff.
 
-ggplot(data=wineData, aes(x=fixed.acidity, colour=quality)) + 
-      geom_line(sta="density", size=2)
 
 # BUT NOW LOGISTIC (Visited is the response)
 # Modeling probability of leaf visitation as function of height. 

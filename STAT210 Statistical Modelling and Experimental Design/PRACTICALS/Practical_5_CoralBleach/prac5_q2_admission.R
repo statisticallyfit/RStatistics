@@ -1,4 +1,6 @@
-setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/PRACTICALS/Practical_5_CoralBleach/")
+setwd("/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT210 Statistical Modelling and Experimental Design/PRACTICALS/Practical_5_CoralBleach/")
+source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/FORMULAS.R')
+source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/PLOTTING.R')
 
 library(ggplot2)
 options(digits=10, show.signif.stars = FALSE)

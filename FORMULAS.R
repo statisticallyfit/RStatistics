@@ -609,6 +609,10 @@ NestedLikelihoodRatioTest <- function(reducedModel, fullModel, printNice=TRUE) {
 # NOTE: use the count = cbind(success, total) y-value when fitting the fit model
 # so that here tempData is made of two cols. Do not let y be a proportion
 # otherwise we get weird results. 
+
+# TODO: make this work for binomial glm when response = proportion (beetle.glm in
+# STAT320, topic7)
+
 DevianceTest <- function(fit, printNice=TRUE){
       
       # Check if the fitted model contains an offset. If so, we need to fit
@@ -650,6 +654,10 @@ DevianceTest <- function(fit, printNice=TRUE){
 # TESTS: the difference between expected successes with observed ones, and the
 # expected failures with observed ones. (global F-test)
 # Equivalent to global F-test, tests overall model fit. 
+
+# TODO: make this work for binomial glm when response = proportion (beetle.glm in
+# STAT320, topic7)
+
 ResidualDevianceTest <- function(fit, printNice=TRUE) { 
       # residualdeviance has chi-square distribution on n - k - 1 degrees freedom. 
       df <- fit$df.residual # always n - k - 1, where k+1 = num params/coefs
@@ -746,6 +754,20 @@ DevianceResiduals.Poisson <- function(fit) {
    di <- si * sqrt(2 * (yi * log(yi/mui) - (yi - mui)))
    return(di[,])
 }
+
+# TODO: cannot calculate mui since the counts n_i are not always given - sometimes
+# we are just given binary 1,0 data. 
+# TODO: this still won't work when we get NaN's like when ni's and yi's are the same. 
+
+#DevianceResiduals.Binomial <- function(fit) {
+#   yi <- fit$model[1]
+#   mui <- 
+   #yi <- beetleData$r #fit$model[1]
+#   ni <- beetleData$n
+#   mui <- ni * beetle.glm$fitted.values
+#   si <- sign(yi - mui)
+#   di <- si * sqrt(2 * (yi * log(yi/mui) + (ni - yi) * log((ni-yi)/(ni - mui))))
+##}
 
 ResidualDevianceTest.Poisson <- function(fit){
    devianceRes <- DevianceResiduals.Poisson(fit)
