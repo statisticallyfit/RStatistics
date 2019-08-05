@@ -40,3 +40,24 @@ anova(indep.ges, test="Chisq")
 #
 anova(indep.ges, test='Chisq') #same p-values of first three terms, as long as 'ges' is order same
 anova(sat.ges, test="Chisq")
+
+
+# =====================
+sat.sge = mice.saturated.binom.glm                     ###
+#sat.seg = glm(tumourCount ~ Strain * Exposure * Gender, 
+#              data=miceData.binom, family=binomial)
+#sat.ges = glm(tumourCount ~  Gender * Exposure * Strain, 
+#              data=miceData.binom, family=binomial)
+sat.gse = glm(tumourCount ~ Gender * Strain * Exposure,  ###
+              data=miceData.binom, family=binomial)
+#sat.egs = glm(tumourCount ~ Exposure * Gender * Strain, 
+#              data=miceData.binom, family=binomial)
+#sat.esg = glm(tumourCount ~ Exposure * Strain * Gender, 
+#    data=miceData.binom, family=binomial)
+
+anova(sat.sge, test="Chisq")
+anova(sat.seg, test="Chisq")
+anova(sat.ges, test="Chisq") # possible two-term indep model: G + E
+anova(sat.gse, test="Chisq")
+anova(sat.egs, test="Chisq") # possible two-term indep model: E + G
+anova(sat.esg, test="Chisq")

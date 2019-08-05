@@ -4,7 +4,7 @@ source('/development/projects/statisticallyfit/github/learningmathstat/RStatisti
 source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/Rfunctions.R')
 
 
-library(ggplot2)
+library(ggfortify)
 options(show.signif.stars = FALSE)
 
 
@@ -33,7 +33,8 @@ miceData.pois <- data.frame(Strain=c(rep("X",4*2), rep("Y",4*2)),
 miceData.pois
 miceData.binom
 
-tumourCount <- cbind(TumourCount=miceData.binom$TumourCount, NoTumourCount=miceData.binom$NoTumourCount)
+tumourCount <- cbind(TumourCount=miceData.binom$TumourCount, 
+                     NoTumourCount=miceData.binom$NoTumourCount)
 
 
 
@@ -41,29 +42,6 @@ tumourCount <- cbind(TumourCount=miceData.binom$TumourCount, NoTumourCount=miceD
 mice.saturated.binom.glm <- glm(tumourCount ~ Strain * Gender * Exposure, 
                                 data=miceData.binom, family=binomial)
 
-sat.sge = mice.saturated.binom.glm                     ###
-sat.seg = glm(tumourCount ~ Strain * Exposure * Gender, 
-              data=miceData.binom, family=binomial)
-sat.ges = glm(tumourCount ~  Gender * Exposure * Strain, 
-              data=miceData.binom, family=binomial)
-sat.gse = glm(tumourCount ~ Gender * Strain * Exposure,  ###
-              data=miceData.binom, family=binomial)
-sat.egs = glm(tumourCount ~ Exposure * Gender * Strain, 
-              data=miceData.binom, family=binomial)
-sat.esg = glm(tumourCount ~ Exposure * Strain * Gender, 
-    data=miceData.binom, family=binomial)
-
-anova(sat.sge, test="Chisq")
-anova(sat.seg, test="Chisq")
-anova(sat.ges, test="Chisq") # possible two-term indep model: G + E
-anova(sat.gse, test="Chisq")
-anova(sat.egs, test="Chisq") # possible two-term indep model: E + G
-anova(sat.esg, test="Chisq")
-
-
-
-
-# --------------
 anova(mice.saturated.binom.glm, test="Chisq")
 
 # INTERPRET: 
@@ -119,6 +97,8 @@ mice.saturated.pois.glm <- glm(Count ~ Strain * Gender * Exposure * Tumour,
                                data=miceData.pois, family=poisson)
 
 anova(mice.saturated.pois.glm, test="Chisq") # gender:tumor
+# INTERPRET: as per binomial, only the independence model is significant. All the
+# interaction terms are nont significant. 
 
 anova(mice.saturated.binom.glm, test="Chisq") # gender
 
@@ -132,3 +112,38 @@ anova(mice.saturated.binom.glm, test="Chisq") # gender
 
 # The poisson model also corresponds to binomial and verifies it sincethe  p-values, 
 # deviance, and residual deviances of  the above corresponding terms match.
+
+# Fit the independence poisson model: 
+mice.indep.pois.glm <- glm(Count ~ Strain + Gender + Exposure + Tumour, 
+                           data=miceData.pois, family=poisson)
+anova(mice.indep.pois.glm, test="Chisq")
+anova(mice.saturated.pois.glm, test="Chisq")
+anova(mice.indep.pois.glm, mice.saturated.pois.glm, test="Chisq")
+
+
+# part c) -----------------------------------------------------------------------------
+
+# State the models (only the independence models are good)
+summary(mice.indep.binom.glm)
+summary(mice.indep.pois.glm)
+
+
+# part d) -----------------------------------------------------------------------------
+
+# compare and contrast the models
+
+# part e) -----------------------------------------------------------------------------
+
+# Summarize the findings (and report the model assumptions and diagnostics)
+autoplot(mice.indep.binom.glm, which=c(1,2,3,4)) # these are the deviance residuals
+autoplot(mice.indep.pois.glm, which=c(1,2,3,4))
+
+# Testing normality of deviance residuals
+shapiro.test(residuals(mice.indep.binom.glm)) #no reason to reject null of normality
+shapiro.test(residuals(mice.indep.pois.glm)) 
+
+# Model assumptions seem satisfied: deviance residuals are normal and there seem 
+#  to be no outliers
+influence.cooksDistances(mice.indep.binom.glm)
+influence.cooksDistances(mice.indep.pois.glm)
+# except observation 7 for the poisson model
