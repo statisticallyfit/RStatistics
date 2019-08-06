@@ -12,8 +12,8 @@ options(show.signif.stars = FALSE)
 
 # Binomial formulation: create the data so that it can be used to fit the binomial glm. 
 miceData.binom <- data.frame(Strain=c(rep("X",4), rep("Y",4)), 
-                             Gender=rep(c(rep("male",2), rep("female",2)),2), 
-                             Exposure= rep(c("exposed", "control"), 4), 
+                             Gender=rep(c(rep("Male",2), rep("Female",2)),2), 
+                             Exposure= rep(c("Yes", "No"), 4), 
                              TumourCount = c(12, 74, 12, 84, 14, 80, 14, 79),
                              NoTumourCount = c(4,5,2,3,4,10,1,3))
 
@@ -23,9 +23,9 @@ miceData.binom
 #aphidData.binomial
 #aphidData.poisson
 miceData.pois <- data.frame(Strain=c(rep("X",4*2), rep("Y",4*2)), 
-           Gender=rep(c(rep("male",2*2), rep("female",2*2)),2), 
-           Exposure= rep(c(rep("exposed",2), rep("control",2)), 4), 
-           Tumour=rep(c("yes", "no"), 8), 
+           Gender=rep(c(rep("Male",2*2), rep("Female",2*2)),2), 
+           Exposure= rep(c(rep("Yes",2), rep("No",2)), 4), 
+           Tumour=rep(c("Yes", "No"), 8), 
            Count = c(12, 4, 74, 5, 12, 2,84,3,14,4,80,10,14,1,79,3))
 #aphidData.poisson
 #aphidData.binomial      
@@ -93,14 +93,19 @@ anova(mice.indep.binom.glm, mice.saturated.binom.glm, test="Chisq")
 # Fit the poisson model to verify the form of binomial
 miceData.pois
 
+# STEP 1: fit the saturated model
 mice.saturated.pois.glm <- glm(Count ~ Strain * Gender * Exposure * Tumour, 
                                data=miceData.pois, family=poisson)
 
-anova(mice.saturated.pois.glm, test="Chisq") # gender:tumor
-# INTERPRET: as per binomial, only the independence model is significant. All the
-# interaction terms are nont significant. 
+anova(mice.saturated.pois.glm, test="Chisq") 
+# INTERPRET: all terms after Exposure:Tumour are not significant, so we can drop them
 
-anova(mice.saturated.binom.glm, test="Chisq") # gender
+# Step 2: fit the all-two-way poisson model
+mice.alltwoway.pois.glm <- glm(Count ~ (Strain + Gender + Exposure + Tumour)^2, 
+                               data=miceData.pois, family=poisson)
+
+anova(mice.alltwoway.pois.glm, test="Chisq") 
+# INTERPRET: 
 
 # Strain:Tumour (pois) == Strain (binom)
 # Gender:Tumour (pois) == Gender (binom)
@@ -113,21 +118,26 @@ anova(mice.saturated.binom.glm, test="Chisq") # gender
 # The poisson model also corresponds to binomial and verifies it sincethe  p-values, 
 # deviance, and residual deviances of  the above corresponding terms match.
 
-# Fit the independence poisson model: 
-mice.indep.pois.glm <- glm(Count ~ Strain + Gender + Exposure + Tumour, 
-                           data=miceData.pois, family=poisson)
-anova(mice.indep.pois.glm, test="Chisq")
-anova(mice.saturated.pois.glm, test="Chisq")
-anova(mice.indep.pois.glm, mice.saturated.pois.glm, test="Chisq")
+# Nested Likelihood test between alltwoway and saturated poisson
+anova(mice.alltwoway.pois.glm, mice.saturated.pois.glm, test="Chisq")
 
 
 # part c) -----------------------------------------------------------------------------
 
-# State the models (only the independence models are good)
+# State the models 
 summary(mice.indep.binom.glm)
-summary(mice.indep.pois.glm)
+summary(mice.alltwoway.pois.glm)
 
+cb = summary(mice.indep.binom.glm)$coef[,1]
+cp = summary(mice.alltwoway.pois.glm)$coef[,1]
 
+db = data.frame(logOdds=cb, OddsRatio=exp(cb), PcntChngOR=100*(exp(cb)-1),
+                PValue=summary(mice.indep.binom.glm)$coef[,4])
+dp = data.frame(logOdds=cp, OddsRatio=exp(cp), PcntChngOR=100*(exp(cp)-1), 
+                PValue=summary(mice.alltwoway.pois.glm)$coef[,4])
+
+db 
+dp 
 # part d) -----------------------------------------------------------------------------
 
 # compare and contrast the models
@@ -136,14 +146,8 @@ summary(mice.indep.pois.glm)
 
 # Summarize the findings (and report the model assumptions and diagnostics)
 autoplot(mice.indep.binom.glm, which=c(1,2,3,4)) # these are the deviance residuals
-autoplot(mice.indep.pois.glm, which=c(1,2,3,4))
+autoplot(mice.alltwoway.pois.glm, which=c(1,2,3,4))
 
 # Testing normality of deviance residuals
 shapiro.test(residuals(mice.indep.binom.glm)) #no reason to reject null of normality
-shapiro.test(residuals(mice.indep.pois.glm)) 
-
-# Model assumptions seem satisfied: deviance residuals are normal and there seem 
-#  to be no outliers
-influence.cooksDistances(mice.indep.binom.glm)
-influence.cooksDistances(mice.indep.pois.glm)
-# except observation 7 for the poisson model
+shapiro.test(residuals(mice.alltwoway.pois.glm)) 

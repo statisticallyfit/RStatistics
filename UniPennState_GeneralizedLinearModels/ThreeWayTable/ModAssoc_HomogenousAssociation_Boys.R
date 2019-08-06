@@ -1,7 +1,7 @@
-source('/datascience/projects/statisticallyfit/github/learningstatistics/RStatistics/learnstatistics/[PennState] GeneralizedLinearModels/ThreeWayTable/ModAssoc_MutualIndependence_Boys.R')
-source('/datascience/projects/statisticallyfit/github/learningstatistics/RStatistics/learnstatistics/[PennState] GeneralizedLinearModels/ThreeWayTable/ModAssoc_MarginalIndependence_Boys.R')
-source('/datascience/projects/statisticallyfit/github/learningstatistics/RStatistics/learnstatistics/[PennState] GeneralizedLinearModels/ThreeWayTable/ModAssoc_JointIndependence_Boys.R')
-source('/datascience/projects/statisticallyfit/github/learningstatistics/RStatistics/learnstatistics/[PennState] GeneralizedLinearModels/ThreeWayTable/ModAssoc_ConditionalIndependence_Boys.R')
+setwd('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/UniPennState_GeneralizedLinearModels/ThreeWayTable/')
+#source('/datascience/projects/statisticallyfit/github/learningstatistics/RStatistics/learnstatistics/[PennState] GeneralizedLinearModels/ThreeWayTable/ModAssoc_MarginalIndependence_Boys.R')
+#source('/datascience/projects/statisticallyfit/github/learningstatistics/RStatistics/learnstatistics/[PennState] GeneralizedLinearModels/ThreeWayTable/ModAssoc_JointIndependence_Boys.R')
+#source('/datascience/projects/statisticallyfit/github/learningstatistics/RStatistics/learnstatistics/[PennState] GeneralizedLinearModels/ThreeWayTable/ModAssoc_ConditionalIndependence_Boys.R')
 
 
 ### NOTE: breslow-day and therefor homogenous tests have not been generalized to IJK tables

@@ -207,6 +207,7 @@ predictions
 # SOURCES: 
 # ON HOW TO INTERPRET POISSON COEFFICIENTS: 
 # (1) https://newonlinecourses.science.psu.edu/stat504/node/168/
+# https://stats.idre.ucla.edu/stata/output/poisson-regression/
 # (2) http://environmentalcomputing.net/interpreting-coefficients-in-glms/
 # (3) http://webcache.googleusercontent.com/search?q=cache:http://biostat.mc.vanderbilt.edu/wiki/pub/Main/CourseBios312/poisson.pdf
 # (4) formula derivation: http://www.haowang.pw/blog/Poisson-Coefficient-Interpretation/

@@ -1,10 +1,11 @@
-setwd("/datascience/projects/statisticallyfit/github/R/RStatistics/STAT210 Statistical Modelling and Experimental Design/Chapter 9 - Logistic Regression/")
+setwd("/datascience/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT210 Statistical Modelling and Experimental Design/Chapter 9 - Logistic Regression/")
 
 # source: 
 # https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faq-how-do-i-interpret-odds-ratios-in-logistic-regression/
 
 
 honorsData <- read.table("honors.txt", header=TRUE)
+head(honorsData)
 
 # MAKING FREQUENCY TABLE
 # hon = 1 (student takes honors), hon = 0 (not)

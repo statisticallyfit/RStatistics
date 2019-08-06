@@ -4,7 +4,7 @@ source('/development/projects/statisticallyfit/github/learningmathstat/RStatisti
 source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/Rfunctions.R')
 
 
-library(ggplot2)
+library(ggfortify)
 options(show.signif.stars = FALSE)
 
 # Data = family income of twenty houses, and info about home ownership. 
@@ -29,6 +29,7 @@ summary(income.glm)
 # part b) --------------------------------------------------------------------------
 
 anova(income.glm, test='Chisq')
+autoplot(income.glm, which=c(1,2,3,4))
 
 # INTERPRET: 
 
@@ -56,12 +57,15 @@ cofChart
 
 # ---> Income:
 
-### log odds: for a one unit ($10,000) increase in income, the logodds of status increases by 0.99
+### log odds: for a one unit ($10,000) increase in income, the 
+# logodds of status increases by 0.99
 
-### odds ratio: for a one unit ($10,000) increase in income, the odds of owning a home over odds of
+### odds ratio: for a one unit ($10,000) increase in income, the odds 
+# of owning a home over odds of
 # not owning a home increases by a factor of 2.7055
 
-### percent change: for a one unit ($10,000) increase in income, the odds of owning a home over odds
+### percent change: for a one unit ($10,000) increase in income, 
+# the odds of owning a home over odds
 # of not owning a home increases by 170.557 %. 
 
 
