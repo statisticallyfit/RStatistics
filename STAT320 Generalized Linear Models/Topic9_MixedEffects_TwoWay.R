@@ -81,10 +81,14 @@ machine.lme
 
 # Machine %in% Worker (means: FIXED_EFFECT %in% RANDOM_EFFECT)
 summary(machine.lme)
+
 # See: 
-sigma.residual <- 0.9615771 # residual var = within group variation
-sigma.worker <- 4.78105     # between group=worker variation (worker var)
-sigma.machine_worker <- 3.729532 # between group=machine:worker variation (interaction var)
+# within group variation = residual var
+sigma.residual <- 0.9615771 
+# between group (worker) variation (worker variance)
+sigma.worker <- 4.78105     
+# between group (machine:worker) variation (interaction variance)
+sigma.machine_worker <- 3.729532 
 
 
 # TESTING: if interaction term is significant.
@@ -103,8 +107,56 @@ anova(machine.nointeraction.lme, machine.lme)
 # worker.
 
 # NOTSE: 
-### (1) To compare models with different FIXED but same RANDOM effects, use 
-# MLREML estimation not REML estimation of coeffs. But final model coefs should be
-# re-obtained using REML. (specify method = "ML")
+### (1) to compare mixed models, with different FIXED but same RANDOM effects, use 
+# ML estimation not REML estimation of coeffs. 
+# But final model coefs should be re-obtained using REML. (specify method = "ML")
 
-### (2)
+### (2) to use anova to compare mixed models, the fixed terms must be the same
+# while the random terms can be diferent. 
+
+### (3) Note that for a balanced design, the predicted main fixed effects
+# are the same between the mixed model and the regular lm model: 
+machines.lm <- lm(score ~ Machine * Worker, data=Machines)
+# Coefs in regular lm model
+summary(machines.lm)
+# coefs in LME model
+summary(machine.lme)
+# see that the fixed effect coefs MachineB = 7.99 and MachineC = 13.9 are the same
+# for both models. 
+# BUT the std errors and thus test statistics differ because there are additional
+# variance components in the lme compared to in the lm. 
+
+# Checking the fixed effects coefs are the not same anymore when the design is
+# unbalanced:
+detach(Machines)
+mac = Machines[-c(2,3,6,8,9,12,19,20,27,33),]
+
+# showing the data are now unblanaced: 
+table(mac$Machine, mac$Worker)
+# Old data is balanced: (same number of counts per cell in predictor variables)
+table(Machines$Machine, Machines$Worker)
+
+attach(mac)
+
+mac.unbalanced.lm <- lm(score ~ Machine * Worker)
+mac.unbalanced.lme <- lme(score ~ Machine, random = ~1|Worker/Machine)
+summary(mac.unbalanced.lm)
+summary(mac.unbalanced.lme)
+
+
+
+# Refitting ineraction model using the ML method
+detach(mac)
+attach(Machines)
+machines.ML.lme <- lme(score ~ Machine, random = ~1|Worker/Machine, method="ML")
+AIC(machines.ML.lme)
+AIC(machines.lm)
+
+AIC(mac.unbalanced.lm)
+AIC(mac.unbalanced.lme) # worse, is higher than for lm
+
+# just observe AIC differs for a model fitted using ML vs REML
+
+
+
+### RESIDUAL PLOTS ---------------------------------------------------------------
