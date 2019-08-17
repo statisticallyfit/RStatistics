@@ -170,4 +170,205 @@ qqnorm(machine.lme)
 # Residuals vs predictors
 #df <- data.frame(machine.lme$residuals)
 #plot(Machines$Machine, df$fixed)
+
+# Boxplots of residuals by machine and worker
 plot(Machines$Machine, machine.lme$residuals[,1])
+plot(Machines$Worker, machine.lme$residuals[,1])
+
+# Boxplot of residuals vs machine --- HELP but why is this different than above?
+aug <- augment(machine.lme, data=Machines)
+ggplot(aug,aes(Machine, .resid))+
+      geom_boxplot()+coord_flip()
+
+
+# Equivalent: residuals are in the third column of fitted variable
+plot(machine.lme)
+plot(machine.lme$fitted[,3], machine.lme$residuals[,3])
+machine.lme$fitted # the fitted values for fixed, Worker and Machine variables
+machine.lme$residuals # the residuals for fixed, Worker, and Machine variables
+
+
+
+
+### Exercise: Beet data -----------------------------------------------------------
+
+beetData <- read.table("data/beet.txt", header=TRUE)
+head(beetData)
+beetData$fert <- factor(beetData$fert)
+beetData$fert
+beetData$seed <- factor(beetData$seed)
+beetData$plot <- factor(beetData$plot)
+
+# Data: 3x4 factorial study was designed to study effects of the
+# FIXED FACTOR (fertilization method: fert (3 levels)) and the 
+# RANDOM FACTOR (seeding rate: seed (4 levels)). 
+# There were 3 replications per treatment. 
+# Yield = response variable
+
+# (a) random effect: seeding rate: want to extrapolate to population. Means
+# we study random sample not the seeding rate atfixed or specific levels. 
+# Fixed effect: fertilization method, means we study fertilization at 3 specific
+# levels and is not considered a random sample, just fixed. 
+
+# (b) estimating variance components of all random effects
+
+# notation: Worker/Machine means Worker + (Machine-within-worker)
+# ~1| Worker/Machine
+
+# notation: seed/fertz means seed + (fert-within-seed) 
+# Means how to specify an interaction between fert and seeding rate. 
+beet.lme <- lme(yield ~ fert, random = ~1 | seed/fert, data=beetData)
+summary(beet.lme)
+
+# INTERPRET: 
+# within group variation = residual var
+sigma.residual <- 0.240682
+# between group (seed) variation (seed variance)
+sigma.seed <- 0.7032103     
+# between group (fert:seed) variation (interaction variance)
+sigma.fert_seed <- 0.1802853 
+
+
+# TESTING: if interaction term is significant.
+
+# Fit the model without interaction
+beet.nointeraction.lme <- lme(yield ~ fert, random = ~1|seed, data=beetData)
+
+anova(beet.nointeraction.lme, beet.lme)
+# INTERPRET: 
+# Interaction model has lower AIC so it is better than main effects model. 
+# MEANING of this significant interaction: differences among fertilizer vary
+# with each seeding level. 
+
+#interaction.plot(x.factor=Machine, trace.factor=Worker, response=score)
+with(beetData, interaction.plot(x.factor=fert, trace.factor=seed, response=yield))
+
+
+
+### 9.5 COMPONENTS OF A MIXED MODEL ---------------------------------------------
+# Understanding: design matrices, predictions, residuals
+
+ #Run the machines example again using LMER method in library(lme4)
+
+# (1) DESIGN MATRICES: 
+# y = XB = Z1 * b + Z2*m + e
+# b ~ N(0, sigmab^2 * I)
+# m ~ N(0, sigmaM^2 * I)
+# e ~ N(0,sigma^2 *I)
+
+# where,
+### Random effect worker: b ~ N(0, sigma_b^2 * I)
+### Interaction effect: worker:Machine: m ~ N(0, sigma_m^2 * I)
+### residuals: e ~ N(0, sigma^2 * I)
+### X = fixed effect (machine) design matrix
+### Z1 = random effect (worker) design matrix
+### Z2 = interaction random effect (worker:machine) design matrix
+
+# Producing design matrices
+machine.lmer <- lmer(score ~ Machine + (1|Worker/Machine), data=Machines)
+# compare to lme
+# machine.lme <- lme(score ~ Machine, random = ~1|Worker/Machine)
+
+machine.lmer
+summary(machine.lmer)
+
+# Get design matrix
+getME(machine.lmer, "X")
+m = getME(machine.lmer, "Z")
+head(Machines)
+
+# -> column 1 in the Z design matrix (actually a compbination of Z1 worker and 
+# Z2 interaction effect) corresponds to random effect worker 1
+# on machine A (denote this as A.1). Can see this as observations 1-3 in the rows.
+
+# But actually col 1 corresponds to random effect worker 6 on machineA (A.6)
+# because of how our object is set up - different than in lec notes. 
+m@Dimnames # obs 1-3, is Machine=A, worker = 6
+m[1:3,]
+
+m@Dimnames # obs 4-6: is Machine = A, worker = 2
+m[4:6,] # worker 2 so ones are in second position
+
+m@Dimnames # obs 7-9: is Machine = A, worker = 4
+m[7:9,] # worker 4 so ones are in fourth position
+
+
+summary(machine.lme)
+random.effects(machine.lme)
+
+# So the model can be written: 
+# mu|b = 52.36 + 7.967*MB + 13.917*MC - 0.75 * MA:W1 + ... + 1.499*MB*W1 + ... + 2.48 MC:W6
+#   + 1.045 * W1 + ... + -7.51*W6
+
+
+## (2) PREDICTED VALUES: 
+# To get the coefficient analysis below, need to use both: 
+predict(machine.lme, level=0:2)
+# and
+random.effects(machine.lme)
+# NOTE: the level=0:2 in the predict command specifies the types 
+# of predictors: fixed, random, and interaction
+
+# LEVELS:
+
+# --> level = 0: the population level (the fixed effects (Machines) averaged over 
+# random effect (worker))
+# --> level = 1: the individual worker (random effect)
+# --> level = 2: the worker machine interaction
+
+# OUTPUT:
+
+##### ---> predict.fixed: corresponds to level = 0. 
+# Predict.fixed = prdicted RESPONSE for each FIXED EFFECT averaged over
+# the RANDOM effect. (So here, predicted score for each machine avged over worker)
+# Output: 
+# ------ 52.356 = mean score for Machine A, averaged over worker
+# see is averaged over worker since 1/A, 2/A, ... 6/A are all the same, for 
+# all worker values: 1-6
+# ------ 60.322 = mean score for machine B, avged over worker. 
+# ------ 66.27 = mean score for machine C, avged over worker. 
+
+##### ---> predict.RANDOM (predict.Worker) = level 1. The indiivudal random effect (worker) predictions. 
+# Output: 
+# ------- predicted value of worker 1 on machine A: 
+# = mean for machine A + COEF for worker 1 
+# = 52.355 + 1.045 
+# = 53.4
+# ------- predicted value of worker 2 on machine A: 
+# = mean for machine A + COEF for worker 2
+# = 52.355 + -1.37585675
+# = 50.97914
+# ...
+# ------- predicted value of worker 6 on machine C: 
+# = mean for machine C + COEF for worker 6
+# = 66.27222 + -7.51429458
+# = 58.75793
+
+
+##### --> predict.FIXED: (here predict.Machine), corresponds to 
+# the level = 2: the worker machine interaction
+# Output: 
+# -------- predicted value of interaction of worker 1 on machine A: 
+# = mean for machine A + COEF of worker 1 + COEF of interaction (worker1 on Machine A)
+# = 52.35556 + 1.04454677 + -0.7501469
+# = 52.64996
+#
+# ------- prediced value of interaction of worker 3 on machine B: 
+# = mean for machine B + COEF of worker 3 + COEF interact (Worker 3 on machine B)
+# = 60.32222 + 5.36077966 + 2.2993809
+# = 67.98238
+
+
+
+### (3) RESIDUALS: 
+machine.lme$residuals
+
+# predicted fixed effect for machine A avged over worker = 52.356
+predict(machine.lme, level=0)
+# residual for fixed effect for observation 1 = -0.3556
+machine.lme$residuals[1,]
+# observed value from original data set for observation 1 = 52
+head(Machines, 1)
+
+# --> residual for fixed effect of machine A avged over worker = obs - pred
+# = 52 - 52.356 = -0.356, as expected

@@ -4,18 +4,30 @@ source('/development/projects/statisticallyfit/github/learningmathstat/RStatisti
 source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/Rfunctions.R')
 
 
-library(ggfortify)
-#detach(package:lme4)
-#detach(package:nlme)
+# model fitting
 library(nlme)
 library(lme4)
+# afex # helper functions
+
+# plotting
+library(ggfortify)
 library(lattice)
+library(dotwhisker) #coefficient plots
+
+# data manipulation
+library(broom)
+library(broom.mixed)
+library(tidyr)
+
 options(show.signif.stars = FALSE)
 
 
 ### SOURCE for this lab: ------------------------------------------------------------
 # https://bbolker.github.io/morelia_2018/notes/mixedlab.html
 # -----------------------------------------------------------------------------------
+
+## TODO: another lab (chickweights): 
+# https://terpconnect.umd.edu/~egurarie/teaching/Biol709/Topic3/Lecture16_MixedEffectsModels.html
 
 # subject = individual bird
 # roostsitu = roost site factor variable with levels: tree, nest-box, inside or other
@@ -56,3 +68,66 @@ ggplot(tempData,aes(mnth,stmass,colour=roostsitu,group=subject))+
 # to vary among individuals, via (1+mnth|subject) or equivalent … in this case, 
 # because measurements are only taken in two months, we can also write the random
 # term as (1|subject/mnth).
+
+
+# Fit the model
+starling.lme <- lmer(stmass ~ mnth * roostsitu + (1|subject), data=starlingData)
+summary(starling.lme)
+# Can see that stddev of intercept among subjects (between subject variation) (0.587)
+# is much less than within (group?) variation: residual error (4.165)
+
+
+### Diagnostic plots: 
+
+ggplot(augment(starling.lme),
+       aes(sample=.resid/sd(.resid)))+  ## scale to variance=1
+      stat_qq(aes(group=1,colour=roostsitu))+
+      geom_abline(intercept=0,slope=1)
+
+# Boxplot of residuals subdivided by roostsitu (grouping variable is on the 
+# left side of the formula)
+aa <- augment(starling.lme)
+ggplot(aa,aes(roostsitu,.resid))+
+      geom_boxplot()+coord_flip()
+
+# Plot random effects to look for ouliers: 
+tt <- tidy(starling.lme,effects="ran_vals")
+ggplot(tt,aes(level,estimate))+
+      geom_pointrange(aes(ymin=estimate-1.96*std.error,
+                          ymax=estimate+1.96*std.error))+
+      coord_flip()
+
+# Influence measures: 
+# plot(influence(starling.lme,group="subject"))
+
+
+# Coefficient plot: for inference of the model results
+dwplot(starling.lme)+geom_vline(xintercept=0,lty=2)
+
+
+ggplot(starlingData,aes(x=roostsitu,y=stmass))+geom_boxplot()+
+      geom_dotplot(binaxis="y",stackdir="center",fill="red",alpha=0.5,
+                   binwidth=0.5)
+
+# Predictions and plotting
+starlingData$pred <- predict(starling.lme,re.form=NA)  ## population level
+
+starlingData$pred1 <- predict(starling.lme) ## individual level
+
+g0 <- ggplot(starlingData,aes(mnth,stmass))+
+      geom_point()+
+      geom_line(aes(group=subject))+
+      facet_grid(.~roostsitu)
+
+g0 +   geom_line(colour="gray",aes(y=pred1,group=subject)) +
+      geom_line(colour="red",aes(y=pred,group=subject))
+
+# INTERPRET: There is so much shrinkage (the among-individual variance is 
+# very small) that we can barely see the individual-level predictions (gray lines) 
+# behind the population-level predictions (red lines).
+
+# Confident intervals for predictions
+ggplot(starlingData,aes(mnth,pred1))+
+      geom_line(aes(group=subject,x=as.numeric(mnth)),colour="gray")+
+      facet_wrap(~roostsitu,scale="free_y",nrow=1)+
+      geom_line(aes(y=pred,x=as.numeric(mnth)),colour="red")
