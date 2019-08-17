@@ -160,3 +160,14 @@ AIC(mac.unbalanced.lme) # worse, is higher than for lm
 
 
 ### RESIDUAL PLOTS ---------------------------------------------------------------
+
+# Residuals plots for fixed effect (standardized residuals)
+
+# Residuals vs fitted
+plot(machine.lme) # residuals vs fitted
+qqnorm(machine.lme)
+
+# Residuals vs predictors
+#df <- data.frame(machine.lme$residuals)
+#plot(Machines$Machine, df$fixed)
+plot(Machines$Machine, machine.lme$residuals[,1])
