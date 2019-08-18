@@ -12,6 +12,10 @@ library(lme4)
 library(lattice)
 options(show.signif.stars = FALSE)
 
+# data manipulation (for augment())
+library(broom)
+library(broom.mixed)
+
 # Two-way classification: applies to TWO factors, which we call A, and B
 ### Use anova when both factors A, B are fixed
 ### Use mixed effects models when one factor is fixed and the other is random (A or B)
@@ -90,6 +94,8 @@ sigma.worker <- 4.78105
 # between group (machine:worker) variation (interaction variance)
 sigma.machine_worker <- 3.729532 
 
+summary(machine.lmer)
+
 
 # TESTING: if interaction term is significant.
 
@@ -106,7 +112,7 @@ anova(machine.nointeraction.lme, machine.lme)
 # MEANING of significant interaction: differences among machines vary with each
 # worker.
 
-# NOTSE: 
+# NOTES: 
 ### (1) to compare mixed models, with different FIXED but same RANDOM effects, use 
 # ML estimation not REML estimation of coeffs. 
 # But final model coefs should be re-obtained using REML. (specify method = "ML")
