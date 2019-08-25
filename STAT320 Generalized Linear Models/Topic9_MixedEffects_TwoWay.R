@@ -48,10 +48,11 @@ attach(Machines)
 # on machine B, contrary to every other worker. 
 dotplot(Worker ~ score, groups=Machine, ylab="Worker")
 
+
 # INTERACTION Plot. 
 interaction.plot(x.factor=Machine, trace.factor=Worker, response=score)
 # my function
-interactionPlot(data=Machines, xFactor=Machine, traceFactor=Worker, response=score)
+interactionPlot(data=Machines, xFactor='Machine', traceFactor='Worker', response='score')
 # INTERPRET: 
 # Shows interaction between worker and machine since the slopes of score for
 # workers is not the same over machine levels. 
@@ -94,7 +95,7 @@ sigma.worker <- 4.78105
 # between group (machine:worker) variation (interaction variance)
 sigma.machine_worker <- 3.729532 
 
-summary(machine.lmer)
+#summary(machine.lmer)
 
 
 # TESTING: if interaction term is significant.
