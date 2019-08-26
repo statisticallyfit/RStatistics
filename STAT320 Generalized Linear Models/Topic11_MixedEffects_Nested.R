@@ -102,7 +102,7 @@ options(show.signif.stars = FALSE)
 # ... so the factors are independent of errors? 
 
 
-
+# RANDOM EFFECTS: batch, lab variables
 # batch variable = levels 1,2,3
 # laboratory variable = 1,2,3,4,5,6
 # Subject: specimens
@@ -110,7 +110,6 @@ options(show.signif.stars = FALSE)
 # an unnamed Analyte. 
 # Each analysis is duplicated (replication = 2)
 # Goal of study: assess components of variation in cooperative trials. 
-# The factors laboriatories and batches were random. 
 
 analyteData <- read.table("data/analyte.txt", header=TRUE)
 analyteData

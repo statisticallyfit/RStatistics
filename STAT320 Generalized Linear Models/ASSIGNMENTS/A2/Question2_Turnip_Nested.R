@@ -53,7 +53,7 @@ options(show.signif.stars = FALSE)
 # error_ijk ~ Normal(0, sigma^2)
 #
 # Leaf_j(i) ~ Normal(0, sigma_Leaf ^2)
-# Male_i ~ Normal(0, sigma_Turnip^2)
+# Turnip_i ~ Normal(0, sigma_Turnip^2)
 # 
 # cov(Turnip_1, Leaf_j(i)) = 0
 # cov(Turnip_1, error_ijk) = cov(Leaf_j(i), error_ijk) = 0
@@ -90,21 +90,78 @@ bwplot(ca ~ leaves, data=turnipData)
 # but is not significantly higher than in T1, T3. 
 bwplot(ca ~ plants, data=turnipData)
 
+# LEAF WITHIN TURNIP VARIANCE COMPONENT: 
+### Variation among leaves within turnips: Within each turnip plant, there is 
+# little variation in leaf calcium content. Only for Leafs L1, L2 in the
+# turnips T1 T3 do we see larger variation in calcium content. 
+### Also: for turnip 2, all leaves have lower calcium content than for other turnips
+# Turnip 4 seems to have highest calcium content for all leaves than all other turnips. 
+bwplot(ca ~ leaves | plants, layout=c(4,1),data=turnipData)
+bwplot(ca ~ leaves | plants, layout=c(2,2),data=turnipData)
 
-### Variation among females within males: little variation in females for M3, M2
-# and for M1 except there is alrger F2 variation in eye intensity for M1. 
-# This means that within each male, there is little variability amongst eye
-# intensitities from female to female. So F1, F2 ... F4 have all the same
-# little variation, within each male box. 
-# This is the FEMALE WITHIN MALE VARIANCE COMPONENT. 
-bwplot(eye ~ female | male, layout=c(3,1),data=flyData)
 
 
 # Plot 2
-dotplot(female ~ eye | male, data=flyData, pch=c(1,1,2,2,3,3,4,4),
-        strip=FALSE, strip.left=TRUE, layout=c(1,3), cex=1.5, 
-        ylab="female within male", xlab = "eye intensity", jitter.y = TRUE)
+# note: pch = repeat each number as many times as there are replications
+# and the id of the number oges up to number of levels in the y ~
+dotplot(leaves ~ ca | plants, data=turnipData, pch=c(1,1,2,2,3,3),
+        strip=FALSE, strip.left=TRUE, layout=c(1,4), cex=1.5, 
+        ylab="leaf within turnip", xlab = "calcium content", jitter.y = TRUE)
 
 
+# part (b) --------------------------------------------------------------------------
+
+# # Fit the mixed effects nested model with both factors random. 
+
+# leaf within turnip: Leaf_j(i)
+calcium.lme <- lme(ca ~ 1, random = ~1|plants/leaves, data=turnipData)
+summary(calcium.lme)
+
+
+# part (c) ------------------------------------------------------------------------
+
+# Estimate variance components 
+
+VarCorr(calcium.lme)
+
+sigma.plants <- 0.6043356
+sigma.leafWithinPlants <- 0.4013232
+sigma.residual <- 0.08157314
+
+c(sigma.plants, sigma.leafWithinPlants, sigma.residual)^2
+
+
+# INTERPRET: 
+# (1) lower leaf-within-plants variation (0.40) than plant variation (0.60) 
+# and residual variation (0.08)
+# (2) higher leaf-within-plant (0.40) variation than residual variation (0.08)
+## Greatest source of variability in calcium content comes from the plants. 
+
+
+# Checking significance of variance components
+intervals(calcium.lme)
+# INTERPRET: 
+# sigma.plants CI = (0.24, 1.52)
+# sigma.leaf(plants) CI = (0.2433, 0.66179)
+# sigma.residual CI = (0.055, 0.1217)
+
+# (1) leafWithinPlants Ci is contained within the plants CI so the sigma.plants is
+# NOT significantly different than sigma.leafWithinPlants
+# (2) leafWithinPlants Ci is entirely above the sigma.residual CI so 
+# sigma.leafWithinPlants is significantly higher than sigma.residual. 
+# (3) sigma.residual CI is completely below the sigma.plants CI so the
+# sigma.plants is significantly higher than signa.residual. 
+
+
+# part (d) ---------------------------------------------------------------------
+
+# Find Variance of a single observation: 
+# Proportion of variability in EYE (response) explained by /due to females: 
+# (repeatability)
+totalVar <- (sigma.male^2 + sigma.femaleWithinMale^2 + sigma.residual^2)
+propVarDueToFemales = sigma.femaleWithinMale^2 / totalVar
+propVarDueToFemales
+# INERPRET: 83.3% of variability in eye intensity of offspring is due to 
+# the females. 
 
 
