@@ -23,10 +23,12 @@ options(show.signif.stars = FALSE)
 # Nested design: there are levels of a factor nested within levels of another factor. 
 # Nested designs are hierarchical where the hierarchies are the 
 # different levels of sampling. 
+
 # EXAMPLE: Suppose we know in advance that the three wheat varieties react 
 # differently to nitrogen levels ; variety 1 needs low nitrogen (N = 1 or 2), 
 # variety 2 needs intermediate level of nitrogen (N = 3 or 4), and variety 3 needs
 # high levels of nitrogen (N = 5 or 6 units). 
+
 # Observe: there are 6 nitrogen levels though only 2 levels are being applied to each 
 # variety of wheat (instead of all 6 levels being applied to each variety) 
 # so that only 6 combinations of treatments are being considered (instead of 18)

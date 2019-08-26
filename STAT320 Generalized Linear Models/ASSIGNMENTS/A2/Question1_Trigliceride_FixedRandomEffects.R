@@ -72,22 +72,95 @@ dotplot(Day ~ Trig | Method, data=trigData, pch=c(1,1,2,2,3,3,4,4),
 # part (c)-------------------------------------------------------------------------
 
 # MODEL: (????)
-# Fixed effect: Day (analyzing fixed, particular days not generalizing a population)
-# Random effect: WORKER (a random sample of workers taken from a population 
-# of workers)
-# INTERACTION term: between machine and worker: is a random effect also. (rule)
+# Fixed effect: Method (analyzing fixed, particular method not generalizing a population)
+# Random effect: Day (a random sample of days taken from a population  of days)
+# INTERACTION term: between day and method: is a random effect also.
 
 # Matrix representation: 
 # y = X*B + Z1*b + Z2*m + e
 # where,
-### Random effect worker: b ~ N(0, sigma_b^2 * I)
-### Interaction effect: worker:Machine: m ~ N(0, sigma_m^2 * I)
-### residuals: e ~ N(0, sigma^2 * I)
-### X = fixed effect (machine) design matrix
-### Z1 = random effect (worker) design matrix
-### Z2 = interaction random effect (worker:machine) design matrix
+### Random effect Day: b ~ N(0, sigma_Day^2 * I)
+### Interaction effect: Day:Method: m ~ N(0, sigma_Day_Method^2 * I)
+### residuals: error ~ N(0, sigma^2 * I)
+### X = fixed effect (Method) design matrix
+### Z1 = random effect (Day) design matrix
+### Z2 = interaction random effect (Day:method) design matrix
 
-# notation: Worker/Machine = Worker + (Machine-within-worker) is how you
-# specify an interaction between worker and machine. 
-machine.lme <- lme(score ~ Machine, random = ~1|Worker/Machine)
-machine.lme
+
+#  part (d) ----------------------------------------------------------------------------
+
+# notation: Worker/Machine means Worker + (Machine-within-worker) : ~1| Worker/Machine
+# notation: seed/fertz means seed + (fert-within-seed) : ~1 | seed/fert
+
+trig.lme <- lme(Trig ~ Method, random = ~1 | Day/Method, data=trigData)
+trig.lmer <- lmer(Trig ~ Method + (1|Day/Method), data=trigData)
+summary(trig.lmer)
+summary(trig.lme)
+VarCorr(trig.lme)
+
+
+# INTERPRET: 
+sigma.methodInDay <- 4.85764
+sigma.residual <- 3.797038
+sigma.day <- 4.533303
+
+
+# Significance of variance components: 
+intervals(trig.lme)
+# INTERPRET: 
+# No Ci's are significantly different from each other since they each overlap. 
+
+
+
+
+# Fit the non-interaction model
+
+trig.nointeraction.lme <- lme(Trig ~ Method, random = ~1 | Day, data=trigData)
+trig.nointeraction.lmer <- lmer(Trig ~ Method + (1|Day), data=trigData)
+summary(trig.nointeraction.lmer)
+summary(trig.nointeraction.lme)
+
+
+
+# part (e) ------------------------------------------------------------------------------
+
+# Which model is preferred: 
+anova(trig.nointeraction.lme, trig.lme)
+# Going by p-value: the interaction term is not important
+# Going by AIC: the interaction model has lower AIC but the delta is small so choose the
+# more parsimoniuous model and p-value is in favor of the simpler model too. 
+
+
+# part (f) -------------------------------------------------------------------------------
+
+# Write the terms in the final model: 
+
+summary(trig.nointeraction.lme)
+random.effects(trig.nointeraction.lme)
+
+# fixed effects line: 147.000 - 0.975 * MethodM2
+# random effects line: 1.367301*D1 - 7.120095*D2 + 1.954734*D3 + 3.798059
+
+# part (g) -------------------------------------------------------------------------------
+
+# Get the variance components of the final model : 
+VarCorr(trig.nointeraction.lme)
+
+
+# INTERPRET: 
+# sigma.residual <- 5.22383
+# sigma.day <- 5.39736
+
+
+# Significance of variance components: 
+intervals(trig.nointeraction.lme)
+# INTERPRET: 
+# No Ci's are significantly different from each other since they each overlap. 
+
+
+# part (h) -------------------------------------------------------------------------------
+
+# RESEARCH question: do the two methods differ?
+
+# Using the non-interaction model, looking at fixed effects we see that p-value for
+# the MethodM2 coeff is 0.0052 so there is a significant difference between M2 and M1. 
