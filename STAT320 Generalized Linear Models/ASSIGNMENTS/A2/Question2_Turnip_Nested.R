@@ -74,17 +74,22 @@ turnipData$plants <- factor(paste(rep('T', N), turnipData$plants, sep=''))
 
 # Exploratory plots
 
-### For each female, regardless of male, there is little variability in 
-# eye intensity between the two offspring. (amongst females?)
-# This is the RESIDUAL VARIANCE COMPONENT. 
-#### (?) bwplot(eye ~ female, data=flyData)
+# RESIDUAL VARIANCE COMPONENT: 
+### For each leaf, regardless of turnip, there is little variability in 
+# calcium content between the sampled leaves. 
+# No leaf has significantly different calcium than any other leaf, since the boxplots
+# are overlapping. 
+bwplot(ca ~ leaves, data=turnipData)
 
-### Variation among males: If we averaged across females within each male, we  see
-# that the average eye intensity differs from male to male. In particular, the mean
-# eye intensity of offspring from male 2 would be lower than for male 1, male 3. 
-# See that M2 is opposite to M3
-bwplot(eye ~ male, data=flyData)
-# This is the MALE VARIANCE COMPONENT.
+# PLANT VARIANCE COMPONENT: 
+### Variation among plants: If we averaged across leaf within each turnip plant, we  see
+# that the average calcium content differs from turnip to turnip. In particular, the mean
+# calcium content of leaves from Turnip2 is lower than for all other turnips: T1,T3,T4.
+# Also T2 is not overlapping with any other boxplot so leaves from T2 have 
+# significantly lower calcium than other turnips. Turnip4 seems to have highest calcium
+# but is not significantly higher than in T1, T3. 
+bwplot(ca ~ plants, data=turnipData)
+
 
 ### Variation among females within males: little variation in females for M3, M2
 # and for M1 except there is alrger F2 variation in eye intensity for M1. 
