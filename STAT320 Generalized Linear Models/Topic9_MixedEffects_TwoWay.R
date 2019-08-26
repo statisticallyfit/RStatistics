@@ -35,6 +35,7 @@ Machines$Worker
 Machines$Machine
 
 attach(Machines)
+detach(Machines)
 
 # Dotplot: 
 # (1) shows there is a difference between machines (check the horizontal way)

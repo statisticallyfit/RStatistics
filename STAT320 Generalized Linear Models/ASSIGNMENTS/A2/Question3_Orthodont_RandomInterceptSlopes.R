@@ -111,6 +111,7 @@ VarCorr(ortho.lme)
 
 # Testing significance of variance components: 
 cis = intervals(ortho.lme)
+cis
 cis$reStruct$Subject
 cis$sigma
 # Ci for sigma.intercept = (1.0075, 5.743)
@@ -174,34 +175,40 @@ anova(ortho.intercept.lme, ortho.lme)
 
 # Check model assumptions
 
-df <- data.frame(GroupResids=ortho.intercept.lme$residuals[,2], 
-                 FixedResids=ortho.intercept.lme$residuals[,1],
-                 GroupFits=ortho.intercept.lme$fitted[,2], 
-                 FixedFits = ortho.intercept.lme$fitted[,1],
-                 Group = orthoData$Subject, Fixed=factor(orthoData$age.centred))
+#df <- data.frame(GroupResids=ortho.intercept.lme$residuals[,2], 
+#                 FixedResids=ortho.intercept.lme$residuals[,1],
+#                 GroupFits=ortho.intercept.lme$fitted[,2], 
+#                 FixedFits = ortho.intercept.lme$fitted[,1],
+#                 Group = orthoData$Subject, Fixed=factor(orthoData$age.centred))
+
+df <- data.frame(SubjectResids=ortho.intercept.lme$residuals[,2], 
+                 AgeCentredResids=ortho.intercept.lme$residuals[,1],
+                 SubjectFits=ortho.intercept.lme$fitted[,2], 
+                 AgeCentredFits = ortho.intercept.lme$fitted[,1],
+                 Subject = orthoData$Subject, AgeCentred=factor(orthoData$age.centred))
 
 # Residuals vs fitted ------------
 
-ggplot(data=df, aes(x=GroupFits, y=GroupResids)) + geom_point(size=2) + 
+ggplot(data=df, aes(x=SubjectFits, y=SubjectResids)) + geom_point(size=2) + 
       geom_hline(yintercept=0, linetype="dashed", size=1,color="red") + 
       ggtitle("Residuals vs Fitted for Grouping Factor = Subject")
 
-ggplot(data=df, aes(x=FixedFits, y=FixedResids)) + geom_point(size=2) + 
+ggplot(data=df, aes(x=AgeCentredFits, y=AgeCentredResids)) + geom_point(size=2) + 
       geom_hline(yintercept=0, linetype="dashed", size=1,color="red") + 
       ggtitle("Residuals vs Fitted for Fixed Factor = Age.centred")
 
 
 # QQnorm plot ------------
 
-shapiro.test(ortho.intercept.lme$residuals[,1]) # for age
-shapiro.test(ortho.intercept.lme$residuals[,2]) # for Subject, evidence to reject normality
+shapiro.test(df$AgeCentredResids) # for age
+shapiro.test(df$SubjectResids) # for Subject, evidence to reject normality
 
-ggplot(df, aes(sample = FixedResids)) + 
+ggplot(df, aes(sample = AgeCentredResids)) + 
       stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
       stat_qq_line(linetype="dashed", size=1) + 
       ggtitle("QQnorm plot for Age.centred Residuals")
 
-ggplot(df, aes(sample = GroupResids)) + 
+ggplot(df, aes(sample = SubjectResids)) + 
       stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
       stat_qq_line(linetype="dashed", size=1) + 
       ggtitle("QQnorm plot for Subject Residuals")
@@ -210,13 +217,12 @@ ggplot(df, aes(sample = GroupResids)) +
 
 # Residuals vs predictors (using boxplots) ------------------------------------
 
-plot(orthoData$age.centred, ortho.intercept.lme$residuals[,1])
-plot(orthoData$Subject, ortho.intercept.lme$residuals[,2])
+
 # INREPRET: all centered around zero, but no homogeneity of variance
 
-ggplot(df, aes(x=Fixed, y=FixedResids, colour=Fixed)) + geom_boxplot(size=1)
+ggplot(df, aes(x=AgeCentred, y=AgeCentredResids, colour=Fixed)) + geom_boxplot(size=1)
 # homogeneity of variance and all centred around mean = 0
-ggplot(df, aes(x=Group, y=GroupResids, colour=Group)) + geom_boxplot(size=1) + 
+ggplot(df, aes(x=Subject, y=SubjectResids, colour=Group)) + geom_boxplot(size=1) + 
       geom_hline(yintercept=0, linetype="dashed", size=1,color="red")
 # several outliers and no homogeneity of variance
 
@@ -325,9 +331,9 @@ line(10, 1)
 # NEW DATA SET: 
 new0 <- data.frame(Subject = rep(c("M11", "F03"), c(3,3)), 
                    Sex=rep(c("Male", "Female"), c(3,3)), 
-                   age = rep(16:18, 2))
+                   age.centred = rep(16:18, 2) - mean(Orthodont$age))
 new0
-preds <- predict(ortho.intercept.lme2, newdata=new0, level=0:1); preds
+preds <- predict(ortho.intercept.lme, newdata=new0, level=0:1); preds
 
 ## FIRST ROW: Subject = M11, Age = 16 ====================================================
 

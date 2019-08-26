@@ -156,12 +156,15 @@ intervals(calcium.lme)
 # part (d) ---------------------------------------------------------------------
 
 # Find Variance of a single observation: 
-# Proportion of variability in EYE (response) explained by /due to females: 
-# (repeatability)
-totalVar <- (sigma.male^2 + sigma.femaleWithinMale^2 + sigma.residual^2)
-propVarDueToFemales = sigma.femaleWithinMale^2 / totalVar
-propVarDueToFemales
-# INERPRET: 83.3% of variability in eye intensity of offspring is due to 
-# the females. 
 
+# Variance of a single observation = sum of all the variances
+# V(Y_ij) = sigma_random^2 + sigma_residual^2 + sigma_interaction^2
+VarCorr(calcium.lme)
+
+varSingleObs <- sigma.plants^2 + sigma.leafWithinPlants^2 + sigma.residual^2
+varSingleObs
+# so variance of a single observation is 0.533
+
+
+#sigma.leafWithinPlants/varSingleObs
 

@@ -16,10 +16,9 @@ options(show.signif.stars = FALSE)
 # Consructing the data set
 
 Trig <- scan('data/trigl.txt')
-Trig
 
-Method <- c(rep("M1", 4*2), rep("M2", 4*2))
-Day <- rep(c("D1", "D1", "D2", "D2", "D3", "D3", "D4", "D4"), 2)
+Method <- factor(c(rep("M1", 4*2), rep("M2", 4*2)))
+Day <- factor(rep(c("D1", "D1", "D2", "D2", "D3", "D3", "D4", "D4"), 2))
 
 trigData <- data.frame(Trig=Trig, Method=Method, Day=Day)
 trigData

@@ -39,19 +39,31 @@ pairsQuantPlot <- function(data, colsVec, size=10){
 # interaction plot
 # TODO: fix so it looks exactly like
 # interaction.plot(...) function
-#interactionPlot <- function(data, xFactor, traceFactor, response){
-#      ggplot(data=data, aes_string(x=xFactor, y=response, 
-#                            group=traceFactor, color=traceFactor)) + 
-#            geom_smooth(method=lm, lwd=1, se=FALSE) + 
-#            ggtitle(paste("Interaction Plot of",xFactor,"vs.",response,
-#                          "for Different Levels of",traceFactor)) +
-#            xlab(xFactor) + ylab(response)
-#}
+interactionPlot2 <- function(data, xFactor, traceFactor, response){
+      ggplot(data=data, aes_string(x=xFactor, y=response, 
+                            group=traceFactor, color=traceFactor)) + 
+            geom_smooth(method=lm, lwd=1, se=FALSE) + 
+            ggtitle(paste("Interaction Plot of",xFactor,"vs.",response,
+                          "for Different Levels of",traceFactor)) +
+            xlab(xFactor) + ylab(response)
+}
+
+
+
+### NOTE I think this doesn't work as it should (see Machines lme) and Question1
+# A2 because need to average the replicated values else we see ugly jagged
+# vertical lines in the plot. 
+
+# More source: interact_plot vs cat_plot: 
+# https://cran.r-project.org/web/packages/interactions/vignettes/categorical.html
+
+# Source: https://ademos.people.uic.edu/Chapter13.html
 interactionPlot <- function(data, xFactor, traceFactor, response){
       ggplot(data=data, aes_string(x=xFactor, y=response, group=traceFactor)) + 
-      geom_line(size=1, aes_string(color=traceFactor)) + ylab(response) + 
-      xlab(xFactor) + ggtitle(paste("Interaction Plot of ", xFactor, " vs. ", 
-                                    response, " for Different Levels of ", traceFactor))
+      geom_line(size=1, aes_string(color=traceFactor)) +
+      ylab(response) + xlab(xFactor) + 
+      ggtitle(paste("Interaction Plot of ", xFactor, " vs. ", 
+                    response, " for Different Levels of ", traceFactor))
 }
 
 
