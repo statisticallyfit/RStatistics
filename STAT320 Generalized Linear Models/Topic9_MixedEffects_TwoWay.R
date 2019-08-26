@@ -313,8 +313,9 @@ random.effects(machine.lme)
 predict(machine.lme, level=0:2)
 # and
 random.effects(machine.lme)
+
 # NOTE: the level=0:2 in the predict command specifies the types 
-# of predictors: fixed, random, and interaction
+# of predictors in the RANDOM PART of the model (?): fixed, random, and interaction
 
 # LEVELS:
 

@@ -27,19 +27,20 @@ options(show.signif.stars = FALSE)
 # (2) variability amongst groups. 
 
 # Hieriarchical model: 
-# - there is a regression line for each random effect
+# - there is a regression line for each level (i) of the grouping variable (b).
 # - each parameter in the regression line of each random effect is a random sample
 # from a populatio of parameters which are normally distribued as: 
 #     B_j_i ~ N(B_j,  sigma_j^2)
 # where j = the id on the predictor coefficient (j = 1 .. num predicors)
-#       i = the id of the regression line (i = 1 ... number of levels in the random effect)
+#       i = the id of the regression line (i = 1 ... number of levels in the grouping variable, b)
 
 
 # CNETERING A PREDICTOR VARIABLE: 
 
 # WHEN TO CENTER: 
 ## 1. to lessen correlation between a multiplicative term (like an interaction 
-# or polynomial term and its component variables that make up this multiplicative term). 
+# or polynomial term and its component variables that make up this multiplicative
+# term). 
 ## 2. to make parameters easier to interpret (we can center the predictor variable
 # around a particular value if that value is meaningful)
 
@@ -61,9 +62,24 @@ plantData$fertilizer
 plantControlData <- subset(plantData, subset = fertilizer == "control")
 plantAddData <- subset(plantData, subset = fertilizer == "added")
 
+
+
 # Exploratory plots
+
+## NOTE: week | plant because plant is the grouping factor. 
+# Each plant consists of a group of repeated measures. 
+# There are replicates (repeated measures) on the plant variable. So for 
+# each block of plant, ID_i, the  predictor week varies by its values 2,4,6,8,10.
+
+## THINK: "week varies within plant block"
+
+## WARNING: the analysis of these data needs to account for correlation betwee
+# the repeat measures to draw valid inference. 
+
+
 # formula = response ~ primaryCovariate | groupingFactor
 # Can write number (1) instead of primaryCovariate when no other suitable candidate.
+
 groupedPlantControlData <- groupedData(root ~ week | plant, data=plantControlData)
 groupedPlantControlData
 
@@ -103,8 +119,8 @@ head(groupedPlantControlData)
 # Fit the random effects model
 # Y_ij | b_i ~ N(mu_ij | b_i, sigma^2)
 # Means: response root conditional on plant (i)
-# RANDOM EFFECT: plant
-# FIXED EFFECT: week.centred
+# grouping variable: plant
+# explanatory variable: week.centred
 plant.lme <- lme(root ~ week.centred, data=plantControlData, random = ~ week | plant)
 ## ???plant.lmer <- lmer(root ~ week.centred + (week|plant), data=plantControlData )
 summary(plant.lme)
