@@ -69,26 +69,44 @@ flyData$male <- factor(paste(rep('M', N), flyData$male, sep=''))
 
  # Exploratory plots
 
+# --- This is the RESIDUAL VARIANCE COMPONENT. ---
+
 ### For each female, regardless of male, there is little variability in 
-# eye intensity between the two offspring. (amongst females?)
-# This is the RESIDUAL VARIANCE COMPONENT. 
-#### (?) bwplot(eye ~ female, data=flyData)
+# eye intensity AMONG FEMALES the two offspring because the boxplots are all 
+# overlapping, they are not far apart. 
+bwplot(eye ~ female, data=flyData)
+ggplot(flyData, aes(x=female, y=eye)) + geom_boxplot(size=1, color="hotpink")
+
+
+# --- This is the MALE VARIANCE COMPONENT.--- 
 
 ### Variation among males: If we averaged across females within each male, we  see
 # that the average eye intensity differs from male to male. In particular, the mean
 # eye intensity of offspring from male 2 would be lower than for male 1, male 3. 
 # See that M2 is opposite to M3
 bwplot(eye ~ male, data=flyData)
-# This is the MALE VARIANCE COMPONENT.
+ggplot(flyData, aes(x=male, y=eye)) + geom_boxplot(size=1, color="dodgerblue")
 
-### Variation among females within males: little variation in females for M3, M2
-# and for M1 except there is alrger F2 variation in eye intensity for M1. 
-# This means that within each male, there is little variability amongst eye
-# intensitities from female to female. So F1, F2 ... F4 have all the same
-# little variation, within each male box. 
-# This is the FEMALE WITHIN MALE VARIANCE COMPONENT. 
+#      geom_boxplot(linetype = "dashed", color = "dodgerblue", size=1) +
+#      geom_boxplot(aes(ymin=..lower.., ymax=..upper..), size=1, color="dodgerblue")
+  
+
+# --- This is the FEMALE WITHIN MALE VARIANCE COMPONENT. ---
+
+### Variation among females within males: within each male there is large variability
+# among eye intesnities from female to fmeale because the boxplots are well-separated
+# among females, for all males. 
+ 
 bwplot(eye ~ female | male, layout=c(3,1),data=flyData)
 
+# make fonts bigger to show up on pdf
+ggplot(flyData, aes(x=female, y=eye, color=female)) + geom_boxplot(size=1) + 
+      facet_grid(. ~ male) + 
+      theme(legend.title=element_text(size=20), 
+            legend.text=element_text(size=17), 
+            plot.title=element_text(size=20), 
+            axis.title.x=element_text(size=20),
+            axis.title.y=element_text(size=20), axis.text=element_text(size=15))
 
 # Plot 2
 dotplot(female ~ eye | male, data=flyData, pch=c(1,1,2,2,3,3,4,4),

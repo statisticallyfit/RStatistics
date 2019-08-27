@@ -75,11 +75,12 @@ turnipData$plants <- factor(paste(rep('T', N), turnipData$plants, sep=''))
 # Exploratory plots
 
 # RESIDUAL VARIANCE COMPONENT: 
-### For each leaf, regardless of turnip, there is little variability in 
-# calcium content between the sampled leaves. 
+### Averaging over turnip there is some variation across leaves since
+# the boxplots are spread a bit apart in height from each other. 
 # No leaf has significantly different calcium than any other leaf, since the boxplots
 # are overlapping. 
 bwplot(ca ~ leaves, data=turnipData)
+ggplot(turnipData, aes(x=leaves, y=ca, color=leaves)) + geom_boxplot(size=1)
 
 # PLANT VARIANCE COMPONENT: 
 ### Variation among plants: If we averaged across leaf within each turnip plant, we  see
@@ -89,15 +90,22 @@ bwplot(ca ~ leaves, data=turnipData)
 # significantly lower calcium than other turnips. Turnip4 seems to have highest calcium
 # but is not significantly higher than in T1, T3. 
 bwplot(ca ~ plants, data=turnipData)
+ggplot(turnipData, aes(x=plants, y=ca, color=plants)) + geom_boxplot(size=1)
 
 # LEAF WITHIN TURNIP VARIANCE COMPONENT: 
 ### Variation among leaves within turnips: Within each turnip plant, there is 
-# little variation in leaf calcium content. Only for Leafs L1, L2 in the
-# turnips T1 T3 do we see larger variation in calcium content. 
-### Also: for turnip 2, all leaves have lower calcium content than for other turnips
-# Turnip 4 seems to have highest calcium content for all leaves than all other turnips. 
+# noticeable variation in leaf calcium content because all the leaf boxplos are
+# well-separated from other. 
 bwplot(ca ~ leaves | plants, layout=c(4,1),data=turnipData)
-bwplot(ca ~ leaves | plants, layout=c(2,2),data=turnipData)
+
+ggplot(turnipData, aes(x=leaves, y=ca, color=leaves)) + geom_boxplot(size=0.7) + 
+      facet_grid(. ~ plants) #+ 
+#      theme(legend.title=element_text(size=20), 
+#            legend.text=element_text(size=17), 
+#            plot.title=element_text(size=20), 
+#            axis.title.x=element_text(size=20),
+#            axis.title.y=element_text(size=20), axis.text=element_text(size=15))
+#bwplot(ca ~ leaves | plants, layout=c(2,2),data=turnipData)
 
 
 
@@ -117,6 +125,11 @@ dotplot(leaves ~ ca | plants, data=turnipData, pch=c(1,1,2,2,3,3),
 calcium.lme <- lme(ca ~ 1, random = ~1|plants/leaves, data=turnipData)
 summary(calcium.lme)
 
+calcium.nonest.lme <- lme(ca ~ 1, random = ~1 | plants, data=turnipData)
+
+anova(calcium.nonest.lme, calcium.lme)
+
+# The nested term is highly significant since AICdelta = 27 = large
 
 # part (c) ------------------------------------------------------------------------
 

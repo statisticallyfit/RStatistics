@@ -121,14 +121,33 @@ analyteData$batch
 
 # Exploratory plots
 
-bwplot(conc ~ batch | lab, data=analyteData)
-# INTERPRET: 
-### Variation among labs: see that lab 4 is different than other labs.
-### Variation among batches WITHIN LABS: see that there is little variation among
-# batches within labs since L1, L2, L3 seem to have the same variation per batch
-# only L4 and L6 seem to have different variation per batch, especially at batch
-# B1, B2 for Lab4. 
 
+
+# INTERPRET: 
+
+### Variation among labs: there is SOME variation between labs since 
+# see that lab 4 is different than other labs.
+# This difference/variation between labs distributions mean is measured by 
+# the LAB VARIANCE COMPONENT. 
+ggplot(data=analyteData, aes(x=lab, y=conc, color=lab)) + geom_boxplot(size=1)
+
+### Variation among batches WITHIN LABS: see that there is LITTLE variation among
+# batches (heights of conc) within labs since L1, L2, L3 seem to have the 
+# same variation per batch. Except for one measurement at lab 6.  
+# The BATCH WITHIN LAB VARIANCE COMPONENT. 
+bwplot(conc ~ batch | lab, data=analyteData)
+
+ggplot(data=analyteData, aes(x=batch, y=conc, color=batch)) + geom_boxplot() + 
+      facet_wrap(. ~ lab, ncol=3)
+
+# Variation among batches avgered over labs: there is litle variation between
+# batches. 
+# RESIUDAL VARIANCE COMPONENT. 
+ggplot(data=analyteData, aes(x=batch, y=conc, color=batch)) + geom_boxplot(size=1)
+
+
+
+# Plot 2
 dotplot(batch ~ conc | lab, data=analyteData, pch=c(1,1,2,2,3,3),
         strip=FALSE, strip.left=TRUE, layout=c(1,6), cex=1.5, 
         ylab="batch within lab", xlab = "concentration", jitter.y = TRUE)
