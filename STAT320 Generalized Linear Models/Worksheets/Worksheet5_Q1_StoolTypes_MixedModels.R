@@ -32,11 +32,14 @@ ergoStool$Subject
 
 # Exploratory plots
 
+# VARIABILITY AMONG SUBJECTS: 
 # Subject 7 has lowest effort for type 1 stool, similar effort for T2,T3 and
 # a bit lower effort for T4 stool. Subject 2 has higher effort than all the other
 # subjects, for all stool types. 
 bwplot(effort ~ Type |Subject, data=ergoStool)
 
+
+# DIFFERENCE IN MEAN EFFOR AMONG TYPE: 
 # Overall, all subjects have lower effort for type 1 stool, highest effort for
 # type 2 stool. Seems to be significant difference in effort for T1, T3, and T1, T2
 # type stools for all subjects, also between T3, T4 and T2, T4. 

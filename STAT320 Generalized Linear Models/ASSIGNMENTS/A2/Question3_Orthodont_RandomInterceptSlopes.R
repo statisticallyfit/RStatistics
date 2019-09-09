@@ -181,11 +181,14 @@ anova(ortho.intercept.lme, ortho.lme)
 #                 FixedFits = ortho.intercept.lme$fitted[,1],
 #                 Group = orthoData$Subject, Fixed=factor(orthoData$age.centred))
 
+#a <- orthoData$age.centred 
+#s <- orthoData$Sex
+#as <- a*s
 df <- data.frame(SubjectResids=ortho.intercept.lme$residuals[,2], 
-                 AgeCentredResids=ortho.intercept.lme$residuals[,1],
+                 FixedResids=ortho.intercept.lme$residuals[,1],
                  SubjectFits=ortho.intercept.lme$fitted[,2], 
-                 AgeCentredFits = ortho.intercept.lme$fitted[,1],
-                 Subject = orthoData$Subject, AgeCentred=factor(orthoData$age.centred))
+                 FixedFits = ortho.intercept.lme$fitted[,1],
+                 Subject = orthoData$Subject) #, Fixed=orthoData$age.centred)
 
 # Residuals vs fitted ------------
 
@@ -193,26 +196,9 @@ ggplot(data=df, aes(x=SubjectFits, y=SubjectResids)) + geom_point(size=2) +
       geom_hline(yintercept=0, linetype="dashed", size=1,color="red") + 
       ggtitle("Residuals vs Fitted for Grouping Factor = Subject")
 
-ggplot(data=df, aes(x=AgeCentredFits, y=AgeCentredResids)) + geom_point(size=2) + 
+ggplot(data=df, aes(x=FixedFits, y=FixedResids)) + geom_point(size=2) + 
       geom_hline(yintercept=0, linetype="dashed", size=1,color="red") + 
-      ggtitle("Residuals vs Fitted for Fixed Factor = Age.centred")
-
-
-# QQnorm plot ------------
-
-shapiro.test(df$AgeCentredResids) # for age
-shapiro.test(df$SubjectResids) # for Subject, evidence to reject normality
-
-ggplot(df, aes(sample = AgeCentredResids)) + 
-      stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
-      stat_qq_line(linetype="dashed", size=1) + 
-      ggtitle("QQnorm plot for Age.centred Residuals")
-
-ggplot(df, aes(sample = SubjectResids)) + 
-      stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
-      stat_qq_line(linetype="dashed", size=1) + 
-      ggtitle("QQnorm plot for Subject Residuals")
-
+      ggtitle("Residuals vs Fitted for Fixed Line")
 
 
 # Residuals vs predictors (using boxplots) ------------------------------------
@@ -220,11 +206,29 @@ ggplot(df, aes(sample = SubjectResids)) +
 
 # INREPRET: all centered around zero, but no homogeneity of variance
 
-ggplot(df, aes(x=AgeCentred, y=AgeCentredResids, colour=Fixed)) + geom_boxplot(size=1)
+#ggplot(df, aes(x=AgeCentred, y=FixedResids, colour=AgeCentred)) + geom_point(size=2) + 
+#   geom_hline(yintercept=0, linetype="dashed",color="red",size=1)
 # homogeneity of variance and all centred around mean = 0
-ggplot(df, aes(x=Subject, y=SubjectResids, colour=Group)) + geom_boxplot(size=1) + 
-      geom_hline(yintercept=0, linetype="dashed", size=1,color="red")
+ggplot(df, aes(x=Subject, y=SubjectResids, colour=Subject)) + geom_boxplot(size=1) + 
+   geom_hline(yintercept=0, linetype="dashed", size=1,color="red")
 # several outliers and no homogeneity of variance
+
+# QQnorm plot ------------
+
+shapiro.test(df$FixedResids) # for age
+shapiro.test(df$SubjectResids) # for Subject, evidence to reject normality
+
+ggplot(df, aes(sample = FixedResids)) + 
+      stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
+      stat_qq_line(linetype="dashed", size=1) + 
+      ggtitle("QQnorm plot for Fixed Line Residuals")
+
+ggplot(df, aes(sample = SubjectResids)) + 
+      stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
+      stat_qq_line(linetype="dashed", size=1) + 
+      ggtitle("QQnorm plot for Subject Residuals")
+
+
 
 
 # part (f) ------------------------------------------------------------------------------

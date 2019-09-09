@@ -47,11 +47,11 @@ detach(Machines)
 # that worker 3 had higher scores than all workers for all machiens. He is shifted
 # higher for all machines. Worker 6 had higher productivity on machine A and lower
 # on machine B, contrary to every other worker. 
-dotplot(Worker ~ score, groups=Machine, ylab="Worker")
+with(Machines, dotplot(Worker ~ score, groups=Machine, ylab="Worker"))
 
 
 # INTERACTION Plot. 
-interaction.plot(x.factor=Machine, trace.factor=Worker, response=score)
+with(Machines, interaction.plot(x.factor=Machine, trace.factor=Worker, response=score))
 # my function
 interactionPlot(data=Machines, xFactor='Machine', traceFactor='Worker', response='score')
 # INTERPRET: 
@@ -79,7 +79,7 @@ interactionPlot(data=Machines, xFactor='Machine', traceFactor='Worker', response
 
 # notation: Worker/Machine = Worker + (Machine-within-worker) is how you
 # specify an interaction between worker and machine. 
-machine.lme <- lme(score ~ Machine, random = ~1|Worker/Machine)
+machine.lme <- lme(score ~ Machine, random = ~1|Worker/Machine, data=Machines)
 machine.lme
 # not the same thing: 
 #machine2.lme <- lme(score ~ Machine, random = ~1|Machine/Worker)
@@ -102,7 +102,7 @@ sigma.machine_worker <- 3.729532
 # TESTING: if interaction term is significant.
 
 # Fit the model without interaction
-machine.nointeraction.lme <- lme(score ~ Machine, random = ~1|Worker)
+machine.nointeraction.lme <- lme(score ~ Machine, random = ~1|Worker, data=Machines)
 
 # COMPARE USING ANOVA: prerequisite: the models must have the same FIXED EFFECTS. 
 
@@ -136,7 +136,7 @@ summary(machine.lme)
 
 # Checking the fixed effects coefs are the not same anymore when the design is
 # unbalanced:
-detach(Machines)
+#detach(Machines)
 mac = Machines[-c(2,3,6,8,9,12,19,20,27,33),]
 
 # showing the data are now unblanaced: 
@@ -144,19 +144,20 @@ table(mac$Machine, mac$Worker)
 # Old data is balanced: (same number of counts per cell in predictor variables)
 table(Machines$Machine, Machines$Worker)
 
-attach(mac)
+#attach(mac)
+#detach(mac)
 
-mac.unbalanced.lm <- lm(score ~ Machine * Worker)
-mac.unbalanced.lme <- lme(score ~ Machine, random = ~1|Worker/Machine)
+mac.unbalanced.lm <- lm(score ~ Machine * Worker, data=mac)
+mac.unbalanced.lme <- lme(score ~ Machine, random = ~1|Worker/Machine, data=mac)
 summary(mac.unbalanced.lm)
 summary(mac.unbalanced.lme)
 
 
 
 # Refitting ineraction model using the ML method
-detach(mac)
-attach(Machines)
-machines.ML.lme <- lme(score ~ Machine, random = ~1|Worker/Machine, method="ML")
+#detach(mac)
+#attach(Machines)
+machines.ML.lme <- lme(score ~ Machine, random = ~1|Worker/Machine, method="ML", data=Machines)
 AIC(machines.ML.lme)
 AIC(machines.lm)
 

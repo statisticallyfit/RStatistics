@@ -131,9 +131,9 @@ VarCorr(plant.lme)
 # lecture notes page 123?
 
 # Results: 
-# sigma_intercept^2 = 0.11
+# sigma_intercept^2 = 0.106
 # sigma_1^2 = 0
-# sigma_residual^2 = 0.92
+# sigma_residual^2 = 0.192
 
 # Since variance component of slope (sigma_1) is small, we can see there is no difference
 # among the plants in the rate of gorwth of roots, so there are equal slopes.
@@ -171,6 +171,8 @@ anova(plant.intercept.lme, plant.lme)
 
 # Extract using ranef()
 ranef(plant.lme)
+# same thing as: 
+random.effects(plant.lme)
 
 # Can see no significant differences amongst slopes (coefficients of week)
 
