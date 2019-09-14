@@ -152,65 +152,93 @@ anova(ortho.intercept.lme, ortho.lme)
 
 # Check model assumptions
 
-## Got random part residuals to be standardized but how to standardize
-# the fixed model part? resid() function only gets the random part. 
+fr = ortho.intercept.lme$residuals[,1]
 df <- data.frame(SubjectResids=ortho.intercept.lme$residuals[,2], 
                  SubjectStdResids=resid(ortho.intercept.lme, type="normalized"), 
                  FixedResids=ortho.intercept.lme$residuals[,1],
+                 FixedStdResids = (fr - mean(fr))/sd(fr), 
                  SubjectFits=ortho.intercept.lme$fitted[,2], 
                  FixedFits = ortho.intercept.lme$fitted[,1],
                  Subject = orthoData$Subject, 
-                 Sex = orthoData$Sex) #, Fixed=orthoData$age.centred)
+                 Sex = orthoData$Sex,
+                 ageC=orthoData$age.centred) #, Fixed=orthoData$age.centred)
 
-# fits vs resids
-# the Subject residuals (random part of the model)
-#plot(ortho.intercept.lme, resid(., type="p") ~ fitted(.) | Sex, abline=0)
+# Residuals vs fitted -----------------------------------------------------------------
 
-# So to get standardized residuals mus write: resid(model, type="p") or type = "normalized"
-#ggplot(df, aes(x=SubjectFits, y=SubjectResids, color=Sex)) + geom_point()
-
-# Residuals vs fitted ------------
-
+# (1) Residuals vs fitted (by Subject (random part))
 ggplot(data=df, aes(x=SubjectFits, y=SubjectStdResids, color=Sex)) + geom_point(size=2) + 
       geom_hline(yintercept=0, linetype="dashed", size=1,color="black") + 
       geom_hline(yintercept=c(-2,2), linetype="dotted", color="black") + 
       ggtitle("Residuals vs Fitted for Grouping Factor = Subject")
 
-
-# No need for fitted part ...
-#ggplot(data=df, aes(x=FixedFits, y=FixedResids)) + geom_point(size=2) + 
-#      geom_hline(yintercept=0, linetype="dashed", size=1,color="red") + 
-#      ggtitle("Residuals vs Fitted for Fixed Line")
+# This is an interaction model so we plot residuals by variable 1 (Gender)
+# Residuals vs fitted (by Gender)
+plot(ortho.intercept.lme, resid(., type="p") ~ fitted(.) | Sex, abline=0)
 
 
-# Residuals vs predictors (using boxplots) ------------------------------------
+# (2) Residuals vs fitted (by Age (systematic or fixed part))
+
+ggplot(data=df, aes(x=FixedFits, y=FixedStdResids, color=factor(ageC))) + geom_point(size=2) + 
+   geom_hline(yintercept=0, linetype="dashed", size=1,color="red") + 
+   facet_grid(. ~ageC) + 
+   #facet_wrap( ~ageC, ncol=2) + 
+   ggtitle("Residuals vs Fitted for Fixed Line")
+
+
+
+### NOTE: the school does the Random Resids (Subject) but colord/partitioned by age: 
+
+plot(ortho.intercept.lme, resid(., type="p") ~ fitted(.) | age, abline=0)
+
+ggplot(data=df, aes(x=SubjectFits, y=SubjectStdResids, color=factor(ageC))) + geom_point(size=2) + 
+   geom_hline(yintercept=0, linetype="dashed", size=1,color="black") + 
+   geom_hline(yintercept=c(-2,2), linetype="dotted", color="black") + 
+   #facet_grid(. ~ageC) + 
+   facet_wrap( ~ageC, ncol=2) + 
+   ggtitle("Residuals vs Fitted for Grouping Factor = Subject")
+
+
+### QQ plot of residuals (fitted) ----------------------------------------------------
+
+shapiro.test(df$FixedResids) # for age
+shapiro.test(df$SubjectResids) # for Subject, evidence to reject normality
+
+# (1) Standardized residuals by Age (Fixed part): 
+qqnorm(ortho.intercept.lme$residuals[,1])
+
+ggplot(df, aes(sample = FixedStdResids)) + 
+      stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
+      stat_qq_line(linetype="dashed", size=1) + 
+      ggtitle("QQnorm plot for Fixed Line Standardized Residuals")
+
+# (2) Standardized residuals by Subject (random part): 
+qqnorm(residuals(ortho.intercept.lme, type="normalized"))
+
+ggplot(df, aes(sample = SubjectStdResids)) + 
+   stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
+   stat_qq_line(linetype="dashed", size=1) + 
+   ggtitle("QQnorm plot for Subject Standardized Residuals")
+
+
+
+### Residuals vs predictors (using boxplots) -------------------------------------------
 
 
 # INREPRET: all centered around zero, but no homogeneity of variance
 
-#ggplot(df, aes(x=AgeCentred, y=FixedResids, colour=AgeCentred)) + geom_point(size=2) + 
-#   geom_hline(yintercept=0, linetype="dashed",color="red",size=1)
+# (1)  Boxplot of residual vs predictor (by Age.centred (fixed part))
+ggplot(df, aes(x=ageC, y=FixedResids, colour=factor(ageC))) + geom_boxplot(size=1) + 
+   geom_hline(yintercept=0, linetype="dashed",color="black",size=1)
 # homogeneity of variance and all centred around mean = 0
+
+# (2) Boxplot of residual vs predictor (by Subject (random part))
+
+plot(ortho.intercept.lme, Subject~resid(., type="p"),abline=c(0,1))
 
 ## CORRECTED: color by Gender not by Subject, which is already on x-axis!
 ggplot(df, aes(x=Subject, y=SubjectStdResids, colour=Sex)) + geom_boxplot(size=1) + 
       geom_hline(yintercept=0, linetype="dashed", size=1,color="black")
 # several outliers and no homogeneity of variance
-
-# QQnorm plot ------------
-
-shapiro.test(df$FixedResids) # for age
-shapiro.test(df$SubjectResids) # for Subject, evidence to reject normality
-
-#ggplot(df, aes(sample = FixedResids)) + 
-#      stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
-#      stat_qq_line(linetype="dashed", size=1) + 
-#      ggtitle("QQnorm plot for Fixed Line Residuals")
-
-ggplot(df, aes(sample = SubjectStdResids)) + 
-      stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
-      stat_qq_line(linetype="dashed", size=1) + 
-      ggtitle("QQnorm plot for Subject Residuals")
 
 
 

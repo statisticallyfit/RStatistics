@@ -69,7 +69,8 @@ flyData$male <- factor(paste(rep('M', N), flyData$male, sep=''))
 
  # Exploratory plots
 
-# --- This is the RESIDUAL VARIANCE COMPONENT. ---
+# --- This is NOT the RESIDUAL VARIANCE COMPONENT. ---
+# (this is just variatio ndue to females, not really of interest)
 
 ### For each female, regardless of male, there is little variability in 
 # eye intensity AMONG FEMALES the two offspring because the boxplots are all 
@@ -108,11 +109,34 @@ ggplot(flyData, aes(x=female, y=eye, color=female)) + geom_boxplot(size=1) +
             axis.title.x=element_text(size=20),
             axis.title.y=element_text(size=20), axis.text=element_text(size=15))
 
+
+## RESIDUAL VARIANCE: (variation among replicates): since the boxplots for each female 
+# REGARDLESS of male are narrow, there is little variation in eye (response) among
+# samples.  Means the replicate measures for each leaf are similar. 
+
+# Interpretation 2: 
+# for each female (regardless of male) there is little variability in eye intensity 
+# between the two offspring. This will be measured by the residuals variance component)
+
+# (can get same info from dotplots)
+
+
+
 # Plot 2
+
+# Ggplot dotplot: 
+ggplot(flyData, aes(x=female, color=female, fill=female, y=eye)) + 
+  geom_dotplot(binaxis="y", stackdir="centerwhole", stackratio=0.2) + 
+  facet_grid(.~male)
+
 dotplot(female ~ eye | male, data=flyData, pch=c(1,1,2,2,3,3,4,4),
         strip=FALSE, strip.left=TRUE, layout=c(1,3), cex=1.5, 
         ylab="female within male", xlab = "eye intensity", jitter.y = TRUE)
 
+# INTERPRET: 
+# for each female (regardless of male) there is little variability in eye intensity 
+# between the two offspring because the dots (two replicates) are clustered together. 
+# This will be measured by the residuals variance component)
 
 # part (c) -----------------------------------------------------------------------
 # Fit the mixed effects nested model

@@ -118,6 +118,7 @@ dotplot(leaves ~ ca | plants, data=turnipData, pch=c(1,1,1,1,1),
         strip=FALSE, strip.left=TRUE, layout=c(1,4), cex=1.5, 
         ylab="leaf within turnip", xlab = "calcium content", jitter.y = TRUE)
 
+# Ggplot dotplot: 
 ggplot(turnipData, aes(x=leaves, color=leaves, fill=leaves, y=ca)) + 
       geom_dotplot(binaxis="y", stackdir="centerwhole", stackratio=0.2, 
                    position="jitter") + facet_grid(.~plants)
