@@ -67,6 +67,12 @@ flagleafData
 # DATA:measures of weights of 16 rats over time. Eight rats were given control diet, 4 rats
 # were given one experimental diet and 4 were given another diet. 
 
+# Unit = rat (grouping factor)
+# Time (primary covariate)
+# Treatment: Diet
+### Random part: Unit x Time = ~Time | Rat part (random effects from how units react over time)
+### Fixed part: Treatment x Time = Diet * Time
+
 data("BodyWeight")
 head(BodyWeight)
 
@@ -82,15 +88,22 @@ ratData
 
 ### Grouped data is essential in longitudinal data: data from each rat form a group
 # so there are 16 groups of data. 
-# The "outer" group is the Diets. 
+# The "outer" group is the Diets (Treatment). 
 
 # formula = response ~ primaryCovariate | groupingFactor
 # Can write number (1) instead of primaryCovariate when no other suitable candidate.
 
+# Unit = rat (grouping factor)
+# Time (primary covariate)
+# Treatment: Diet
+### Random part: Unit x Time = ~Time | Rat part (random effects from how units react over time)
+### Fixed part: Treatment x Time = Diet * Time
+
 groupedRat <- groupedData(weight ~ Time | Rat, data=ratData, outer = ~Diet)
 #plot(ratData, outer= ~Diet, aspect=3)
 plot(groupedRat, outer= ~Diet, aspect=3) # apect = 3 to have 3 cols
-# plot(groupedBodyWeight, outer= T, aspect=3)
+
+# plot(groupedRat, outer= T, aspect=3)
 
 
 
@@ -124,13 +137,14 @@ plot(rat.ci)
 
 
 # Fitting the model: 
-# Random effect = rat (grouping factor)
-# primary covariate = Time
 
-# Unit x Time = Time | Rat part (random effects due to the way units react over time)
-# Fixed x Time = Diet * Time
+# Unit = rat (grouping factor)
+# Time (primary covariate)
+# Treatment: Diet
+### Random part: Unit x Time = ~Time | Rat part (random effects from how units react over time)
+### Fixed part: Treatment x Time = Diet * Time
 rat.lme <- lme(weight ~ Diet * Time, data=ratData, random = ~Time|Rat)
-rat.nodiff.lme <- lme(weight ~ Diet/Time-1,data=ratData, random=~Time|Rat)
+rat.nodiff.lme <- lme(weight ~ Diet/Time-1,data=ratData, random= ~Time|Rat)
 
 summary(rat.lme)
 summary(rat.nodiff.lme)
@@ -160,10 +174,23 @@ rat.lme$coefficients$random
 data(ChickWeight)
 head(ChickWeight)
 
-# Random effect (grouping factor) = Chick
-# Primary covariate = Time
+# Unit = Chick (grouping factor)
+# Time (primary covariate)
+# Treatment: Diet
+### Random part: Unit x Time = ~Time | Chick part (random effects from how units react over time)
+### Fixed part: Treatment x Time = Diet * Time
+
+# Grouped data: response ~ Time | Unit, outer = ~Treatment
 chickData <- groupedData(weight ~ Time | Chick, data=ChickWeight, outer = ~Diet)
 N <- nrow(ChickWeight)
 chickData$Chick <- factor(paste(rep('C', N), chickData$Chick, sep=''))
 chickData$Diet <- factor(paste(rep('D', N), chickData$Diet, sep=''))
 chickData
+
+
+# Plotting the grouped data, say outer = ~Diet or outer = TRUE so that the outer = ~Diet
+# we assined when creating the grouped data shows up in the tabs. 
+plot(chickData, outer=~Diet, aspect=2)
+
+# INTERPRET: 
+# slopes and intercepts are similar, though steeper slope for Diet 3

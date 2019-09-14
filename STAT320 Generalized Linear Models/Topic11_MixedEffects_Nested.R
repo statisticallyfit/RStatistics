@@ -140,9 +140,13 @@ bwplot(conc ~ batch | lab, data=analyteData)
 ggplot(data=analyteData, aes(x=batch, y=conc, color=batch)) + geom_boxplot() + 
       facet_wrap(. ~ lab, ncol=3)
 
+## Variation among replicates: RESIDUAL VARIAION: since the boxplots for each batch within
+# the lab are narrow, this means there is little variation in concentration among
+# samples.  Means the replicate measures for each batch are similar. 
+
+
 # Variation among batches avgered over labs: there is litle variation between
-# batches. 
-# RESIUDAL VARIANCE COMPONENT. 
+# batches. This is variation due to leaf (NOT RESIDUAL VARIATION)
 ggplot(data=analyteData, aes(x=batch, y=conc, color=batch)) + geom_boxplot(size=1)
 
 
@@ -154,12 +158,17 @@ dotplot(batch ~ conc | lab, data=analyteData, pch=c(1,1,2,2,3,3),
 # INTERPRET: same as for bwplot. The crosses represent BATCH 3, circles = BATCH 1, 
 # and triangles = BATCH 2. Lab 4 has highest concentration levels for B1, B2, B3
 # compared to all the other labs. 
-### Variation among labs: so lab 4 is different than others. 
-### Variation among batches WITHIN LABS: similar since the circles, crosses, and 
+
+#### Variation among labs: so lab 4 is different than others. 
+
+#### Variation among batches WITHIN LABS: similar since the circles, crosses, and 
 # triangles are near each other for all labs, except for labs 4 and 6. 
 # For lab 4: the batch 1 has higher levels of concentration than other B2, B3. 
 # For lab 6: the batch 3 has higher concentration levels than B2, B1 for lab 6
 # but not higher than all batches in lab 4. 
+
+#### Variation of residuals (among replicates): tthe replicate measures for each batch 
+# are similar so there is little variation in concentration among  samples.
 
 
 

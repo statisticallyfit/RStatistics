@@ -116,7 +116,10 @@ groupedPlantControlData$week.centred <- groupedPlantControlData$week - mean(grou
 plantControlData$week.centred <- plantControlData$week - mean(plantControlData$week)
 head(groupedPlantControlData)
 
-# Fit the random effects model
+
+
+# RANDOM SLOPES MODEL: ~ week | plant -------------------------------------------
+
 # Y_ij | b_i ~ N(mu_ij | b_i, sigma^2)
 # Means: response root conditional on plant (i)
 # grouping variable: plant
@@ -142,14 +145,15 @@ VarCorr(plant.lme)
 
 
 
-### RANDOM INTERCEPTS (only) -----------------------------------------------------
+### RANDOM INTERCEPTS (only) (~ 1|plant ) ----------------------------------------------
 
 # Y_ij | b_i ~ N(mu_ij | B_i, sigma^2)
 # mu_ij | b_i = Beta_0_i + Beta_1 (x_j - x-bar)
 # Beta_0_i ~ Normal(Beta_0, sigma_0^2)
 
 # Fit the random intercepts only model
-plant.intercept.lme <- lme(root ~ week.centred, data=plantControlData, random = ~ 1 |plant)
+plant.intercept.lme <- lme(root ~ week.centred, data=plantControlData, 
+                           random = ~ 1 |plant)
 summary(plant.intercept.lme)
 VarCorr(plant.intercept.lme)
 

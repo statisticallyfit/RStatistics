@@ -129,7 +129,7 @@ VarCorr(income.lme)
 # small (0.04) compared to variation in overall income between individuals (0.537)
 # But within-group variation (residual variation, or variation between individuals) 
 # is 0.68 is quite larger than both. 
-intervals(income.lme)
+ci.income <- intervals(income.lme)
 
 
 # TESTING FIXED EFFECTS:  (or can just use the lme summary)
@@ -243,8 +243,8 @@ KRmodcomp(eye.r.lmer, eye.nopower.r.lmer)
 # Use Helmert contrasts to check that the highest power has a higher acuity than
 # average of the first three levels: 
 op <- options(contrasts = c("contr.helmert", "contr.poly"))
-eye.r.contrasts.lmer <- lmer(acuity ~ power + (1|subject) + (1|subject:eye), vision, REML=F,
-                   subset=-43)
+eye.r.contrasts.lmer <- lmer(acuity ~ power + (1|subject) + (1|subject:eye), vision, 
+                             REML=F,subset=-43)
 eye.contrasts.lme <- lme(acuity ~ power , random = ~1|subject/eye, data=vision,subset=-43)
 
 summary(eye.r.contrasts.lmer)

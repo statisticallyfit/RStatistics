@@ -46,7 +46,7 @@ bwplot(effort ~ Type |Subject, data=ergoStool)
 bwplot(effort ~ Type, data=ergoStool)
 
 
-# Fitting the model: non-interaction
+# Fitting the RANDOM INERCEPTS model: non-interaction
 stool.lme <- lme(effort ~ Type, random = ~1|Subject, data=ergoStool)
 stool.lmer <- lmer(effort ~ Type + (1|Subject), data=ergoStool)
 anova(stool.lmer)
