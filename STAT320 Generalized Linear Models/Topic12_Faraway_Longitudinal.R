@@ -53,8 +53,9 @@ df <- data.frame(intercepts, slopes, person=names(income.lmlist))
 # Intercepts vs slopes scatter
 ggplot(df, aes(x=intercepts, y=slopes)) + geom_point() + ggtitle("Scatter of intercepts vs slopes")
 # boxplot of intercepts
-pgender <- psid$sex[match(1:85, psid$person)]
-boxplot(split(slopes, pgender))
+pgender <- psid$sex[match(unique(psid$person), psid$person)]
+boxplot(split(slopes, pgender)) # suggetts not much need for random slopes
+boxplot(split(intercepts, pgender)) # suggests need for random intercepts
 #INTERPRET: 
 # income growth rates are higher and more variable for women than men. 
 #ggplot(df, aes(x=person, y=intercepts))

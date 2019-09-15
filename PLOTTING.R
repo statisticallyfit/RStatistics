@@ -6,6 +6,19 @@ library(GGally) # for pairs plot
 
 library(gridExtra)
 
+
+
+# Creating evenly spaced ggplot colors from the hcl color wheel: 
+# g = number of groups or colors you need
+ggplotColors <- function(g){
+   d <- 360/g
+   h <- cumsum(c(15, rep(d,g - 1)))
+   hcl(h = h, c = 100, l = 65)
+}
+# SOURCE: https://data.library.virginia.edu/setting-up-color-palettes-in-r/
+
+
+
 # this is for multiplots of ggplot: 
 # http://rstudio-pubs-static.s3.amazonaws.com/2852_379274d7c5734f979e106dcf019ec46c.html
 
@@ -36,16 +49,29 @@ pairsQuantPlot <- function(data, colsVec, size=10){
 # link for effects plots: 
 # http://www.flutterbys.com.au/stats/tut/tut5.3.html
 
-# interaction plot
-# TODO: fix so it looks exactly like
-# interaction.plot(...) function
-interactionPlot2 <- function(data, xFactor, traceFactor, response){
-      ggplot(data=data, aes_string(x=xFactor, y=response, 
-                            group=traceFactor, color=traceFactor)) + 
-            geom_smooth(method=lm, lwd=1, se=FALSE) + 
-            ggtitle(paste("Interaction Plot of",xFactor,"vs.",response,
-                          "for Different Levels of",traceFactor)) +
-            xlab(xFactor) + ylab(response)
+
+# Interaction plot:
+interactionPlot <- function(x.factor, trace.factor, response, data){
+   #detach(package:plyr)
+   library(dplyr)
+   #summ <- ddply(drinkData, .(weeks, treat), summarise, wt=mean(wt))
+   #cs = colnames(summ)
+   #cs[3] = response # placing string value here
+   #colnames(summ) = cs
+   
+   meanFunction = paste0('mean(', response, ')'); 
+   meanName = response # paste0('mean_', response)
+   
+   mysumm = data %>% 
+      group_by_(.dots = list(x.factor, trace.factor)) %>% 
+      summarise_(.dots = setNames(meanFunction, meanName))
+   
+   mysumm <- data.frame(mysumm)
+   
+   ggplot(data, aes_string(x=x.factor, y=response, color=trace.factor)) + 
+      geom_point(data=mysumm, aes_string(group=trace.factor, color=trace.factor), 
+                 size=2) + 
+      geom_line(data=mysumm, aes_string(group=trace.factor), size=1)
 }
 
 
@@ -58,13 +84,13 @@ interactionPlot2 <- function(data, xFactor, traceFactor, response){
 # https://cran.r-project.org/web/packages/interactions/vignettes/categorical.html
 
 # Source: https://ademos.people.uic.edu/Chapter13.html
-interactionPlot <- function(data, xFactor, traceFactor, response){
-      ggplot(data=data, aes_string(x=xFactor, y=response, group=traceFactor)) + 
-      geom_line(size=1, aes_string(color=traceFactor)) +
-      ylab(response) + xlab(xFactor) + 
-      ggtitle(paste("Interaction Plot of ", xFactor, " vs. ", 
-                    response, " for Different Levels of ", traceFactor))
-}
+#interactionPlot <- function(data, xFactor, traceFactor, response){
+#      ggplot(data=data, aes_string(x=xFactor, y=response, group=traceFactor)) + 
+#      geom_line(size=1, aes_string(color=traceFactor)) +
+#      ylab(response) + xlab(xFactor) + 
+#      ggtitle(paste("Interaction Plot of ", xFactor, " vs. ", 
+#                    response, " for Different Levels of ", traceFactor))
+#}
 
 
 #### ERROR: TO FIX ###

@@ -110,11 +110,13 @@ ggplot(flyData, aes(x=female, y=eye, color=female)) + geom_boxplot(size=1) +
             axis.title.y=element_text(size=20), axis.text=element_text(size=15))
 
 
-## RESIDUAL VARIANCE: (variation among replicates): since the boxplots for each female 
-# REGARDLESS of male are narrow, there is little variation in eye (response) among
-# samples.  Means the replicate measures for each leaf are similar. 
+## RESIDUAL VARIANCE: (variation among replicates): 
 
-# Interpretation 2: 
+# Since the boxplots for each female REGARDLESS of male are NARROW, there is little 
+# variation in eye (response) among samples.  Means the replicate measures for each 
+# female are similar. 
+
+# Another way to say the above: 
 # for each female (regardless of male) there is little variability in eye intensity 
 # between the two offspring. This will be measured by the residuals variance component)
 
@@ -137,6 +139,12 @@ dotplot(female ~ eye | male, data=flyData, pch=c(1,1,2,2,3,3,4,4),
 # for each female (regardless of male) there is little variability in eye intensity 
 # between the two offspring because the dots (two replicates) are clustered together. 
 # This will be measured by the residuals variance component)
+
+
+# Females averaged over males to get an idea of residual variance averaged over males: 
+ggplot(flyData, aes(x=female, color=female, y=eye)) + geom_boxplot(size=1)
+
+
 
 # part (c) -----------------------------------------------------------------------
 # Fit the mixed effects nested model
