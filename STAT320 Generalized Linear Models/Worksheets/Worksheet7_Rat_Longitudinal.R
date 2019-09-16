@@ -158,15 +158,15 @@ subjectNames <- rownames(intDf) # same for int and slope dfs
 ptreat = drinkData$treat[match(levels(drinkData$subject), drinkData$subject)]
 
 ciDf <- data.frame(Estimate=c(intDf$est., slopeDf$est.), 
-      Lower = c(intDf$lower, slopeDf$lower),
-      Upper = c(intDf$upper, slopeDf$upper),
-      Type=c(rep("intercept", nrow(intDf)), rep("slope", nrow(slopeDf))),
-      subject= subjectNames, 
-      treat = ptreat)
+                   Lower = c(intDf$lower, slopeDf$lower),
+                   Upper = c(intDf$upper, slopeDf$upper),
+                   Type=c(rep("intercept", nrow(intDf)), rep("slope", nrow(slopeDf))),
+                   subject= subjectNames, 
+                   treat = ptreat)
 
 ggplot(ciDf, aes(x=Estimate, y=subject, color=treat)) + 
-      geom_errorbarh(aes(xmin=Lower, xmax=Upper)) + 
-      geom_line() + geom_point() + facet_wrap(~Type, ncol=2) 
+   geom_errorbarh(aes(xmin=Lower, xmax=Upper)) + 
+   geom_line() + geom_point() + facet_wrap(~Type, ncol=2) 
 
 
 
