@@ -53,7 +53,7 @@ pairsQuantPlot <- function(data, colsVec, size=10){
 # Interaction plot:
 interactionPlot <- function(x.factor, trace.factor, response, data){
    #detach(package:plyr)
-   library(dplyr)
+   suppressMessages(require(dplyr))
    #summ <- ddply(drinkData, .(weeks, treat), summarise, wt=mean(wt))
    #cs = colnames(summ)
    #cs[3] = response # placing string value here
@@ -62,9 +62,9 @@ interactionPlot <- function(x.factor, trace.factor, response, data){
    meanFunction = paste0('mean(', response, ')'); 
    meanName = response # paste0('mean_', response)
    
-   mysumm = data %>% 
+   mysumm = suppressWarnings(data %>% 
       group_by_(.dots = list(x.factor, trace.factor)) %>% 
-      summarise_(.dots = setNames(meanFunction, meanName))
+      summarise_(.dots = setNames(meanFunction, meanName)))
    
    mysumm <- data.frame(mysumm)
    
