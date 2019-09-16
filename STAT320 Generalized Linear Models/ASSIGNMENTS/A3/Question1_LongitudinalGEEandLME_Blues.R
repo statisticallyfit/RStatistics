@@ -108,9 +108,7 @@ plot(bluesData.grouped, outer=~treatment+drug, aspect=0.4)
 # Or by ggplot: 
 
 numSubjects <- length(levels(bluesData$Subject))
-ggplot(data=bluesData, aes(x=Months, y=Score, color=Subject)) + geom_line() + geom_point() +
-      facet_wrap(~ treatment + drug, ncol=2) + 
-      scale_colour_manual(values=sample(ggplotColors(numSubjects)))
+
 
 
 # INTERPRET:  to see structure of ssytematic and random effects, we are plotting profiles 
@@ -121,51 +119,64 @@ ggplot(data=bluesData, aes(x=Months, y=Score, color=Subject)) + geom_line() + ge
 
 ######## (1) Addressing: VARIABILITY AMONGST GROUPS: (fixed effect interaction)
 
-### --- Intercepts among drug/treatments:
-# ---> Blues: Intercepts are higher for Drug=Yes sujects than for Drug = No subjects, so 
-# depression was higher for anti-depressants group. 
-# =====> suggests intercepts are different for drug / treatment lines
-# ---> TAU: Intercepts generally similar for Drug = Yes or No groups. 
-
-
-### --- Slopes among drug/treatments:
-# (III) growth rate (slope) is negative for BtheB and curved downward, but for TAU
+# TREAT * TIME (fixed effect)
+ggplot(data=bluesData, aes(x=Months, y=Score, color=Subject)) + geom_line() + geom_point() +
+      facet_wrap(~ treatment, ncol=2) + 
+      scale_colour_manual(values=sample(ggplotColors(numSubjects)))
+### INTERCEPTS among treatments over time:
+# ---> Similar intercepts among the BtheB group and TAU group.
+### SLOPES among treatments over time:
+# ---> growth rate (slope) is negative for BtheB and curved downward, but for TAU
 # group the slope is generally horizontal as time goes on. BtheB group thus shows definite
-# decreas in depression, not so starkly evident for TAU. 
+# decrease in depression as time increases. 
+# ====> SUGGESTS strong TREAT*TIME interaction. 
+
+# DRUG * TIME (fixed effect)
+ggplot(data=bluesData, aes(x=Months, y=Score, color=Subject)) + geom_line() + geom_point() +
+      facet_wrap(~ drug, ncol=2) + 
+      scale_colour_manual(values=sample(ggplotColors(numSubjects)))
+### INTERCEPTS among drugs over time: 
+# ---> similar intercepts
+### SLOPES among drugs over time: 
+# ---> growth rate is generally average for Drug=No but generally is sharply decreasing
+# for Drug=Yes group as months increase.
+# =====> SUGGESTS: DRUG * TIME interaction
+
+# TREAT * DRUG * TIME: (fixed effect)
+ggplot(data=bluesData, aes(x=Months, y=Score, color=Subject)) + geom_line() + geom_point() +
+      facet_wrap(~ treatment + drug, ncol=2) + 
+      scale_colour_manual(values=sample(ggplotColors(numSubjects)))
+### INTERCEPTS among (Treat=Blues) : (Drug = Yes / No)
+# ---> intercepts are higher for Blues group taking Drugs so the antidepressants group has 
+# higher depression?  ===> SUGGESTS: intercepts are different. 
+### INTERCEPTS among (Treat=TAU) : (Drug = Yes/No) :  ---> intercepts similar
+### SLOPES among (Treat=Blues) : (Drug = Yes/No) : ---> similar steepness and concavity
+### SLOPES among (Treat=TAU) : (Drug = Yes/No) : ---> concave down for Tau/No and concave up for
+# Tau/Yes, so the control group with No drugs has decrease in depression ====> SUGGESTS: there is
+# some TREAT*DRUG*TIME interaction
+
 
 
 ######## (2) Addressing: 
 #   VARIABILITY AMONG INDIVIDUALS WITHIN A GROUP: (random intercepts/ random slopes)
+ggplot(data=bluesData, aes(x=Months, y=Score, color=Subject)) + geom_line() + geom_point() +
+      facet_wrap(~ treatment + drug, ncol=2) + 
+      scale_colour_manual(values=sample(ggplotColors(numSubjects)))
 
+### RANDOM INTERCEPTS: (Space between lines within treat*drug): 
+# Within each treatment*drug group there is variability among subjects since the 
+# lines are spaced out. Generally more spacing in the TAU than Blues group. 
+# =====> suggests some need for random intercepts model: ~ 1|Subject
 
-# (IV) Random Intercepts: (Space between lines within treat): 
-# Within each treatment group there is variability among subjects since the 
-# lines are spaced out. 
-# =====> suggests some need for random intercepts model: ~|Subject
-
-# (V) Random slopes: (Slopes within treat): the rate of increase in depression over time
-# (slope) is similar for all subjects within Blues group but differs widely for TAU, since
-# some lines dive downa nd some shoot up and some are average. 
+### RANDOM SLOPES: (Slopes within treat*drug): the rate of increase in depression over time
+# (slope) is similar for all subjects in Blues/No,Yes and Tau/Yes but differs for Tau/No
+# For Tau/No the liens are concave down while lines are concave up for the rest. 
 # ====> suggests random slopes: ~Months | Subject
 
 
-# (vi) Fanning out: differences amongst Subjects at the beginning are preserved throughout
-# the trial  for Blues group (since the lines are spaced similarly over time).
-# But not true for TAU group. 
-
-## (vii) RESIDUAL Variation: ??? 
-# This is the overall within-group (within-subject) variation
-# Within each treatment group there is variability among subjects since the 
-# lines are spaced out. 
-# Boxplot reflects this as wider boxplots for all treatment groups. 
 
 
-
-
-
-
-
-# PLOT 2: ==============================================================================
+# PLOT 2: =====================================================================================
 # Usable for identifying (1) between-subject variation, and (2) within-subject variation
 
 ### INTERCEPTS AND SLOPES 95% CI: 
@@ -225,7 +236,10 @@ ggplot(slopeByTreatDf, aes(x=treat, y=slope, color=treat)) + geom_boxplot(size=1
 # But since boxplots overlap, there is no significant difference in slopes between treatments
 
 # ===> suggests no need for fixed effect interaction term. 
+# (can do same thing for the Drug groups (have Drug on x-axis))
 
+
+# TODO: just keep this part for assignment: +++++++++++++++++++++++++++++++++++++++++++++++++
 
 # (2) VARIABILITY AMONG INDIVIDUALS WITHIN A GROUP: (random intercepts/ random slopes)
 
@@ -235,7 +249,7 @@ ggplot(slopeByTreatDf, aes(x=treat, y=slope, color=treat)) + geom_boxplot(size=1
 # for Blues is narrower than for TAU. 
 
 # ====> suggests need for random slopes: ~ Months | Subject
-
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 intByTreatDf <- melt(split(intDf$est., ptreat))
 colnames(intByTreatDf) <- c("intercept", "treat")
@@ -279,4 +293,40 @@ interactionPlot(data=bluesData, x.factor="Months", trace.factor="treatment", res
 # ===> suggests fixed effect interaction: Time * Treat
 
 
+# Interaction plot of week and Drug: 
+interactionPlot(data=bluesData, x.factor="Months", trace.factor="drug", response="Score")
+# INTERPRET: different slopes for months 0 - 2 but then similar slopes. 
+# Different intercepts since the distance between lines changes. 
+
+# ===>  suggestion for fixed effect interaction: Time * Drug
+
+# Interaction of treat *Drug
+interactionPlot(bluesData, x.factor="drug", trace.factor = "treatment", response="Score")
+# Strong interaction since slopes are opposite. For TAU from No to Yes there is downward slope
+# and upward slope for Blues. 
+
+
+
+
+
+# part (d) -----------------------------------------------------------------------------------
+
+# TODO: GEE
+
+
+# part (e) -----------------------------------------------------------------------------------
+
+# (ii) Find appropriate mixed model using lme
+# NOTE: must fit using method="ML" to compare models with different fixed effects
+# but same random effects.
+# Results for final model should be found using REML. 
+# ERROR: TODO
+blues.lme <- lme(Score ~ drug*treatment*Months, random= ~Months|Subject, data=bluesData, 
+                 method="REML")
+
+anova(blues.lme)
+# three-way interaction not significant, so discard
+
+# Step 2: fitting without 3-way interaction
+blues.alltwoway.lme <- 
 
