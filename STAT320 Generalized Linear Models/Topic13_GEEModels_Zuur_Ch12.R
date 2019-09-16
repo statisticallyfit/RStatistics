@@ -47,7 +47,7 @@ xyplot(Richness ~ Time | factorField, data=riceData, panel = function(x,y){
 # There are 11 fields in this site, and each
 # field was repeatedly sampled; see Fig. 12.1. Note that there is a general decline in
 # bird numbers over time. One of the available covariates is water depth per field, but
- #water depth and time are collinear (as can be inferred from making an xyplot of
+#water depth and time are collinear (as can be inferred from making an xyplot of
 # depth versus time for each field), so we avoid using them together as covariates in
 # the models.
 
@@ -214,10 +214,16 @@ summary(deer.glm)
 
 
 # DEFINITION GEE: 
-# GLMM using autocorrelation in errors. 
-# Just fixed effects, no random effects. 
-# Called a marginal model, where marginal refers to fact that
-# it only depends on covariates. 
+# --> GLMM using autocorrelation in errors. 
+# --> Just fixed effects, no random effects. 
+# --> Similar to a random intercepts model, where for lme the random intercepts is the blocking
+# variable for the GEE (id = block in GEE and random = ~1|block in random intercepts)
+### GEE: id = blockVariable(i)
+### LME: random = ~1|block
+# --> Called a marginal model, where marginal refers to its dependence only on covariates. 
+# --> GEE is useful if you have many blocks (i) and few longitudinal observations
+# per blocking variable (i)
+
 
 # Has Association sructure between Y_is, and Y_it, where (s) and (t) are two
 # different points in time on the same group (i) from which the repeated measures
@@ -327,15 +333,29 @@ summary(deer.glm)
 # COR STRUCTURE: Autoregressive since number of birds in field (i)at time (s) depends
 # on those measured at time (s-1), and also less strongly at time (s - 2) and other
 # times (t) in the past. 
+attach(riceData)
+birdDf <- data.frame(Richness[Time == 3], Richness[Time==4], Richness[Time==5], 
+                     Richness[Time==6], Richness[Time==7], Richness[Time==8])
+detach(riceData)
+birdDf
+rice.corMat <- cor(birdDf)
+rice.corMat
+ggcorrplot(rice.corMat)
+# INTERPRET: (?) Some suggestion of correlation diminishing with increase in time lag. 
+
 # GROUPING: given by the "id" option. The block referring to (i). The field for birds. 
 # Specifies which bird observations form a block of data. 
-ricebirds.gee <- geeglm(Richness ~ offset(LA) + DEPTH + DEPTH2 + factorSptreat, 
-                        data=riceData, family=poisson, id=factorField, corstr="ar1")
+rice.AR.gee <- geeglm(Richness ~ offset(LA) + DEPTH + DEPTH2 + factorSptreat, 
+                   data=riceData, family=poisson, id=factorField, corstr="ar1")
+rice.EX.gee <- geeglm(Richness ~ offset(LA) + DEPTH + DEPTH2 + factorSptreat, 
+                      data=riceData, family=poisson, id=factorField, corstr="exchangeable")
+rice.IND.gee <- geeglm(Richness ~ offset(LA) + DEPTH + DEPTH2 + factorSptreat, 
+                      data=riceData, family=poisson, id=factorField, corstr="indep")
 # note: could also use compound (exchangeable) but it is not likely that: bird numbers
 # separated by 2 weeks (1 time sampling unit) have the same correlation as those 
 # separated by 20 weeks (10 time sampling units)
 
-summary(ricebirds.gee)
+summary(rice.AR.gee)
 
 # INTERPRET: 
 # alpha.estimate = 0.4215 = correlation between two sequential observations
@@ -354,8 +374,13 @@ summary(ricebirds.gee)
 # temporal correlation, only sptreat is significant. 
 summary(rice.glm)
 summary(rice.quasi.glm)
-summary(ricebirds.gee)
+summary(rice.AR.gee)
 
+
+# Checking which autocorrelations tructure is best: 
+ggAcf(rice.AR.gee$residuals)
+ggAcf(rice.IND.gee$residuals)
+ggAcf(rice.EX.gee$residuals)
 
 
 ### GEE on deer data -----------------------------------------------------------------
@@ -364,16 +389,32 @@ summary(ricebirds.gee)
 # (1) Cannot assume that repeated measures from the same farm are independent. 
 
 # COR STRUCT: exchangebale (same as random intercepts). 
-# No specific time order between observations from  the same farm. 
+# Use exchangeable correlation structure since there is 
+# no specific time order between repeated measures from  the same farm. 
 deer.gee <- geeglm(EcerviPresence ~ Length.centred * Gender, data=deerData, 
                    family=binomial, id=Farm, corstr="exchangeable")
 deer.gee
 summary(deer.gee)
+# INTERPRET: 
+# Interaction term: the two-way interaction Length*Gender is not significant here 
+# (once the # autocorrelations are modeled) but it was in the original binomial glm.
+# Dispersion parameter: phi = 1.15 , with se(phi) = 0.397 
+# Not significantly different from 1: 
+s <- summary(deer.gee)
+1 - pchisq(s$dispersion[[1]] * deer.gee$df.residual, df=deer.gee$df.residual)
+# how does lecture test it? TODO
 
-#deer.lme <- lme(Ecervi ~ Length.centred*Gender, data=deerData, random = ~1|Farm)
-#summary(deer.lme)
+# Cor = alpha = 0.33
 
 
+
+# COR STRUCT: Autoregression Ar(1)
+deer.ar.gee <- geeglm(EcerviPresence ~ Length.centred * Gender, data=deerData, 
+                   family=binomial, id=Farm, corstr="ar1")
+summary(deer.ar.gee) # alpha = 0.66
+
+# Standard errors are larger for GEE than for GLMM, which leads to increased probability
+# of Type I error. 
 
 
 

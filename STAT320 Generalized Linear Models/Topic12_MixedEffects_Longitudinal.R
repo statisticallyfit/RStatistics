@@ -44,6 +44,9 @@ options(show.signif.stars = FALSE)
 # between treatments when the variation between experimental units is large. 
 
 # Data is given in WIDE FORM with repeated measures written across the columns
+# DESCRIPTION: 
+# columns 3-15 are the observed cumulative counts of different species of white clover  
+#  for days 11 through to 20, 22, 25 & 29.
 flagleafData.wide <- read.table("data/flagleaf.txt", header=TRUE)
 flagleafData.wide
 
@@ -189,9 +192,9 @@ df <- data.frame(RandResids=rat.lme$residuals[,2],
 
 # (1) Residuals vs fitted (by Rat (random part))
 ggplot(data=df, aes(x=RandFits, y=RandStdResids, color=Rand)) + geom_point(size=2) + 
-      geom_hline(yintercept=0, linetype="dashed", size=1,color="black") + 
-      geom_hline(yintercept=c(-2,2), linetype="dotted", color="black") + 
-      ggtitle("Residuals vs Fitted for Grouping Factor = Rat")
+   geom_hline(yintercept=0, linetype="dashed", size=1,color="black") + 
+   geom_hline(yintercept=c(-2,2), linetype="dotted", color="black") + 
+   ggtitle("Residuals vs Fitted for Grouping Factor = Rat")
 
 # This is an interaction model so we plot residuals by variable 1 (Gender)
 # Residuals vs fitted (by Gender)
@@ -201,10 +204,10 @@ plot(rat.lme, resid(., type="p") ~ fitted(.) | Rat, abline=0)
 # (2) Residuals vs fitted (by Age (systematic or fixed part))
 
 ggplot(data=df, aes(x=FixedFits, y=FixedStdResids, color=Fixed)) + geom_point(size=2) + 
-      geom_hline(yintercept=0, linetype="dashed", size=1,color="red") + 
-      facet_grid(. ~Fixed) + 
-      #facet_wrap( ~ageC, ncol=2) + 
-      ggtitle("Residuals vs Fitted for Fixed Line")
+   geom_hline(yintercept=0, linetype="dashed", size=1,color="red") + 
+   facet_grid(. ~Fixed) + 
+   #facet_wrap( ~ageC, ncol=2) + 
+   ggtitle("Residuals vs Fitted for Fixed Line")
 
 
 
@@ -213,11 +216,11 @@ ggplot(data=df, aes(x=FixedFits, y=FixedStdResids, color=Fixed)) + geom_point(si
 plot(rat.lme, resid(., type="p") ~ fitted(.) | Diet, abline=0)
 
 ggplot(data=df, aes(x=RandFits, y=RandStdResids, color=Fixed)) + geom_point(size=2) + 
-      geom_hline(yintercept=0, linetype="dashed", size=1,color="black") + 
-      geom_hline(yintercept=c(-2,2), linetype="dotted", color="black") + 
-      #facet_grid(. ~ageC) + 
-      facet_wrap( ~Fixed, ncol=3) + 
-      ggtitle("Residuals vs Fitted for Grouping Factor = Rat")
+   geom_hline(yintercept=0, linetype="dashed", size=1,color="black") + 
+   geom_hline(yintercept=c(-2,2), linetype="dotted", color="black") + 
+   #facet_grid(. ~ageC) + 
+   facet_wrap( ~Fixed, ncol=3) + 
+   ggtitle("Residuals vs Fitted for Grouping Factor = Rat")
 
 
 ### QQ plot of residuals (fitted) ----------------------------------------------------
@@ -229,17 +232,17 @@ shapiro.test(df$RandResids) # for Rat, evidence to reject normality
 qqnorm(rat.lme$residuals[,1])
 
 ggplot(df, aes(sample = FixedStdResids)) + 
-      stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
-      stat_qq_line(linetype="dashed", size=1) + 
-      ggtitle("QQnorm plot for Fixed Line Standardized Residuals")
+   stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
+   stat_qq_line(linetype="dashed", size=1) + 
+   ggtitle("QQnorm plot for Fixed Line Standardized Residuals")
 
 # (2) Standardized residuals by Subject (random part): 
 qqnorm(residuals(rat.lme, type="normalized"))
 
 ggplot(df, aes(sample = RandStdResids)) + 
-      stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
-      stat_qq_line(linetype="dashed", size=1) + 
-      ggtitle("QQnorm plot for Random Effect Standardized Residuals")
+   stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
+   stat_qq_line(linetype="dashed", size=1) + 
+   ggtitle("QQnorm plot for Random Effect Standardized Residuals")
 
 
 
@@ -247,7 +250,7 @@ ggplot(df, aes(sample = RandStdResids)) +
 
 # (1)  Boxplot of residual vs predictor (by Diet (fixed part))
 ggplot(df, aes(x=Fixed, y=FixedStdResids, colour=Fixed)) + geom_boxplot(size=1) + 
-      geom_hline(yintercept=0, linetype="dashed",color="black",size=1)
+   geom_hline(yintercept=0, linetype="dashed",color="black",size=1)
 # homogeneity of variance and all centred around mean = 0
 
 # (2) Boxplot of residual vs predictor (by Rat (random part))
@@ -256,7 +259,7 @@ plot(rat.lme, Rat ~ resid(., type="p"),abline=c(0,1))
 
 ## CORRECTED: color by Fixed var (Diet) not by Rand (Rat), which is already on x-axis!
 ggplot(df, aes(x=Rand, y=RandStdResids, colour=Fixed)) + geom_boxplot(size=1) + 
-      geom_hline(yintercept=0, linetype="dashed", size=1,color="black")
+   geom_hline(yintercept=0, linetype="dashed", size=1,color="black")
 
 #ggplot(df, aes(x=Rand, y=RandStdResids, colour=Rand)) + geom_boxplot(size=1) + 
 #      geom_hline(yintercept=0, linetype="dashed", size=1,color="black")

@@ -99,7 +99,7 @@ ggplot(data=drinkData, aes(x=weeks, y=wt, color=subject)) + geom_line() + geom_p
 
 # where is sigma.residual (???)
 
-# (IV) Random Intercepts: (Space between lines within treat): variability in 
+# (IV) Random Intercepts: (Space between lines within treat): 
 # Within each treatment group there is variability among subjects since the 
 # lines are spaced out. True for control since lines are spaced out, true for
 # thiouracile since lines are spaced out ... etc 
