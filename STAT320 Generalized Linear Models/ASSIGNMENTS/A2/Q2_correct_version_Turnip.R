@@ -6,7 +6,7 @@ source('/development/projects/statisticallyfit/github/learningmathstat/RStatisti
 
 library(ggfortify)
 library(nlme)
-library(lme4)
+#library(lme4)
 library(lattice)
 
 options(show.signif.stars = FALSE)

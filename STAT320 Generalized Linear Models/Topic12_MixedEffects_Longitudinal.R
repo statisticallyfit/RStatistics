@@ -328,7 +328,7 @@ chickData
 
 # Plotting the grouped data, say outer = ~Diet or outer = TRUE so that the outer = ~Diet
 # we assined when creating the grouped data shows up in the tabs. 
-plot(chickData, outer=~Diet, aspect=2)
+plot(chickData, outer= ~Diet, aspect=2)
 
 # INTERPRET: 
 # There is Chick x Time interaction since the lines for chicks fan out (separate)
@@ -352,7 +352,7 @@ xyplot(weight ~ Time | Diet, data=chickData,
 
 
 # Fit random intercepts/slopes model: Time | Chick + fixed interaction model of Diet*Time
-chick.lme <- lme(weight ~ Diet*Time, data=chickData, random=~Time|Chick)
+chick.lme <- lme(weight ~ Diet*Time, data=chickData, random= ~Time|Chick)
 
 
 

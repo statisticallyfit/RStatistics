@@ -90,6 +90,7 @@ cs = colnames(owlData)
 cs[5] <- "NCalls"
 colnames(owlData) <- cs
 owlData$logBroodSize <- log(owlData$BroodSize)
+owlData
 
 # GOAL OF STUDY: number of calls of nestlings affected by satiation, arrival time?
 
@@ -164,7 +165,7 @@ with(owlData, interaction.plot(x.factor=FoodTreatment, trace.factor=SexParent,
                                response=NCalls))
 interactionPlot(x.factor="FoodTreatment", trace.factor="SexParent", 
                 response="NCalls", data=owlData)
-# interactionPlot(x.factor="ArrivalTime", trace.factor="SexParent", 
+#interactionPlot(x.factor="ArrivalTime", trace.factor="SexParent", 
 #                 response="NCalls", data=owlData)
 
 # Fitting the glm owl model: 
@@ -187,13 +188,19 @@ drop1(owl.quasi.glm, test="F")
 owl.quasi.nointeract.glm <- glm(NCalls ~ offset(logBroodSize) + FoodTreatment + 
                                       ArrivalTime, family=quasipoisson, data=owlData)
 
+# Comparing interaction effects: not significant. 
+anova(owl.quasi.nointeract.glm, owl.quasi.glm, test="Chisq")
+
 anova(owl.quasi.nointeract.glm, test="Chisq") # significant main effects
 summary(owl.quasi.nointeract.glm)
 
 
 # GLM for deer data: --------------------------------------------------------------------
 
+#interactionPlot(data=deerData, x.factor="Length.centred", trace.factor="Gender", response="EcerviPresence")
+
 deer.glm <- glm(EcerviPresence ~ Length.centred * Gender, data=deerData, family=binomial)
+
 anova(deer.glm, test="Chisq")
 
 # Perform single-term deletions and apply likelihood ratio test.
@@ -237,8 +244,9 @@ summary(deer.glm)
 
 # ASSOCIATION STRUCTURES FOR ASSOCIATION BETWEEN Y_IS, and Y_IT: 
 
-# Let alpha_st denote correlation between observations at times (s) and (t). 
 # Prerequisite: response Y must be continuous. 
+
+# Let alpha_st denote correlation between observations at times (s) and (t). 
 
 # The association structure between Y_is and Y_it is represented in terms of a matrix
 # where each cell (block) contains a value alpha_st representing the correlation between
@@ -266,7 +274,8 @@ summary(deer.glm)
 # (2) AR-1 CORRELATION (AUTOREGRESSIVE)
 
 # ---> FORMULA: cor(Y_is, Y_it) = alpha ^ |s - t|
-# is the defined correlation between two time observations (s), (t) from the same (i) block (patient, field, nest, farm)
+# is the defined correlation between two time observations (s), (t) from 
+# the same (i)-block (patient, field, nest, farm)
 
 # ----> Autoregressive correlation is observed in real-life when within-subject time 
 # correlations can be modeled as "distance" of the time observations.

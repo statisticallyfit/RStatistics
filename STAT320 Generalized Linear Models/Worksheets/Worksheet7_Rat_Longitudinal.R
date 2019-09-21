@@ -294,10 +294,8 @@ summary(drink.lme)
 # thiouracil being LOWER than control. 
 
 
-### --> treatThiouracil coeff is not significant (can interpret this main effect
+### --> treatThiouracil coeff is not significant (cannot interpret this main effect
 # since its corresponding thiouracil:weeks interaction term IS significant)
-# Note that treatThiouracile main effect is not lower than control (averaged over weeks)
-# but the treatThiouracil:weeks is lower than control, when taking into account weeks.
 
 
 #### ANALYZING random effects part of RandomSlopes/random intercepts model: --------------
