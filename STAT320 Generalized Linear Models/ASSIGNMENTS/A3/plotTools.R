@@ -8,8 +8,6 @@ ggplotColors <- function(g){
 # SOURCE: https://data.library.virginia.edu/setting-up-color-palettes-in-r/
 
 
-
-
 # Interaction plot:
 interactionPlot <- function(x.factor, trace.factor, response, data){
       #detach(package:plyr)

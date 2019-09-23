@@ -1,23 +1,20 @@
 setwd("/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT320 Generalized Linear Models/")
-source("/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT320 Generalized Linear Models/ASSIGNMENTS/A3/plotTools.R")
-source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/FORMULAS.R')
-source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/PLOTTING.R')
-source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/Rfunctions.R')
+#source("/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT320 Generalized Linear Models/ASSIGNMENTS/A3/plotTools.R")
+#source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/FORMULAS.R')
+#source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/PLOTTING.R')
+#source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/Rfunctions.R')
 
 
 library(ggfortify)
 library(nlme)
-#library(lme4)
-#detach(package:lme4)
 library(lattice)
 library(geepack) # for geeglm()
 library(ggcorrplot) # for ggcorrplot
 library(forecast) # for ggAcf
 library(reshape2)
+library(gridExtra) # for grid.arrange()
 
 options(show.signif.stars = FALSE)
-
-
 
 
 # Data: Cognitive Behavior Therapy to Beating the Blues
@@ -28,10 +25,8 @@ options(show.signif.stars = FALSE)
 # Response = Y = survey score result. Ranges from 0 to 63 (severe depression)
 # These are the cols labelled bdi.pre, bdi.2m, ..bdi.8m (taken at the monthly time intervals)
 
-
 bluesData.wide <- read.table("data/cbtb.txt", header=TRUE)
 head(bluesData.wide)
-
 
 
 # part (a) --------------------------------------------------------
@@ -42,26 +37,16 @@ head(bluesData.wide)
 # TODO: question teacher: 
 corMat <- cor(bluesData.wide[-c(1,2,3)]) 
 corMat
-diff(corMat[1,][-1])
-diff(corMat[2,][-2])
-diff(corMat[3,][-3])
-diff(corMat[4,][-4])
-diff(corMat[5,][-5])
-# 
-ggcorrplot(corMat)
-# Correlation seems to increase with increase in time lag (lag = 2 months) since
-# the squares get darker red for increasing months. 
 
+# Correlation seems to diminish with increase in time lag (lag = 2 months) 
 
 # COR STRUCTURE: Autoregressive since number of patients in BLOCK (i)at time (s) depends
 # on those measured at time (s-1), and also less strongly at time (s - 2) and other
 # times (t) in the past. 
 
-
 # part (b) --------------------------------------------------------------------------------
 
 # Reshape data to long format: 
-
 blueColNames = names(bluesData.wide)
 bluesData.wide$Subject <- 1:nrow(bluesData.wide)
 bluesData <- reshape(bluesData.wide, 
@@ -79,33 +64,7 @@ N <- nrow(bluesData)
 bluesData$Subject <- factor(paste(rep('S', N), bluesData$Subject, sep=''))
 bluesData
 
-#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-#bwide = bluesData.wide
-#gs = colnames(bwide)
-#gs[4] = "bdi.0m"
-#colnames(bwide) = gs
-
-#bd = reshape(bwide, varying=list(gs[4:8]), timevar="Months", times=c(0, 2, 4, 6, 8), 
-#             v.names = "Score", idvar="Subject", direction="long")
-#bd = with(bd, bd[order(Subject, Months), ])
-#N <- nrow(bd)
-#bd$Subject <- factor(paste(rep('S', N), bd$Subject, sep=''))
-#bd
-
-
 # part c) ------------------------------------------------------------------------------
-
-# Replications = 5 (5 monthly measures on each Subject)
-# N = 31 subjects
-length(levels(bluesData$Subject))
-# Y = score of the patient
-# Treatment = treat (levels: TAU or Beatheblues)
-# Grouping factor or Unit: subject
-# Time: Months (no need to centre since there is a meaningful 0 value)
-
-# Exploratory plots
-
-
 
 # PLOT 1: =============================================================================
 # Usable for identifying (1) between-group variation, and (2) within-group variation
@@ -184,14 +143,13 @@ ggplot(data=bluesData, aes(x=Months, y=Score, color=Subject)) + geom_line() + ge
 
 
 
-
 # PLOT 2: =====================================================================================
 # Usable for identifying (1) between-subject variation, and (2) within-subject variation
 
 ### INTERCEPTS AND SLOPES 95% CI: 
 
 #### Can visualize the mean response as a weighted average of the individual Subject profiles
-# provided that the between-rats variance is included in the averaging. 
+# provided that the between-subject variance is included in the averaging. 
 # Finding linear response for each Subject using lmList()
 # Can help explain random effects when the model is fitted. 
 blues.lmlist <- lmList(Score ~ Months | Subject, data=bluesData)
@@ -215,15 +173,12 @@ ciDf <- data.frame(Estimate=c(intDf$est., slopeDf$est.),
                    Subject= subjectNames, 
                    treatment = ptreat)
 
-# ggplot(ciDf, aes(x=Estimate, y=Subject, color=treatment)) + 
-#       geom_errorbarh(aes(xmin=Lower, xmax=Upper)) + 
-#       geom_line() + geom_point() + facet_wrap(~Type, ncol=2) 
 ggplot(ciDf[ciDf$Type == "intercept",], aes(x=Estimate, y=Subject, color=treatment)) + 
        geom_errorbarh(aes(xmin=Lower, xmax=Upper)) + 
-       geom_line() + geom_point() 
+       geom_line() + geom_point() + xlab("Intercept")
 ggplot(ciDf[ciDf$Type == "slope",], aes(x=Estimate, y=Subject, color=treatment)) + 
        geom_errorbarh(aes(xmin=Lower, xmax=Upper)) + 
-       geom_line() + geom_point() 
+       geom_line() + geom_point() + xlab("Slope") 
 #INTERPRET: 
 # Intercepts: the intercepts vary BETWEEN subjects so suggests random intercepts model
 # Slopes = lots of slope variation BETWEEN subjects so suggests random slopes model
@@ -248,8 +203,6 @@ ggplot(slopeByTreatDf, aes(x=treat, y=slope, color=treat)) + geom_boxplot(size=1
 # (can do same thing for the Drug groups (have Drug on x-axis))
 
 
-# TODO: just keep this part (all the (2)'s) for assignment: +++++++++++++++++++++++++++++++++++++++++++++++++
-
 # (2) VARIABILITY AMONG INDIVIDUALS WITHIN A GROUP: (random intercepts/ random slopes)
 
 # ----- Random slopes: (Slopes within treat): the rate of increase in depression over time
@@ -264,7 +217,7 @@ intByTreatDf <- melt(split(intDf$est., ptreat))
 colnames(intByTreatDf) <- c("intercept", "treat")
 ggplot(intByTreatDf, aes(x=treat, y=intercept, color=treat)) + geom_boxplot(size=1)
 
-# (1) VARIABILITY AMONGST GROUPS (fixed effect interaction)
+# (1) VARIABILITY AMONGST GROUPS (fixed effect )
 ### --- Intercepts among treatments:
 # Blues boxplot is lower than TAU boxplot, so can see that intercepts for Blues group
 # are generally lower. Not significant since boxplots overlap. 
@@ -278,13 +231,11 @@ ggplot(intByTreatDf, aes(x=treat, y=intercept, color=treat)) + geom_boxplot(size
 # Variation in intercepts among subjects is similar for Blues and TAU group since each of
 # their boxplots have similar width. 
 
-# =====> cannot say if the width is wide enough to justify need for random intercepts model: ~ 1|subject
+# =====> cannot say if the width is wide enough to justify need for random intercepts model: 
+# ~ 1|subject
 
 
-
-
-## PLOT 3: ====================================================================================
-
+## PLOT 3: ===================================================================================
 # usable for identifying (1) between-group(treat) variation (so just fixed effect interaction)
 
 # Interaction plot of week and treatment: 
@@ -315,9 +266,6 @@ interactionPlot(bluesData, x.factor="drug", trace.factor = "treatment", response
 # and upward slope for Blues. 
 
 
-
-
-
 # part (d) -----------------------------------------------------------------------------------
 
 # COR STRUCTURE: Autoregressive since number of subjects in BLOCK (i)at time (s) depends
@@ -329,36 +277,25 @@ interactionPlot(bluesData, x.factor="drug", trace.factor = "treatment", response
 # Fitting the GEE model using normal error distribution (so linear model)
 blues.gee <- geeglm(Score ~ drug*treatment*Months, id=Subject, corstr="ar1", 
                     family=gaussian, data=bluesData)
+blues.gee$geese$vbeta # is this the correlation matrix?
 
 summary(blues.gee)
 # INTERPRET: the two-way and three-way terms are not
 # significant given the other terms are fitted so just remove these terms
 
-# FItting the next GEE model without nonsignificant terms: 
-blues.nointeract.gee <- geeglm(Score ~ drug + treatment + Months, id=Subject, corstr="ar1",
-                          family=gaussian,data=bluesData)
-summary(blues.nointeract.gee)
-# INTERPRET: now drug is no  longer significant, so remove it
+# Removing 3-way term
+blues.no3.gee = update(blues.gee, .~. -drug:treatment:Months)
+summary(blues.no3.gee)
 
+# Removing nonsignificant treatment*Months term
+blues.noTM.gee  = update(blues.no3.gee, .~. -treatment:Months)
+summary(blues.noTM.gee )
 
-# Fitting the treat + Months GEE model
-blues.final.gee <- geeglm(Score ~ treatment + Months, id=Subject, corstr="ar1", 
-                          family=gaussian, data=bluesData)
-summary(blues.final.gee)
-# INTERPRET: 
-# --> Correlation between two sequential (lag=1) observations in the same BLOCK:
-# alpha_st = 0.676
-# --> treatmentTAU coeff: significant and positive means that TAU group scores higher
-# score than BeatTheBlues group, meaning TAU group has significantly higher depression. 
-# ---> Months: as months increase, depression decreases since coeff is negative. 
-
-
+# Removing the marginally significant drug*Treat term
+blues.onlyDM.gee = update(blues.noTM.gee , .~. -drug:treatment)
+summary(blues.onlyDM.gee)
 
 # part (e) -----------------------------------------------------------------------------------
-
-
-# (i) plot of groupedData() --- please see part (c) for exploratory plots
-
 
 # (ii) Find appropriate mixed model using lme
 
@@ -373,21 +310,12 @@ summary(blues.final.gee)
 # Also can expect some month-to-month variation WITHIN each subject (residual variance)
 # Assumption: this error is homogeneous and uncorrelated. 
 
-
 # NOTE: must fit using method="ML" to compare models with different fixed effects
 # but same random effects.
 # Results for final model should be found using REML. 
 
-
 # STEP 1: obtain the random effects part of the model: ========================================
 blues.lme <- lme(Score ~ drug*treatment*Months, random= ~Months|Subject, data=bluesData)
-
-VarCorr(blues.lme) # intercept variance is much larger than months variance (slope) so this
-# might suggest just a random intercepts model. 
-intervals(blues.lme)
-# sd.slopes interval is above zero so sd.slopes is significantly different from zero
-# But is also below sd.intercept interval so there is significantly higher intercept
-# variation compared to slope variation. 
 
 # Using better anova analysis to test if random slopes is needed: 
 blues.intercepts.lme <- lme(Score ~ drug*treatment*Months, random = ~1|Subject, data=bluesData)
@@ -396,10 +324,9 @@ anova(blues.intercepts.lme, blues.lme) # rand slopes not significant.
 # INTERPRET: 
 # Random slopes not significant so the Subjects do not vary much over months. 
 
+# Confirming with variance components: 
 
-#### ANALYZING random effects part of intercepts model: =======================================
-
-VarCorr(blues.intercepts.DrugMonth.lme)
+VarCorr(blues.intercepts.lme)
 # var.intercept = 45.77
 # var.residual = 48.655       (overall within-subject variation)
 
@@ -408,8 +335,7 @@ VarCorr(blues.intercepts.DrugMonth.lme)
 
 
 # Significance of variance components: 
-blues.sigma.ci <- intervals(blues.intercepts.DrugMonth.lme)
-blues.sigma.ci
+intervals(blues.intercepts.lme)
 
 # INTERPRET: 
 # (1) sigma.intercept and sigma.residual are overlapping so not statistically different
@@ -438,13 +364,11 @@ blues.intercepts.alltwoway.lme <- lme(Score ~ drug * treatment + drug*Months +
 anova(blues.intercepts.alltwoway.lme)
 # INTERPRET: treatment*Months interaction erm is not sigifniicant == remove it. 
 
-
 #### Removing the treatment*Months interaction:
 blues.intercepts.noTM.lme <- lme(Score ~ drug*Months + drug*treatment, random = ~1|Subject,
                                  data=bluesData, method="ML")
 anova(blues.intercepts.noTM.lme)
 # INTERPRET: the drug*treatment term is not significant, so remove it
-
 
 #### Removing drug*treat: (leaves only drug*Months interaction)
 blues.final.lme <- lme(Score ~ treatment + drug*Months, random = ~1|Subject, 
@@ -475,11 +399,7 @@ summary(blues.final.lme)
 # higher depression score than the BeatTheBlues group. 
 
 
-
-
-# part (iii) Residuals plots ------------------------------------------------------------------
-
-
+# part (iii) Residuals plots -----------------------------------------------------------------
 fixedResids = blues.final.lme$residuals[,1]
 df <- data.frame(SubjectResids = blues.final.lme$residuals[,2], 
                  SubjectStdResids = resid(blues.final.lme, type="normalized"), 
@@ -510,31 +430,22 @@ ggplot(data=df, aes(x=FixedFitted, y=FixedStdResids, color=treatment)) + geom_po
    ggtitle("Residuals vs Fitted for Fixed Line")
 
 
-
-
-
 ######  QQ plot of residuals (fitted) ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 shapiro.test(df$FixedResids) # for fixed part of the model, marginally non-normal
 shapiro.test(df$SubjectResids) # for subject, there is evidence of non-normality
 
 # (1) Standardized residuals by treat (Fixed part): 
-qqnorm(blues.final.lme$residuals[,1]) # fixed
-
 ggplot(df, aes(sample = FixedStdResids)) + 
    stat_qq(color="dodgerblue", size=3, alpha=0.5) + 
    stat_qq_line(linetype="dashed", size=1) + 
    ggtitle("QQnorm plot for Fixed Model")
 
 # (2) Standardized residuals by Subject (random part): 
-qqnorm(residuals(blues.final.lme, type="normalized"))
-
 ggplot(df, aes(sample = SubjectStdResids)) + 
    stat_qq(color="dodgerblue", size=2) + 
    stat_qq_line(linetype="dashed", size=1) + 
    ggtitle("QQnorm plot for Subject")
-
-
 
 ### Residuals vs predictors (using boxplots) +++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -546,13 +457,10 @@ ggplot(df, aes(x=treatment, y=FixedStdResids, colour=drug)) + geom_boxplot(size=
 
 # (2) Boxplot of residual vs predictor (by subject (random part))
 
-#plot(blues.final.lme, Subject ~ resid(., type="p"),abline=c(0,1))
-
 ggplot(df, aes(x=Subject, y=SubjectStdResids, colour=treatment)) + geom_boxplot(size=1)  +
    geom_hline(yintercept=0, linetype="dashed", size=1,color="black") + 
       ggtitle("Subject vs Standardized Subject Residuals")
 # non-homogeneity of variance, with outliers, and general non-centering around y = 0 line. 
-
 
 
 # part (iv, v) --------------------------------------------------------------------------------
@@ -560,55 +468,26 @@ ggplot(df, aes(x=Subject, y=SubjectStdResids, colour=treatment)) + geom_boxplot(
 
 # ACF for all residuals combined
 bluesResids <- blues.final.lme$residuals[,2] # residuals for random part only (Subject)
-acf(bluesResids) 
-ggAcf(bluesResids)
+ggAcf(bluesResids) 
 
 # INTERPRET: 
 # ACF does not appear to have a random distribution 
 # Some autocorrelations are greater than 2 stdevs (dotted lines), and sinusoidal pattern.
 # ===> suggests a systematic effect may be missing. 
 
-
-
 # ACF for residuals by subject
 subject.level <- levels(bluesData$Subject)
 
-# Getting default plot values
-# par("mfrow", "oma", "mar")
-# $mfrow
-# [1] 1 1
-# $oma
-# [1] 0 0 0 0
-# $mar
-# [1] 5.1 4.1 4.1 2.1
 par(mfrow=c(3,3), mar=c(2,4,0,0), oma=c(2,2,4,2))
 
 for(i in seq(along=subject.level)){
    datain <- bluesData$Subject == subject.level[i]
    
    acf(bluesResids[datain], xlab="", ylab="", main=paste("Subject", subject.level[i]))
-   #print(ggAcf(drinkResids[datain])) + ggtitle(paste("rat", rat.level[i]))
 }
 
 # ACF by subject seem to follow no pattern, and do not have outliers. Harder to discern
 # any pattern since there are only 4 observations (excluding lag 0) per Subject. 
 
+# Setting back to default values. 
 par(mfrow=c(1,1), oma=c(0,0,0,0), mar=c(5,4,4,2)+0.1)
-
-
-# part (vi) ----------------------------------------------------------------------------------
-summary(blues.final.lme)
-
-# part (f) ----------------------------------------------------------------------------------
- 
-# Compare GEE and and LME, examining parameter estimates and their standard errors. 
-
-summary(blues.final.gee)
-summary(blues.final.lme)
-
-# SIMILAR: both have same conclusions for treatmentTAU and Months predictor coeffs: 
-# Months: as time goes on depression falls
-# treatmentTAU: depression for TAU group is higher than for BeatTheBlues group. 
-
-# Standard errors: higher in general for the LME model than for GEE model
-# Coefs: similar values in predictor coefs
