@@ -10,6 +10,7 @@ library(lme4) # for glmer() for fitting GLMM model
 library(nlme)
 #detach(package:nlme)
 library(lattice)
+library(car) # for Anova() for testing glmer
 library(MASS) # for glmmPQL
 library(glmmML) # for glmmML
 
@@ -157,6 +158,8 @@ femaleLine.fixed <- 0.888 + 0.037* deerData$Length.centred
 p.averageFarm <- exp(femaleLine.fixed) / (1 + exp(femaleLine.fixed))
 iLen <- order(deerData$Length.centred) # to avoid spaghetti plot
 
+# ----
+
 #plot(deerData$Length.centred, deerData$EcerviPresence, ylab="Probability of presence of E.cervi",xlab="Length")
 #lines(deerData$Length.centred[iLen], p.averageFarm[iLen], lwd=3)
 #sigmas.ci <- data.frame(lower=c(ints$reStruct$Farm$lower, ints$sigma[1]), 
@@ -275,87 +278,80 @@ owlData.scaled$logBroodSize <- scale(owlData$logBroodSize)
 owlData.scaled$ArrivalTime <- scale(owlData$ArrivalTime)
 
 # Random slopes model (slope part; arrival time vs NCalls)
-# Random intercepts part: Nest
-owl.slopes.glmer <- glmer(NCalls ~ offset(logBroodSize) + SexParent +  FoodTreatment +
-                             (ArrivalTime |Nest) + 
-                             (ArrivalTime| Nest : FoodTreatment),
+## Random intercept = Nest = allows for different intercept of NCalls for each nest 
+# (individual within-nest variation)
+
+
+# NOT CORRECT xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# RANDOM SLOPES (arrivalTime just in the random part)
+#owl.slopes1.glmer <- glmer(NCalls ~ offset(logBroodSize) + 
+#                             SexParent +  FoodTreatment + 
+#                             (ArrivalTime | Nest) + 
+#                             (ArrivalTime | Nest : SexParent) + 
+#                             (ArrivalTime | Nest : FoodTreatment),
+#                          family=poisson, data=owlData.scaled,
+#                          control=glmerControl(optimizer="bobyqa",
+#                                               check.conv.grad=.makeCC("warning",1e-3) ) )
+
+# NOT CORRECT xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# RANDOM INTERCEPTS (arrivalTime was just in random part so now is left out)
+#owl.intercepts1.glmer <- glmer(NCalls ~ offset(logBroodSize) + 
+#                             SexParent +  FoodTreatment  + 
+#                             (1 | Nest) ,
+#                          family=poisson, data=owlData.scaled,
+#                          control=glmerControl(optimizer="bobyqa",
+#                                               check.conv.grad=.makeCC("warning",1e-3) ) )
+
+# Comparing if random slopes is needed: 
+#anova(owl.intercepts1.glmer, owl.slopes1.glmer) # yes the random slopes terms are together significant
+
+
+
+# RANDOM SLOPES (arrivalTime can be in both fixed + random parts) --------
+
+
+## NOT CORRECT xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# TODO: not sure if can compare models with different fixed AND random effects. 
+#owl.slopes2.glmer <- glmer(NCalls ~ offset(logBroodSize) + 
+#                             SexParent * ArrivalTime +  FoodTreatment * ArrivalTime + 
+#                             (ArrivalTime | Nest) + 
+#                             (ArrivalTime | Nest : SexParent) + 
+#                             (ArrivalTime | Nest : FoodTreatment),
+#                          family=poisson, data=owlData.scaled,
+#                   control=glmerControl(optimizer="bobyqa",
+#                                        check.conv.grad=.makeCC("warning",1e-3) ) )
+
+# NOT CORRECT xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# RANDOM INTERCEPTS (arrivalTime is back to fixed and gone from random slopes part)
+#owl.intercepts2.glmer <- glmer(NCalls ~ offset(logBroodSize) + 
+#                              SexParent * ArrivalTime +  FoodTreatment * ArrivalTime + 
+#                              (1 | Nest) ,
+#                           family=poisson, data=owlData.scaled,
+#                           control=glmerControl(optimizer="bobyqa",
+#                                                check.conv.grad=.makeCC("warning",1e-3) ) )
+#anova(owl.intercepts2.glmer, owl.slopes2.glmer)
+
+
+## CORRECT WAY: 
+owl.slopes.glmer <- glmer(NCalls ~ offset(logBroodSize) + 
+                             SexParent * ArrivalTime +  FoodTreatment * ArrivalTime + 
+                             (ArrivalTime | Nest) ,
                           family=poisson, data=owlData.scaled,
                    control=glmerControl(optimizer="bobyqa",
                                         check.conv.grad=.makeCC("warning",1e-3) ) )
 
-## Random intercept = Nest = allows for different intercept of NCalls for each nest 
-# (individual within-nest variation)
-# TODO: does arrival time go in here as fixed?
-owl.intercepts.glmer <- glmer(NCalls ~ offset(logBroodSize) + SexParent +  FoodTreatment +
-                      ArrivalTime + (1 |Nest) ,
-                   family=poisson, data=owlData.scaled,
-                   control=glmerControl(optimizer="bobyqa",
-                                        check.conv.grad=.makeCC("warning",1e-3) ) )
-
-anova(owl.intercepts.glmer, owl.slopes.glmer) # random slopes model is significant. 
-summary(owl.slopes.glmer)
-anova(owl.slopes.glmer)
-
-# Fit the model without gender*arrival time to test its significance using anova
-#owl.noGenderArrivInteract.glmer <- glmer(NCalls ~ offset(logBroodSize) + SexParent*FoodTreatment + 
-#                      (1|Nest), family=poisson, data=owlData.scaled,
-#                   control=glmerControl(optimizer="bobyqa",
-#                                        check.conv.grad=.makeCC("warning",1e-3) ) )
-#anova(owl.noGenderArrivInteract.glmer, owl.glmer)
-
-# INTERPRET ANOVA: 
-anova(owl.slopes.glmer)
-# TODO: are these p-value calculations correct ????????????????????
-n <- nrow(owlData)
-k <- 5 # since summary table has 5 predictor terms
-dfNumer <- 1 # from first col in the anova table for owl.glmer
-dfDenom <- n - k - 1
-
-## --> gender * arrivalTime: this interaction is not significant (p = 0.351)
-1 - pf(1.75887, df1=dfNumer, df2=dfDenom)
-# [1] 0.1852760882
-## --> gender * foodtreat: not signif (p = 0.052)
-1 - pf(3.50289, df1=dfNumer, df2=dfDenom)
-# 0.06175391923
-## --> ArrivalTime: SIGNIF, so keep 
-1 - pf(11.28787, df1=dfNumer, df2=dfDenom)
-# 0.0008302443884
-## --> FoodTreatment
-1 - pf(227.82722, df1=dfNumer, df2=dfDenom)
-# 0
-# --> GenderParent (not signif, so drop)
-1 - pf(7.48099, df1=dfNumer, df2=dfDenom)
-# 0.006421896387
-
-# Cannot compare above p-values with below summary table because those p-values
-# are from the hierarchical models, which lose the respective terms below them. 
-# Summary table tests all terms given the current terms are fitted. 
-summary(owl.slopes.glmer)
-
-
-# Remove gender * arrival time in random slopes
-glmer(NCalls ~ offset(logBroodSize) + SexParent +  FoodTreatment +
-         (ArrivalTime |Nest) + 
-         (ArrivalTime| Nest : FoodTreatment),
-      family=poisson, data=owlData.scaled,
-      control=glmerControl(optimizer="bobyqa",
-                           check.conv.grad=.makeCC("warning",1e-3) ) )
-# TODO: figure out how to remove interaction term
-owl.slopes.noGendArr.glmer <- glmer(NCalls ~ offset(logBroodSize) + ArrivalTime + 
-                                       SexParent*FoodTreatment + 
-                              (ArrivalTime |Nest),
+owl.intercepts.glmer <- glmer(NCalls ~ offset(logBroodSize) + 
+                             SexParent * ArrivalTime +  FoodTreatment * ArrivalTime + 
+                             (1 | Nest) ,
                           family=poisson, data=owlData.scaled,
                           control=glmerControl(optimizer="bobyqa",
                                                check.conv.grad=.makeCC("warning",1e-3) ) )
 
-summary(owl.slopes.noGendArr.glmer)
+anova(owl.intercepts.glmer, owl.slopes.glmer)
 
 
-# remove gender * foodtreat
-owl.slopes.noInteract.glmer <- glmer(NCalls ~ offset(logBroodSize) + SexParent + 
-                                        FoodTreatment + ArrivalTime + (ArrivalTime |Nest),
-                                    family=poisson, data=owlData.scaled,
-                                    control=glmerControl(optimizer="bobyqa",
-                                                         check.conv.grad=.makeCC("warning",1e-3) ) )
-summary(owl.slopes.noInteract.glmer)
+
 
