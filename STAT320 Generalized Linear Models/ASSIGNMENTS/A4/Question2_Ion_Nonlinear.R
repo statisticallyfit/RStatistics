@@ -1,5 +1,6 @@
 setwd("/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT320 Generalized Linear Models/")
 source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT320 Generalized Linear Models/ASSIGNMENTS/A4/plotTools.R')
+source('/development/projects/statisticallyfit/github/learningmathstat/RStatistics/STAT320 Generalized Linear Models/ASSIGNMENTS/A4/Rfunctions.R')
 
 
 library(ggfortify)
@@ -15,9 +16,7 @@ y <- c(8.56, 8.94, 13.82, 32.16, 56.68, 85.46)
 
 ionData <- data.frame(leadConc = x, logLeadConc = log10x, ElectroForce = y)
 
-ggplot(ionData, aes(x=leadConc, y=ElectroForce)) + geom_point(size=3)
-
-ggplot(ionData, aes(x=logLeadConc, y=ElectroForce)) + geom_point(size=3, colour="dodgerblue")
+ggplot(ionData, aes(x=logLeadConc, y=ElectroForce)) + geom_point(size=3)
 
 
 
@@ -68,7 +67,7 @@ betaCI(ion.nls)
 
 #-----
 
-# Manually: 
+# Manually: TODO NOT WORKING!!!
 #df.residual <- summary(ion.nls)$df[2]
 #df.residual
 s <- summary(ion.nls)$sigma # called the standard error of the regr model
@@ -117,9 +116,9 @@ c.hat <- coef(ion.nls)[[3]]
 
 # dg/dtheta = [df / da, df / db,             df/dc]
 #           = [1      , log10(leadConc + c), b/( ln(10) * (leadConc + c)) ]
-dg.dtheta <- t(c(1, log10(xstar + c.hat), b.hat / (log(10) * (xstar + c.hat))))
-
-calcPredictionCI.nls(leadMolPerLiter, ion.nls, dg.dtheta, yhat.line)
+dg.dtheta <- t(c(1, 
+                 log10(leadMolPerLiter + c.hat), 
+                 b.hat / (log(10) * (leadMolPerLiter + c.hat))))
 
 calcPredictionCI.nls <- function(xstar, fit.nls, dg.dtheta, yhat.line){
       
@@ -137,43 +136,4 @@ calcPredictionCI.nls <- function(xstar, fit.nls, dg.dtheta, yhat.line){
       return(predInterval)
 }
 
-calcPredictionCI.ionFit <- function(xstar){
-      a.hat <- coef(ion.nls)[[1]]
-      b.hat <- coef(ion.nls)[[2]]
-      c.hat <- coef(ion.nls)[[3]]
-      
-      cov.hat <- vcov(ion.nls)
-      
-      # dg/dtheta = [df / da, df / db,             df/dc]
-      #           = [1      , log10(leadConc + c), b/( ln(10) * (leadConc + c)) ]
-      dg.dtheta <- t(c(1, log10(xstar + c.hat), b.hat / (log(10) * (xstar + c.hat))))
-      
-      # Calculate standard error of y-hat (s_y-hat) at xstar 
-      var.atXstar <- dg.dtheta %*% cov.hat %*% t(dg.dtheta)
-      
-      yhat <- yhat.line(xstar)
-      
-      n <- nrow(ionData)
-      s <- summary(ion.nls)$sigma # residual standard error
-      predInterval <- suppressWarnings(yhat + c(-1,1) * abs(qt(0.975, df=n - 2)) * sqrt(s^2 + var.atXstar))
-      
-      return(predInterval)
-}
-
-calcPredictionCI.ionFit(leadMolPerLiter)
-
-# Can calculate the 95% ci for the Ricker curve at x = 1000 using the standard error
-yhat <- B0 * xstar * exp(-B1*xstar); yhat
-
-# Average Y Interval: 
-yhat + c(-1,1) * abs(qt((1-0.95)/2, df=n-2)) * se.at1000
-# ===> we are 95% confident that E(y | x = 1000) is between 213 and 289 million recruits. 
-#(average number, not individual prediction. )
-
-# Prediction Y Interval: (for individual new observation)
-# Var(y | x* = 1000) = s^2 + s_yhat^2
-# yhat +- t(0.975, df = n-2) * sqrt(s^2 + s_yhat^2)
-s <- summary(spawn.nls)$sigma; s
-yhat + c(-1,1) * qt(0.975, df=n-2) * sqrt(s^2 + se.at1000^2)
-# ===> we are 95% confident that a future new observation with 1000 thosuand tonnes
-# of spawning stock would produce between 175 and 327 million recruits. 
+calcPredictionCI.nls(leadMolPerLiter, ion.nls, dg.dtheta, yhat.line)

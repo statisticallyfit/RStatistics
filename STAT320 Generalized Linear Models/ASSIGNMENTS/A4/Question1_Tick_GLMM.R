@@ -32,14 +32,9 @@ head(tickData)
 # Exploratory plot of natural log of number of ticks against altitude, grouped by year
 #numSubjects <- length(levels(tickData$ID))
 
-#ggplot(tickData, aes(x=ALT, y=log(TICKS), color=YEAR)) + geom_point() +   
-#      facet_wrap(~ YEAR, ncol=1) 
-#      #scale_colour_manual(values=sample(ggplotColors(numSubjects))
-
-# BEn BOLKER PLOT: 
-ggplot(tickData, aes(x=ALT,y=1+TICKS, colour=YEAR)) +
-      stat_sum(aes(size=..n..),alpha=0.7)+
-      scale_y_log10()+
+ggplot(tickData, aes(x=ALT,y=log(TICKS), colour=YEAR)) +
+      stat_sum(aes(size=..n..),alpha=0.8)+
+      #scale_y_log10()+
       scale_size_continuous(breaks=c(2,6,10),range=c(2,7))+
       geom_smooth(method="glm",method.args=list(family=quasipoisson)) + facet_wrap(~YEAR)
 
@@ -63,19 +58,23 @@ ggplot(tickData, aes(x=ALT,y=1+TICKS, colour=YEAR)) +
 # PLOT 3: =====================================================================================
 # Fixed effects Interaction
 
-#interactionPlot(x.factor="ALT", trace.factor = "YEAR", response="TICKS", data=tickData)
+tickData$logTicks <- log(tickData$TICKS)
+interactionPlot(x.factor="ALT", trace.factor = "YEAR", response="logTicks", data=tickData)
+# clear slope interaction and intercepts are different. 
 
 # part b) -----------------------------------------------------------------------------------
 
 # Centering ALTITUDE: 
 tickData$ALT.centred <- tickData$ALT - mean(tickData$ALT)
 
+tickData$ALT.scaled <- scale(tickData$ALT)
+
 # part c) -----------------------------------------------------------------------------------
 
 # (i) testing for significance of random effects
 
 # NOTE: got convergence error when fitting location and id as numerical variables.
-tick.randSaturated.glmer <- glmer(TICKS ~ YEAR * ALT.centred + (1|location / brood / id), 
+tick.randSaturated.glmer <- glmer(TICKS ~ YEAR * ALT.scaled + (1|LOCATION /BROOD /ID), 
                               family=poisson, data=tickData, 
                     control=glmerControl(optimizer="bobyqa",check.conv.grad=.makeCC("warning",1e-3) ) )
 #tick.f <- glmer(TICKS ~ YEAR * ALT.centred + (1|location/brood/id), 
@@ -88,20 +87,20 @@ summary(tick.randSaturated.glmer)
 
 
 # Random interaction: Location * Brood
-tick.randLocBrood.glmer <- glmer(TICKS ~ YEAR * ALT.centred + (1|location / brood), 
+tick.randLocBrood.glmer <- glmer(TICKS ~ YEAR * ALT.scaled + (1|LOCATION /BROOD), 
                                  family=poisson, data=tickData, 
                               control=glmerControl(optimizer="bobyqa",
                                                    check.conv.grad=.makeCC("warning",1e-3) ) )
 
 # Random interaction: Location * ID
 # NOTE: got convergence error when fitting location and id as numerical variables. 
-tick.randLocID.glmer <- glmer(TICKS ~ YEAR * ALT.centred + (1|location/id), 
+tick.randLocID.glmer <- glmer(TICKS ~ YEAR * ALT.scaled + (1|LOCATION/ID), 
                               family=poisson, data=tickData, 
                               control=glmerControl(optimizer="bobyqa",
                                                    check.conv.grad=.makeCC("warning",1e-3) ) )
 
 # Random interaction: Brood * ID
-tick.randBroodID.glmer <- glmer(TICKS ~ YEAR * ALT.centred + (1|BROOD/ID), 
+tick.randBroodID.glmer <- glmer(TICKS ~ YEAR * ALT.scaled + (1|BROOD/ID), 
                               family=poisson, data=tickData, 
                               control=glmerControl(optimizer="bobyqa",
                                                    check.conv.grad=.makeCC("warning",1e-3) ) )
@@ -110,14 +109,14 @@ anova(tick.randLocBrood.glmer, tick.randSaturated.glmer)
 anova(tick.randLocID.glmer, tick.randSaturated.glmer)
 anova(tick.randBroodID.glmer, tick.randSaturated.glmer) # seem most equivalent
 
-anova(tick.randLocBrood.glmer, tick.randLocID.glmer, tick.randBroodID.glmer, tick.randSaturated.glmer)
+#anova(tick.randLocBrood.glmer, tick.randLocID.glmer, tick.randBroodID.glmer, tick.randSaturated.glmer)
 
 # Next step: reducing the brood-id random effects model further
-tick.randBrood.glmer <- glmer(TICKS ~ YEAR * ALT.centred + (1|BROOD), family=poisson, data=tickData,
+tick.randBrood.glmer <- glmer(TICKS ~ YEAR * ALT.scaled + (1|BROOD), family=poisson, data=tickData,
                               control=glmerControl(optimizer="bobyqa",
                                                    check.conv.grad=.makeCC("warning",1e-3) ))
 
-tick.randID.glmer <- glmer(TICKS ~ YEAR * ALT.centred + (1|ID), family=poisson, data=tickData,
+tick.randID.glmer <- glmer(TICKS ~ YEAR * ALT.scaled + (1|ID), family=poisson, data=tickData,
                               control=glmerControl(optimizer="bobyqa",
                                                    check.conv.grad=.makeCC("warning",1e-3) ))
 
@@ -132,16 +131,8 @@ anova(tick.randID.glmer, tick.randBroodID.glmer)
 Anova(tick.randBroodID.glmer)
 # INTERPRET: all fixed effects significant, including the interaction term, so just keep this model.
 
-
-# Just in case, fit the non-interaction model: 
-tick.nofixedinteract.glmer <- glmer(TICKS ~ YEAR + ALT.centred + (1|BROOD/ID), 
-                                    family=poisson, data=tickData,
-                                    control=glmerControl(optimizer="bobyqa",
-                                                         check.conv.grad=.makeCC("warning",1e-3) ))
-anova(tick.nofixedinteract.glmer, tick.randBroodID.glmer)
-# INTERPRET: p-value of fixed effect interaction is 0.03497 so keep the interaction model
-# Alternately, the AIC for interaction model is lower. 
-
+# NOTE: based on forum advice from teacher do not use anova to compare fixed effects parts
+# since we cannot fit using method = "ML" in glmer. 
 
 # part d) -------------------------------------------------------------------------------------------
 
@@ -184,11 +175,10 @@ summary(tick.randBroodID.glmer)$varcor # use summary table only copy varcor part
 
 # Identify observation with largest residual in absolute value. 
 
-# fixedResids = whip.glmer$residuals[,1]
-df <- data.frame(Residuals = residuals(tick.randBroodID.glmer, type="pearson"), 
+# NOTE: deviance residuals are normally distributed. 
+df <- data.frame(Residuals = residuals(tick.randBroodID.glmer, type="deviance"), 
                  Fitted = fitted(tick.randBroodID.glmer), Location = tickData$location, 
                  Brood = tickData$brood)
-
 
 # (1) Residuals vs fitted --------------------------------------------------------------------
 
@@ -238,7 +228,7 @@ sub[order(sub$TICKS),]  #see, observation 304 is last, with maximum number of ti
 
 
 # NOTE: offset is only needed when number of response counts is not the same per
-# time or area. Here there are equal numbers of TICKS per each year category. 
+# time or area. Here there are equal numbers of TICKS per each year category. (not true)
 y1 = subset(tickData, YEAR == "Y1")
 y2 = subset(tickData, YEAR == "Y2")
 y3 = subset(tickData, YEAR == "Y3")
