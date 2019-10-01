@@ -60,6 +60,19 @@ ggplot(data=jawData, aes(x=age, y=bone)) + geom_point() +
 
 
 # Calculation of R^2 (variation explained)
-se.stderror
-df.residual <- 
-sse <- 
+df.residual <- summary(jaw2.nls)$df[2]
+df.residual
+s <- summary(jaw2.nls)$sigma # called the standard error of the regr model
+s # residual standard error
+SSE <- s^2 * df.residual
+SSE
+
+# Fit the null model to get the total SST
+jawNull.lm <- lm(bone ~ 1, data=jawData)
+df.total <- summary(jawNull.lm)$df[2]; df.total
+s <- summary(jawNull.lm)$sigma
+SST <- s^2 * df.total
+SST
+
+# R squared is just: percentage variation
+R2 <- 1 - SSE/SST; R2

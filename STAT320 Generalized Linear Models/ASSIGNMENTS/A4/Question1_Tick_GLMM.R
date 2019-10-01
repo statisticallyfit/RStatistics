@@ -3,16 +3,11 @@ source('/development/projects/statisticallyfit/github/learningmathstat/RStatisti
 
 
 library(ggfortify)
-
 library(lme4) # for glmer() for fitting GLMM model
 library(nlme)
-library(dae) # for interaction.ABC.plot
 #detach(package:nlme)
 library(lattice)
 library(car) # for Anova() for testing glmer
-library(MASS) # for glmmPQL
-library(geepack)
-library(glmmML) # for glmmML
 
 options(show.signif.stars = FALSE)
 
@@ -37,12 +32,9 @@ head(tickData)
 # Exploratory plot of natural log of number of ticks against altitude, grouped by year
 #numSubjects <- length(levels(tickData$ID))
 
-ggplot(tickData, aes(x=ALT, y=log(TICKS), color=YEAR)) + geom_point() +   
-      facet_wrap(~ YEAR, ncol=1) 
-      #scale_colour_manual(values=sample(ggplotColors(numSubjects))
-
-
-
+#ggplot(tickData, aes(x=ALT, y=log(TICKS), color=YEAR)) + geom_point() +   
+#      facet_wrap(~ YEAR, ncol=1) 
+#      #scale_colour_manual(values=sample(ggplotColors(numSubjects))
 
 # BEn BOLKER PLOT: 
 ggplot(tickData, aes(x=ALT,y=1+TICKS, colour=YEAR)) +

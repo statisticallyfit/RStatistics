@@ -123,6 +123,14 @@ se.at1000
 # Can calculate the 95% ci for the Ricker curve at x = 1000 using the standard error
 yhat <- B0 * xstar * exp(-B1*xstar); yhat
 
+yhat.line <- function(x) {
+   b0.hat <- coef(jaw2.nls)[[1]]
+   b1.hat <- coef(jaw2.nls)[[2]]
+   
+   return(b0.hat * x * exp(-b1.hat*x))
+}
+yhat <- yhat.line(1000); yhat
+
 # Average Y Interval: 
 yhat + c(-1,1) * abs(qt((1-0.95)/2, df=n-2)) * se.at1000
 # ===> we are 95% confident that E(y | x = 1000) is between 213 and 289 million recruits. 
