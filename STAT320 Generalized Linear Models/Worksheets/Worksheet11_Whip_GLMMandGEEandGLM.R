@@ -5,6 +5,7 @@ source('/development/projects/statisticallyfit/github/learningmathstat/RStatisti
 
 
 library(ggfortify)
+library(forecast) # for ggacf
 
 library(lme4) # for glmer() for fitting GLMM model
 library(nlme)
@@ -335,6 +336,12 @@ ggplot(df, aes(x=Fitted, y=Residuals, colour=Group)) + geom_point(size=2) +
 
 
 # (2) QQPLOT ---------------------------------------------------------------------------------
+
+# Very nonnormal but at least no outliers
+ggplot(df, aes(sample = Residuals)) + 
+   stat_qq(color="dodgerblue", size=2) + 
+   geom_hline(yintercept=c(-2,2), linetype="dotted", color="black") + 
+   stat_qq_line(linetype="dashed", size=1)
 
 # (3) Boxplot of predictors vs residuals (by Subject) -----------------------------------------
 
