@@ -42,19 +42,42 @@ summary(ion.nls)
 
 # part b) ---------------------------------------------------------------------------------
 
-# Graph showing original data points and fitted curve (x = log10))
+# Graph showing original data points and fitted curve (x = log10)) with 95% prediction intervals
+
 logLeadConc.values <- seq(from = min(ionData$logLeadConc), to = max(ionData$logLeadConc), by = 0.011)
 leadConc.values <- 10^logLeadConc.values
 
 # Above need to get the non-log values since we fitted the model with leadConc not log of leadConc
 # so we need to pass this into the predict() function
-ion.preds <- predict(ion.nls, list(leadConc = leadConc.values))
-pred.df <- data.frame(logLeadConc = logLeadConc.values, pred = ion.preds)
+preds <- predict(ion.nls, list(leadConc = leadConc.values))
 
-ggplot(data=ionData, aes(x=logLeadConc, y=ElectroForce)) + geom_point(size = 4) + 
-      geom_line(data=pred.df, aes(y = pred), color="dodgerblue", size=2)
+a.hat <- coef(ion.nls)[[1]]
+b.hat <- coef(ion.nls)[[2]]
+c.hat <- coef(ion.nls)[[3]]
 
-# Perfect fit
+cov.hat <- vcov(ion.nls)
+
+var.atxstar <- vector()
+
+for(i in 1:length(logLeadConc.values)) {
+   dg.dtheta <- t(c(1, 
+                    log10(leadConc.values[i] + c.hat), 
+                    b.hat / (log(10) * (leadConc.values[i] + c.hat))))
+   var.atxstar[i] <- (dg.dtheta %*% cov.hat %*% t(dg.dtheta))[1]
+}
+
+df.residual <- summary(ion.nls)$df[2]
+s <- summary(ion.nls)$sigma 
+
+ci.df <- data.frame(logLeadConc=logLeadConc.values, 
+                    upr = preds + qt(0.975, df=df.residual) * sqrt(s^2 + var.atxstar),
+                    lwr = preds - qt(0.975, df=df.residual) * sqrt(s^2 + var.atxstar),
+                    pred = preds)
+
+ggplot(data=ionData, aes(x=logLeadConc, y=ElectroForce)) + geom_point(size = 2) + 
+   geom_line(data=ci.df, aes(y = pred), color="dodgerblue", size=1) +
+   geom_line(data=ci.df, aes(y=upr), linetype="dashed", color="red") +
+   geom_line(data=ci.df, aes(y=lwr), linetype="dashed", color="red")
 
 # part c) ) ---------------------------------------------------------------------------------
 
@@ -65,22 +88,6 @@ betaCI(ion.nls)
 # INTERPRET: the ideal value is in the 95% CI so our model estimates seem to
 # coincide with the ideal value gained from universal laws. 
 
-#-----
-
-# Manually: TODO NOT WORKING!!!
-#df.residual <- summary(ion.nls)$df[2]
-#df.residual
-s <- summary(ion.nls)$sigma # called the standard error of the regr model
-s # residual standard error
-#SSE <- s^2 * df.residual
-#SSE
-
-SSxx <- sum( (ionData$leadConc - mean(ionData$leadConc))^2 )
-SSxx
-s.b0 <- s / sqrt(SSxx); s.b0
-
-
-            
 # part d ) ---------------------------------------------------------------------------------
 
 # Manual prediction: 
@@ -119,6 +126,7 @@ c.hat <- coef(ion.nls)[[3]]
 dg.dtheta <- t(c(1, 
                  log10(leadMolPerLiter + c.hat), 
                  b.hat / (log(10) * (leadMolPerLiter + c.hat))))
+dg.dtheta
 
 calcPredictionCI.nls <- function(xstar, fit.nls, dg.dtheta, yhat.line){
       
@@ -137,3 +145,14 @@ calcPredictionCI.nls <- function(xstar, fit.nls, dg.dtheta, yhat.line){
 }
 
 calcPredictionCI.nls(leadMolPerLiter, ion.nls, dg.dtheta, yhat.line)
+
+
+
+## ---------------
+# Diagnostic plot
+df <- data.frame(Fits = predict(ion.nls), Res=summary(ion.nls)$residuals)
+ggplot(df, aes(x=Fits, y=Res)) + geom_point()
+
+
+# -----
+

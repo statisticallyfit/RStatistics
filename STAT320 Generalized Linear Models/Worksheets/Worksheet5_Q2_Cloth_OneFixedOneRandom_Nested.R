@@ -45,7 +45,7 @@ ggplot(data=clothData, aes(x=Chemical, y=strength, group=Bolt)) +
       geom_line(size=1, aes(color=Bolt))
 
 # My homemade function: 
-interactionPlot(data=clothData, xFactor="Chemical", traceFactor="Bolt", 
+interactionPlot(data=clothData, x.factor="Chemical", trace.factor="Bolt", 
                 response="strength")
 
 # INTERPRET: change in mean strength (slope of strength) is similar for all Bolts

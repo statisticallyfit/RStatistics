@@ -5,7 +5,7 @@ source('/development/projects/statisticallyfit/github/learningmathstat/RStatisti
 library(ggfortify)
 library(lme4) # for glmer() for fitting GLMM model
 library(nlme)
-#detach(package:nlme)
+library(dae)
 library(lattice)
 library(car) # for Anova() for testing glmer
 
@@ -62,6 +62,7 @@ tickData$logTicks <- log(tickData$TICKS)
 interactionPlot(x.factor="ALT", trace.factor = "YEAR", response="logTicks", data=tickData)
 # clear slope interaction and intercepts are different. 
 
+
 # part b) -----------------------------------------------------------------------------------
 
 # Centering ALTITUDE: 
@@ -74,7 +75,7 @@ tickData$ALT.scaled <- scale(tickData$ALT)
 # (i) testing for significance of random effects
 
 # NOTE: got convergence error when fitting location and id as numerical variables.
-tick.randSaturated.glmer <- glmer(TICKS ~ YEAR * ALT.scaled + (1|LOCATION /BROOD /ID), 
+tick.randSaturated.glmer <- glmer(TICKS ~ YEAR * ALT.centred + (1|location/brood/id), 
                               family=poisson, data=tickData, 
                     control=glmerControl(optimizer="bobyqa",check.conv.grad=.makeCC("warning",1e-3) ) )
 #tick.f <- glmer(TICKS ~ YEAR * ALT.centred + (1|location/brood/id), 
@@ -87,20 +88,23 @@ summary(tick.randSaturated.glmer)
 
 
 # Random interaction: Location * Brood
-tick.randLocBrood.glmer <- glmer(TICKS ~ YEAR * ALT.scaled + (1|LOCATION /BROOD), 
+tick.randLocBrood.glmer <- glmer(TICKS ~ YEAR * ALT.centred + (1|location/brood), 
                                  family=poisson, data=tickData, 
                               control=glmerControl(optimizer="bobyqa",
                                                    check.conv.grad=.makeCC("warning",1e-3) ) )
 
 # Random interaction: Location * ID
 # NOTE: got convergence error when fitting location and id as numerical variables. 
-tick.randLocID.glmer <- glmer(TICKS ~ YEAR * ALT.scaled + (1|LOCATION/ID), 
+tick.randLocID.glmer <- glmer(TICKS ~ YEAR * ALT.centred + (1|location/id), 
                               family=poisson, data=tickData, 
                               control=glmerControl(optimizer="bobyqa",
                                                    check.conv.grad=.makeCC("warning",1e-3) ) )
 
 # Random interaction: Brood * ID
-tick.randBroodID.glmer <- glmer(TICKS ~ YEAR * ALT.scaled + (1|BROOD/ID), 
+# NOTE: got convergence error when fitting location and id as factors, so doing numerical here. 
+# Output is STILL the same, though (tested the loc-id model with alt.scaled using loc/id either
+# factor or numerical and those two models were the same)
+tick.randBroodID.glmer <- glmer(TICKS ~ YEAR * ALT.centred + (1|BROOD/ID), 
                               family=poisson, data=tickData, 
                               control=glmerControl(optimizer="bobyqa",
                                                    check.conv.grad=.makeCC("warning",1e-3) ) )
@@ -112,11 +116,11 @@ anova(tick.randBroodID.glmer, tick.randSaturated.glmer) # seem most equivalent
 #anova(tick.randLocBrood.glmer, tick.randLocID.glmer, tick.randBroodID.glmer, tick.randSaturated.glmer)
 
 # Next step: reducing the brood-id random effects model further
-tick.randBrood.glmer <- glmer(TICKS ~ YEAR * ALT.scaled + (1|BROOD), family=poisson, data=tickData,
+tick.randBrood.glmer <- glmer(TICKS ~ YEAR * ALT.centred + (1|brood), family=poisson, data=tickData,
                               control=glmerControl(optimizer="bobyqa",
                                                    check.conv.grad=.makeCC("warning",1e-3) ))
 
-tick.randID.glmer <- glmer(TICKS ~ YEAR * ALT.scaled + (1|ID), family=poisson, data=tickData,
+tick.randID.glmer <- glmer(TICKS ~ YEAR * ALT.centred + (1|id), family=poisson, data=tickData,
                               control=glmerControl(optimizer="bobyqa",
                                                    check.conv.grad=.makeCC("warning",1e-3) ))
 
@@ -160,8 +164,6 @@ summary(tick.randBroodID.glmer)
 # or sea level, for Year 1
 
 
-
-
 # (iii) Interpret relative importance of variance components. 
 summary(tick.randBroodID.glmer)$varcor # use summary table only copy varcor part
 
@@ -169,9 +171,7 @@ summary(tick.randBroodID.glmer)$varcor # use summary table only copy varcor part
 # So greater source of variability from brood than from individual chicks. 
 
 
-
 # part e)---------------------------------------------------------------------------------------------------
-
 
 # Identify observation with largest residual in absolute value. 
 
@@ -180,58 +180,58 @@ df <- data.frame(Residuals = residuals(tick.randBroodID.glmer, type="deviance"),
                  Fitted = fitted(tick.randBroodID.glmer), Location = tickData$location, 
                  Brood = tickData$brood)
 
+# Outlier with max residual term: 
+sort(abs(df$Residuals))
+
+outlier <- which.max(abs(df$Residuals))
+outlier
+# observation 87 has the maximum residual of 2.3006570325207, which is out of normal bounds
+
+# Which characteritsic of the chick: 
+tickData[(outlier-5):(5+outlier), ]
+# (1) high altitue = 70.759 centred
+# (2) ticks num = 2 (among histest, with max = 3)
+
+ggplot(tickData, aes(x=ALT.centred,y=log(1+TICKS), colour=YEAR)) +
+   stat_sum(aes(size=..n..),alpha=0.8)+
+   #scale_y_log10()+
+   #scale_size_continuous(breaks=c(2,6,10),range=c(2,7))+
+   geom_point()+
+   geom_smooth(method="glm",method.args=list(family=quasipoisson)) + 
+   geom_point(data=tickData[outlier, ], aes(x=ALT.centred, y=log(1+TICKS)), colour="red", size=6) + 
+   facet_wrap(~YEAR)
+# Observation outlier (87) has unusually low number of ticks for its altitude. For its low
+# altitude it should have higher number of ticks. 
+# Looking right: There are more observations with 0 ticks at higher altitude (above the avg altitude)
+# and ther are fewer with 0 ticks below the average altitude. 
+# Looking up: there are more observatiosn with higher number of ticks at the altitudes below
+# average. 
+
+
+# Checking numerically: 
+sub = subset(tickData, ALT.centred < 0 & YEAR == "Y1")
+subOrdByTicks <- sub[order(sub$TICKS),]  
+# see observation 87 is one of the first with 0 ticks at low altitude. 
+
+"87" %in% rownames(subOrdByTicks)
+# TRUE
+
+
+
 # (1) Residuals vs fitted --------------------------------------------------------------------
 
 ggplot(df, aes(x=Fitted, y=Residuals)) + geom_point(size=2) +
-   geom_hline(yintercept=0, linetype="dashed", size=1,color="black") + 
+   geom_hline(yintercept=0, linetype="dashed", size=1,color="black") +  
+   geom_point(data=df[87,], aes(x=Fitted, y=Residuals), color="red", size=4) + 
    geom_hline(yintercept=c(-2,2), linetype="dotted", color="black") 
 
 # (2) QQPLOT ---------------------------------------------------------------------------------
 
-# Very nonnormal but at least no outliers
+# Testing normality of deviance residuals: ok only but few outliers
 ggplot(df, aes(sample = Residuals)) + 
    stat_qq(color="dodgerblue", size=2) + 
    geom_hline(yintercept=c(-2,2), linetype="dotted", color="black") + 
-   stat_qq_line(linetype="dashed", size=1)
+   stat_qq_line(linetype="dashed", size=1) + 
+   geom_hline(data = df[87,], aes(yintercept=Residuals), linetype="dashed", color="red", size=1)
 
-
-# Shapiro Test
-shapiro.test(df$Residuals) # very non-normal
-
-
-# Outlier with max residual term: 
-sort(abs(df$Residuals))
-
-which.max(abs(df$Residuals))
-# observation 304 has the maximum residual of 2.287, which is out of normal bounds
-
-# Which characteritsic of the chick: 
-tickData[300:310, ]
-# (1) high altitue = 70.759 centred
-# (2) ticks num = 2 (among histest, with max = 3)
-
-ggplot(tickData, aes(x=ALT,y=1+TICKS, colour=YEAR)) +
-   stat_sum(aes(size=..n..),alpha=0.7)+
-   scale_y_log10()+
-   scale_size_continuous(breaks=c(2,6,10),range=c(2,7))+
-   geom_smooth(method="glm",method.args=list(family=quasipoisson)) + 
-   geom_point(data=tickData[304, ], aes(x=ALT, y=1+TICKS, colour="red", size=4)) + 
-   facet_wrap(~YEAR)
-# From plot, the 304 observation has particularly high number of ticks for its altitude
-# in the year3 group. All other observations from year 3 at its altitude have
-# fewer number of ticks
-
-# Checking numerically: 
-sub = subset(tickData, ALT >= 500 & YEAR == "Y3")
-sub[order(sub$TICKS),]  #see, observation 304 is last, with maximum number of tick s= 2
-# while others for year 3 have tick = 0 or 1. 
-
-
-# NOTE: offset is only needed when number of response counts is not the same per
-# time or area. Here there are equal numbers of TICKS per each year category. (not true)
-y1 = subset(tickData, YEAR == "Y1")
-y2 = subset(tickData, YEAR == "Y2")
-y3 = subset(tickData, YEAR == "Y3")
-nrow(y1)
-nrow(y2)
-nrow(y3)
+shapiro.test(df$Residuals)

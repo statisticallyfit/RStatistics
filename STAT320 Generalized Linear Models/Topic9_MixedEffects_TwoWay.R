@@ -37,6 +37,10 @@ Machines$Machine
 attach(Machines)
 detach(Machines)
 
+N <- nrow(Machines)
+Machines$Worker <- factor(paste0(rep('W', N), Machines$Worker))
+
+
 # Dotplot: 
 # (1) shows there is a difference between machines (check the horizontal way)
 # since the circles, +, and triangles representing machines A,B,C are spread out
@@ -53,7 +57,7 @@ with(Machines, dotplot(Worker ~ score, groups=Machine, ylab="Worker"))
 # INTERACTION Plot. 
 with(Machines, interaction.plot(x.factor=Machine, trace.factor=Worker, response=score))
 # my function
-interactionPlot(data=Machines, xFactor='Machine', traceFactor='Worker', response='score')
+interactionPlot(data=Machines, x.factor='Machine', trace.factor='Worker', response='score')
 # INTERPRET: 
 # Shows interaction between worker and machine since the slopes of score for
 # workers is not the same over machine levels. 
@@ -104,10 +108,17 @@ sigma.machine_worker <- 3.729532
 # Fit the model without interaction
 machine.nointeraction.lme <- lme(score ~ Machine, random = ~1|Worker, data=Machines)
 
+# Fit using lmer
+machine.lmer <- lmer(score ~ Machine + (1|Worker/Machine), data=Machines)
+summary(machine.lmer)
+summary(machine.lme)
+machine.nointeraction.lmer <- lmer(score ~ Machine + (1|Worker), data=Machines)
+
 # COMPARE USING ANOVA: prerequisite: the models must have the same FIXED EFFECTS. 
 
 # Has both AIC, BIC, and L.Ratio
 anova(machine.nointeraction.lme, machine.lme)
+anova(machine.nointeraction.lmer, machine.lmer)
 # INTERPRET: 
 # Interaction model has lower AIC = 227 than main model AIC = 296 ===> 
 # ===> interaction is better. 

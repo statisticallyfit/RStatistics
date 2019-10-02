@@ -266,6 +266,15 @@ interactionPlot(bluesData, x.factor="drug", trace.factor = "treatment", response
 # and upward slope for Blues. 
 
 
+# Better also to include three-way plot
+library(dae)
+interaction.ABC.plot(data=bluesData, response=Score, x.factor=Months, 
+                     groups.factor=drug, trace.factor=treatment)
+
+# shows the interaction between drug and treatment. It appears that those who
+# are receiving treatment as usual benefit from taking the antidepressant. This trend is not
+# reflected in the group assigned to Beating the Blues.
+
 # part (d) -----------------------------------------------------------------------------------
 
 # COR STRUCTURE: Autoregressive since number of subjects in BLOCK (i)at time (s) depends

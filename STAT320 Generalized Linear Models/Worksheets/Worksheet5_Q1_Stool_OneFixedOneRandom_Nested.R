@@ -19,18 +19,24 @@ options(show.signif.stars = FALSE)
 # Design: randomized block with each subject being a block. 
 
 # RANDOM EFFECT: subject (since it is a random sample for a population)
-# FIXED EFFECT: stool (since we investigate it at fixed levels, not random sampled)
+# FIXED EFFECT: Type of stool (since we investigate it at fixed levels, not random sampled)
 
 # **** NOTE ***: there must be replicate (repeat) measurements from subjects
 # in order to estimate random subject effects (coefficients). 
 data("ergoStool")
 
 head(ergoStool)
+
+N <- nrow(ergoStool)
+ergoStool$Subject <- factor(paste0(rep('S', N), ergoStool$Subject)) 
 ergoStool$Type
-ergoStool$Subject
 
 
 # Exploratory plots
+
+
+# Interaction between Type fixed and SUbject random? 
+interactionPlot(data=ergoStool, x.factor="Type", trace.factor="Subject", response="effort")
 
 # VARIABILITY AMONG SUBJECTS: 
 # Subject 7 has lowest effort for type 1 stool, similar effort for T2,T3 and
@@ -38,6 +44,13 @@ ergoStool$Subject
 # subjects, for all stool types. 
 bwplot(effort ~ Type |Subject, data=ergoStool)
 
+ggplot(ergoStool, aes(x=Type, y=effort, colour=Type)) + geom_boxplot(size=1) + 
+      facet_wrap(~Subject)
+
+
+ggplot(ergoStool, aes(x=Type, color=Type, fill=Type, y=effort)) + 
+      geom_dotplot(binaxis="y", stackdir="centerwhole", stackratio=0.2, 
+                   position="jitter", size=4) + facet_wrap(~ Subject)
 
 # DIFFERENCE IN MEAN EFFOR AMONG TYPE: 
 # Overall, all subjects have lower effort for type 1 stool, highest effort for
@@ -48,8 +61,13 @@ bwplot(effort ~ Type, data=ergoStool)
 
 # Fitting the RANDOM INERCEPTS model: non-interaction
 stool.lme <- lme(effort ~ Type, random = ~1|Subject, data=ergoStool)
+stool.interact.lme <- lme(effort ~ Type, random = ~1|Subject/Type, data=ergoStool)
+
 stool.lmer <- lmer(effort ~ Type + (1|Subject), data=ergoStool)
 anova(stool.lmer)
+
+# Comparing the interaction and non interactino models: 
+anova(stool.lme, stool.interact.lme) # no interaction!
 
 anova(stool.lme)
 # INTERPRET: 
