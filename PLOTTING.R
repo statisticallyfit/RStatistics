@@ -76,10 +76,6 @@ interactionPlot <- function(x.factor, trace.factor, response, data){
 
 
 
-### NOTE I think this doesn't work as it should (see Machines lme) and Question1
-# A2 because need to average the replicated values else we see ugly jagged
-# vertical lines in the plot. 
-
 # More source: interact_plot vs cat_plot: 
 # https://cran.r-project.org/web/packages/interactions/vignettes/categorical.html
 
